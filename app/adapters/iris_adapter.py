@@ -5,7 +5,6 @@ Encapsula la conexión nativa con InterSystems IRIS y ejecución de consultas de
 
 import logging
 from typing import Optional, Any
-import iris
 
 from app.adapters.base import BaseAdapter
 from app.config.settings import settings
@@ -24,6 +23,7 @@ class IrisAdapter(BaseAdapter):
         """Inicializa la conexión con el Superserver de InterSystems IRIS."""
         if self._connection is None:
             try:
+                import iris  # import diferido: la API no depende de IRIS
                 self._connection = iris.createConnection(
                     settings.iris_host,
                     settings.iris_port,
@@ -41,6 +41,7 @@ class IrisAdapter(BaseAdapter):
         """Retorna el objeto context/gateway nativo de IRIS para invocar clases."""
         conn = self.connect()
         try:
+            import iris
             return iris.createIRIS(conn)
         except Exception as e:
             logger.error("Error al obtener contexto IRIS: %s", e)
@@ -49,6 +50,7 @@ class IrisAdapter(BaseAdapter):
     def ping(self) -> bool:
         """Verifica la conectividad activa contra InterSystems IRIS."""
         try:
+            import iris
             conn = self.connect()
             # Si la conexión nativa está viva, creamos el handler IRIS y ejecutamos un chequeo básico
             iris_obj = iris.createIRIS(conn)

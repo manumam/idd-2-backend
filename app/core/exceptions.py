@@ -34,11 +34,17 @@ class DatabaseUnavailableError(BaseAppException):
 
 
 class ResourceNotFoundError(BaseAppException):
-    """Lanzada cuando un recurso consultado en una base no existe (404)."""
+    """Lanzada cuando un recurso consultado no existe (404).
 
-    def __init__(self, resource: str, identifier: str):
-        self.resource = resource
-        self.identifier = identifier
-        code = f"{resource.upper()}_NOT_FOUND"
-        message = f"El recurso '{resource}' con identificador '{identifier}' no fue encontrado."
+    El código lo define cada caso de uso (ej. EQUIPO_NO_ENCONTRADO).
+    """
+
+    def __init__(self, code: str, message: str):
         super().__init__(code=code, message=message, status_code=404)
+
+
+class InvalidRequestError(BaseAppException):
+    """Lanzada cuando un parámetro o cuerpo es inválido (400), antes de consultar."""
+
+    def __init__(self, message: str):
+        super().__init__(code="VALIDACION_INVALIDA", message=message, status_code=400)

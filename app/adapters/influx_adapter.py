@@ -35,7 +35,7 @@ class InfluxAdapter(BaseAdapter):
         candidate_paths = [
             ".influxdb3-token",
             os.path.expanduser("~/.influxdb3-token"),
-            os.path.abspath("../TP Fixture 2030/idd-2-tp/fixture2030-influxdb/.influxdb3-token"),
+            os.path.abspath("../TP/fixture2030-influxdb/.influxdb3-token"),
         ]
         for path in candidate_paths:
             if os.path.exists(path):
