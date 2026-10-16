@@ -56,17 +56,27 @@ class RedisAdapter(BaseAdapter):
             raise DatabaseUnavailableError("Redis", e) from e
 
     def get_sesion(self, sesion_id: str) -> Optional[Dict[str, Any]]:
-        """Lee el hash de la sesión y su TTL restante; None si no existe o expiró."""
+        """Lee la sesión y su TTL restante; None si no existe o expiró.
+
+        Devuelve los datos ya normalizados, sin los nombres internos del hash.
+        """
         clave = f"sesion:{sesion_id}"
 
         def lectura() -> Optional[Dict[str, Any]]:
-            pipe = self.client.pipeline(transaction=False)
-            pipe.hgetall(clave)
-            pipe.ttl(clave)
-            campos, ttl = pipe.execute()
-            if not campos:
+            campos = self.client.hgetall(clave)
+            ttl = self.client.ttl(clave)
+            if not campos or ttl == -2:  # -2: la clave venció entre las dos lecturas
                 return None
-            return {"campos": campos, "ttl": ttl}
+            acciones = campos.get("acciones", "")
+            return {
+                "usuario_id": campos.get("usuario_id"),
+                "nombre_usuario": campos.get("nombre_usuario"),
+                "rol": campos.get("rol"),
+                "idioma": campos.get("idioma"),
+                "ultimo_acceso": campos.get("ultimo_acceso"),
+                "acciones": int(acciones) if acciones.isdecimal() else None,
+                "ttl_segundos": ttl if ttl >= 0 else None,  # -1: sin vencimiento
+            }
 
         return self._execute(lectura)
 

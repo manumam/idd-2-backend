@@ -9,18 +9,15 @@ def obtener_sesion(sesion_id: str) -> SesionResponse:
     sesion = redis_adapter.get_sesion(sesion_id)
     if sesion is None:
         raise ResourceNotFoundError("SESION_NO_VIGENTE", f"No existe una sesión vigente '{sesion_id}'.")
-    campos = sesion["campos"]
-    acciones = campos.get("acciones")
-    ttl = sesion["ttl"]
     return SesionResponse(
         sesionId=sesion_id,
-        usuarioId=campos.get("usuario_id"),
-        nombreUsuario=campos.get("nombre_usuario"),
-        rol=campos.get("rol"),
-        idioma=campos.get("idioma"),
-        ultimoAcceso=campos.get("ultimo_acceso"),
-        acciones=int(acciones) if acciones is not None else None,
-        ttlSegundos=ttl if ttl >= 0 else None,  # -1: la clave no tiene vencimiento
+        usuarioId=sesion["usuario_id"],
+        nombreUsuario=sesion["nombre_usuario"],
+        rol=sesion["rol"],
+        idioma=sesion["idioma"],
+        ultimoAcceso=sesion["ultimo_acceso"],
+        acciones=sesion["acciones"],
+        ttlSegundos=sesion["ttl_segundos"],
     )
 
 

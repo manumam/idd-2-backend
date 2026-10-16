@@ -13,7 +13,7 @@ Los identificadores son los de cada módulo anterior, sin traducir:
 | Usuario | `U` + 6 dígitos | `U000001` | MongoDB (Hito 4, `usuarios`) |
 | Partido | `P-` + 3 dígitos | `P-001` | Neo4j (Hito 5) |
 | Sede | `S-` + 2 dígitos | `S-04` | Neo4j (Hito 5) |
-| Sesión | `SES-` + 4 dígitos | `SES-0001` | Redis (Hito 7) |
+| Sesión | `SES-` + letras mayúsculas o dígitos | `SES-0001`, `SES-DEMO` | Redis (Hito 7) |
 | Evento | `E-` + 4 dígitos | `E-0001` | Neo4j (Hito 5) |
 
 ## 1. Casos de uso
@@ -125,7 +125,7 @@ El caso 8 (`POST /partidos/{codigo}/comentarios`) se agrega al mapa cuando se de
 | 5 | `partido` (código), `items[]` con `codigo` (`E-0001`), `tipo`, `minuto`, `protagonistas[]` (`jugador` con `codigo` y `nombre`, `rol`) |
 | 6 | `sede` (código), `confederacion`, `items[]` con `jugador` (`codigo`, `nombre`), `equipo` (`codigo`, `nombre`), `partido` (código), `minuto` |
 | 7 | `partido`, `bloque`, `items[]` con `comentarioId`, `usuarioId`, `nombreUsuario`, `idioma`, `texto`, `estadoModeracion`; `siguienteCursor` (`null` si no hay más) |
-| 9 | `sesionId`, `usuarioId`, `nombreUsuario`, `rol`, `idioma`, `ultimoAcceso`, `acciones`, `ttlSegundos` (no se exponen `ubicacion`, `dispositivo`, `ip_publica` ni `tipo_conexion`) |
+| 9 | `sesionId`, `usuarioId`, `nombreUsuario`, `rol`, `idioma`, `ultimoAcceso`, `acciones`, `ttlSegundos` (todos menos `sesionId` pueden ser `null` si el hash no los tiene; `ttlSegundos` es `null` si la clave no vence; no se exponen `ubicacion`, `dispositivo`, `ip_publica` ni `tipo_conexion`) |
 | 11 | `partido`, `desde`, `hasta`, `ventana`, `items[]` con `hora`, `equipo` (código, tag `equipo_id`), `posesionPct`, `tiros` y `pasesIntervalo`. Con `ventana`, cada medida se agrega según su tipo: promedio de `posesion_pct`, máximo de `tiros_acumulados` y suma de `pases_intervalo` (nunca `SUM` sobre las dos primeras) |
 | 12 | `estado` por fuente: `mongodb`, `neo4j`, `cassandra`, `redis`, `influxdb` |
 
