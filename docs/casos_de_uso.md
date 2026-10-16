@@ -93,9 +93,9 @@ El caso 8 (`POST /partidos/{codigo}/comentarios`) se agrega al mapa cuando se de
   el enunciado solo pide un identificador de request o correlación). Se genera si el
   cliente no lo envía, vuelve en la respuesta como `requestId` y aparece en cada
   línea de log.
-- **Límites y paginación.** MongoDB: `limit` y `skip`. Neo4j: `LIMIT` en cada consulta.
-  Cassandra: `limit` y cursor sobre la partición. InfluxDB: intervalo máximo y tope de
-  puntos por respuesta.
+- **Límites y paginación.** MongoDB: `limit` y `skip`. Neo4j: `LIMIT` en cada consulta (eventos: 1 a 200, por defecto 50; goleadores: 1 a 100, por defecto 50).
+  Cassandra: `limit` y cursor sobre la partición. InfluxDB: intervalo máximo (30 minutos sin `ventana`, 2 horas con `ventana`) y tope de
+  5.000 filas por consulta.
 - **Respuestas con proyección.** Cada endpoint devuelve solo los campos de la sección 5;
   no se devuelven documentos internos completos.
 
@@ -110,9 +110,17 @@ El caso 8 (`POST /partidos/{codigo}/comentarios`) se agrega al mapa cuando se de
    bloque_temporal)` usando `comentario_id` (clave de clustering) como cursor. El
    cliente indica el `bloque`: un instante UTC múltiplo de 5 minutos (si no lo es,
    400). No se consulta entre ventanas.
-3. **InfluxDB.** El máximo de intervalo, el máximo de puntos y los valores de `ventana`
-   se fijan al leer los datos reales cargados. `equipo` filtra por el tag `equipo_id`.
-   La sede no es entrada (Influx documenta `S-01` a `S-16`; Neo4j tiene hasta `S-20`).
+3. **InfluxDB.** La API lee `estadisticas_partido` de la base `fixture2030_resumen`
+   (un punto cada 5 s por equipo). Sin `ventana` devuelve puntos crudos y el intervalo
+   máximo es de 30 minutos; con `ventana` (`1m` o `5m`) el máximo es de 2 horas. `desde`
+   es inclusivo y `hasta` exclusivo, con formato `AAAA-MM-DDThh:mm:ssZ` en hora UTC.
+   Las ventanas se alinean al reloj (minuto o múltiplo de 5), no a `desde`: si `desde` no
+   está alineado, la primera ventana es parcial. `equipo` filtra por el tag `equipo_id`. La sede no es entrada (Influx documenta
+   `S-01` a `S-16`; Neo4j tiene hasta `S-20`). Un tope de 5.000 filas por consulta
+   protege la respuesta.
+4. **Timeout de consulta en Neo4j.** El cliente solo define timeout de conexión
+   (`DB_TIMEOUT_SECONDS`). Una consulta lenta sobre un servidor que sí responde no
+   se corta. Queda como límite conocido.
 
 ## 5. Respuestas por caso
 

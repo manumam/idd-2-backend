@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     neo4j_uri: str = Field(default="bolt://localhost:7687", alias="NEO4J_URI")
     neo4j_user: str = Field(default="neo4j", alias="NEO4J_USER")
     neo4j_password: str = Field(default="password123", alias="NEO4J_PASSWORD")
+    neo4j_database: str = Field(default="neo4j", alias="NEO4J_DATABASE")
 
     # --- Cassandra ---
     cassandra_hosts_raw: str = Field(default="localhost", alias="CASSANDRA_HOSTS")
@@ -46,7 +47,7 @@ class Settings(BaseSettings):
 
     # --- InfluxDB 3 ---
     influx_url: str = Field(default="http://127.0.0.1:8181", alias="INFLUX_URL")
-    influx_database: str = Field(default="fixture2030_series_demo", alias="INFLUX_DATABASE")
+    influx_database: str = Field(default="fixture2030_resumen", alias="INFLUX_DATABASE")
     influx_token: Optional[str] = Field(default=None, alias="INFLUX_TOKEN")
 
     # --- InterSystems IRIS ---
