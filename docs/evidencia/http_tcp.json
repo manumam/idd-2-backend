@@ -1,0 +1,38 @@
+[
+  {
+    "method": "GET",
+    "path": "/equipos/ARG",
+    "status": 200,
+    "requestId": "tcp-hito10"
+  },
+  {
+    "method": "GET",
+    "path": "/jugadores/ARG-10",
+    "status": 200,
+    "requestId": "tcp-hito10"
+  },
+  {
+    "method": "GET",
+    "path": "/sesiones/SES-DEMO",
+    "status": 200,
+    "requestId": "tcp-hito10"
+  },
+  {
+    "method": "GET",
+    "path": "/equipos/arg",
+    "status": 400,
+    "requestId": "tcp-hito10"
+  },
+  {
+    "method": "GET",
+    "path": "/openapi.json",
+    "status": 200,
+    "requestId": "tcp-hito10"
+  },
+  {
+    "method": "GET",
+    "path": "/docs",
+    "status": 200,
+    "requestId": "tcp-hito10"
+  }
+]
