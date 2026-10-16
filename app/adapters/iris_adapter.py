@@ -1,74 +1,68 @@
-"""Adaptador para InterSystems IRIS (Módulo Objetos Persistentes: Dominio Complejo).
+"""Vista SQL del árbol de objetos persistentes del Hito 9, en el namespace configurado."""
 
-Encapsula la conexión nativa con InterSystems IRIS y ejecución de consultas de dominio (RF8, RNF5).
-"""
-
-import logging
-from typing import Optional, Any
+from contextlib import contextmanager, suppress
+from math import ceil
 
 from app.adapters.base import BaseAdapter
+from app.core.observability import observe
 from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
 
-logger = logging.getLogger(__name__)
-
 
 class IrisAdapter(BaseAdapter):
-    """Encapsula el driver nativo de InterSystems IRIS."""
-
-    def __init__(self):
-        self._connection: Optional[Any] = None
-
-    def connect(self) -> Any:
-        """Inicializa la conexión con el Superserver de InterSystems IRIS."""
-        if self._connection is None:
-            try:
-                import iris  # import diferido: la API no depende de IRIS
-                self._connection = iris.createConnection(
-                    settings.iris_host,
-                    settings.iris_port,
-                    settings.iris_namespace,
-                    settings.iris_user,
-                    settings.iris_password,
-                )
-            except Exception as e:
-                logger.error("Error al conectar con InterSystems IRIS: %s", e)
-                raise DatabaseUnavailableError("IRIS", e)
-        return self._connection
-
-    @property
-    def iris_context(self) -> Any:
-        """Retorna el objeto context/gateway nativo de IRIS para invocar clases."""
-        conn = self.connect()
+    @contextmanager
+    def _cursor(self):
+        connection = None
+        cursor = None
         try:
-            import iris
-            return iris.createIRIS(conn)
-        except Exception as e:
-            logger.error("Error al obtener contexto IRIS: %s", e)
-            raise DatabaseUnavailableError("IRIS", e)
+            import iris.dbapi
+            connection = iris.dbapi.connect(
+                hostname=settings.iris_host, port=settings.iris_port,
+                namespace=settings.iris_namespace, username=settings.iris_user,
+                password=settings.iris_password, timeout=ceil(settings.db_timeout_seconds),
+                sharedmemory=False, autoCommit=True,
+            )
+            cursor = connection.cursor()
+            cursor.setQueryTimeout(ceil(settings.db_timeout_seconds))
+            yield cursor
+        except Exception as exc:
+            raise DatabaseUnavailableError("IRIS", exc) from exc
+        finally:
+            if cursor is not None:
+                with suppress(Exception):
+                    cursor.close()
+            if connection is not None:
+                with suppress(Exception):
+                    connection.close()
 
+    @observe("IRIS")
+    def find_partido(self, id: int, limit: int, skip: int) -> dict | None:
+        with self._cursor() as cursor:
+            cursor.execute("SELECT ID, Codigo, Estado FROM Fixture.Partido WHERE ID = ?", [id])
+            fila = cursor.fetchone()
+            if fila is None:
+                return None
+            partido = {"id": str(fila[0]), "codigo": fila[1], "estado": fila[2]}
+            # Solo el límite numérico validado se incorpora al SQL; la identidad se enlaza.
+            cursor.execute(
+                f"SELECT TOP {int(limit + skip)} ID, Tipo, Minuto, Partido "
+                "FROM Fixture.Evento WHERE Partido = ? ORDER BY ID", [id],
+            )
+            partido["eventos"] = [
+                {"id": str(e[0]), "tipo": e[1], "minuto": e[2], "partidoId": str(e[3])}
+                for e in list(cursor.fetchall())[skip:]
+            ]
+            return partido
+
+    @observe("IRIS")
     def ping(self) -> bool:
-        """Verifica la conectividad activa contra InterSystems IRIS."""
-        try:
-            import iris
-            conn = self.connect()
-            # Si la conexión nativa está viva, creamos el handler IRIS y ejecutamos un chequeo básico
-            iris_obj = iris.createIRIS(conn)
-            # Invoca una función del sistema o evalúa objeto básico
-            _ = iris_obj.classMethodValue("%SYSTEM.Version", "GetVersion")
-            return True
-        except Exception as e:
-            logger.warning("Fallo en ping InterSystems IRIS: %s", e)
-            raise DatabaseUnavailableError("IRIS", e)
+        with self._cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+        return True
 
     def close(self) -> None:
-        """Cierra la conexión con InterSystems IRIS."""
-        if self._connection is not None:
-            try:
-                self._connection.close()
-            except Exception:
-                pass
-            self._connection = None
+        """Cada operación cierra su conexión; no se comparte entre threads."""
 
 
 iris_adapter = IrisAdapter()

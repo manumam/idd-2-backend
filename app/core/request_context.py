@@ -37,8 +37,8 @@ async def request_context_middleware(request: Request, call_next):
     try:
         try:
             response = await call_next(request)
-        except Exception:
-            logger.exception("request_id=%s error inesperado", request_id)
+        except Exception as exc:
+            logger.error("request_id=%s error inesperado tipo=%s", request_id, type(exc).__name__)
             response = JSONResponse(
                 status_code=500,
                 content={

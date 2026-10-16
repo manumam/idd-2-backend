@@ -30,7 +30,7 @@ def test_adapter(name: str, adapter_obj, target_info: str) -> tuple[bool, str, f
     """Prueba un adaptador específico y mide latencia."""
     start_time = time.time()
     try:
-        ok = adapter_obj.ping()
+        adapter_obj.ping()
         elapsed = (time.time() - start_time) * 1000
         return True, "ONLINE", elapsed
     except DatabaseUnavailableError as e:
@@ -51,14 +51,11 @@ def main():
     print("=" * 76)
     print(f" Timeout configurado por consulta: {settings.db_timeout_seconds} segundos\n")
 
-    targets = [
-        ("MongoDB", mongo_adapter, f"{settings.mongo_uri} (db: {settings.mongo_database})"),
-        ("Neo4j", neo4j_adapter, f"{settings.neo4j_uri}"),
-        ("Cassandra", cassandra_adapter, f"{settings.cassandra_hosts_raw}:{settings.cassandra_port} (ks: {settings.cassandra_keyspace})"),
-        ("Redis", redis_adapter, f"{settings.redis_host}:{settings.redis_port} (db: {settings.redis_db})"),
-        ("InfluxDB", influx_adapter, f"{settings.influx_url} (db: {settings.influx_database})"),
-        ("IRIS", iris_adapter, f"{settings.iris_host}:{settings.iris_port} (ns: {settings.iris_namespace})"),
-    ]
+    targets = [(name, adapter, "configuración de entorno") for name, adapter in [
+        ("MongoDB", mongo_adapter), ("Neo4j", neo4j_adapter),
+        ("Cassandra", cassandra_adapter), ("Redis", redis_adapter),
+        ("InfluxDB", influx_adapter), ("IRIS", iris_adapter),
+    ]]
 
     results = []
     for name, adapter_obj, target_info in targets:
@@ -74,7 +71,8 @@ def main():
     online_count = sum(1 for item in results if item[2])
     print(f" Total motores disponibles: {online_count} / {len(results)}")
     print("-" * 76 + "\n")
+    return 0 if online_count == len(results) else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

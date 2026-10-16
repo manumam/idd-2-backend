@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional
 import requests
 
 from app.adapters.base import BaseAdapter
+from app.core.observability import observe
 from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
 
@@ -46,7 +47,7 @@ class InfluxAdapter(BaseAdapter):
                             self._token = token_val
                             return self._token
                 except Exception as e:
-                    logger.debug("No se pudo leer token en %s: %s", path, e)
+                    logger.debug("No se pudo leer token en %s: %s", path, e.__class__.__name__)
         return None
 
     def get_session(self) -> requests.Session:
@@ -55,6 +56,7 @@ class InfluxAdapter(BaseAdapter):
             self._session = requests.Session()
         return self._session
 
+    @observe("InfluxDB")
     def find_estadisticas(
         self, partido_id: str, desde: str, hasta: str, equipo_id: Optional[str], limit: int
     ) -> List[Dict[str, Any]]:
@@ -72,6 +74,7 @@ class InfluxAdapter(BaseAdapter):
             params["equipo"] = equipo_id
         return self.query_sql(sql, params)
 
+    @observe("InfluxDB")
     def ping(self) -> bool:
         """Verifica la conectividad llamando al endpoint /health de InfluxDB 3."""
         try:
@@ -87,7 +90,7 @@ class InfluxAdapter(BaseAdapter):
             logger.warning("InfluxDB health retornó status %s", response.status_code)
             raise DatabaseUnavailableError("InfluxDB")
         except requests.RequestException as e:
-            logger.warning("Fallo en ping InfluxDB: %s", e)
+            logger.warning("Fallo en ping InfluxDB: %s", e.__class__.__name__)
             raise DatabaseUnavailableError("InfluxDB", e)
 
     def query_sql(self, query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:

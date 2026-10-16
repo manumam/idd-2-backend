@@ -10,6 +10,7 @@ from pymongo.database import Database
 from pymongo.errors import PyMongoError, ServerSelectionTimeoutError
 
 from app.adapters.base import BaseAdapter
+from app.core.observability import observe
 from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
 
@@ -42,7 +43,7 @@ class MongoAdapter(BaseAdapter):
                 )
                 self._db = self._client[settings.mongo_database]
             except Exception as e:
-                logger.error("Error al inicializar cliente MongoDB: %s", e)
+                logger.error("Error al inicializar cliente MongoDB: %s", e.__class__.__name__)
                 raise DatabaseUnavailableError("MongoDB", e)
         return self._db
 
@@ -59,6 +60,7 @@ class MongoAdapter(BaseAdapter):
             logger.warning("Fallo en operación MongoDB: %s", e.__class__.__name__)
             raise DatabaseUnavailableError("MongoDB", e) from e
 
+    @observe("MongoDB")
     def find_equipo(self, codigo: str) -> Optional[Dict[str, Any]]:
         """Busca un equipo por _id (código FIFA) con los campos del contrato."""
         proyeccion = {
@@ -67,10 +69,12 @@ class MongoAdapter(BaseAdapter):
         }
         return self._execute(lambda: self.db["equipos"].find_one({"_id": codigo}, proyeccion))
 
+    @observe("MongoDB")
     def find_jugador(self, codigo: str) -> Optional[Dict[str, Any]]:
         """Busca un jugador por _id (<equipo>-<dorsal>)."""
         return self._execute(lambda: self.db["jugadores"].find_one({"_id": codigo}, _PROYECCION_JUGADOR))
 
+    @observe("MongoDB")
     def list_jugadores(
         self, equipo: str, posicion: Optional[str], limit: int, skip: int
     ) -> List[Dict[str, Any]]:
@@ -95,6 +99,7 @@ class MongoAdapter(BaseAdapter):
 
         return self._execute(consulta)
 
+    @observe("MongoDB")
     def ping(self) -> bool:
         """Verifica la conectividad activa contra MongoDB."""
         try:
@@ -102,7 +107,7 @@ class MongoAdapter(BaseAdapter):
             database.command("ping")
             return True
         except (ServerSelectionTimeoutError, PyMongoError, Exception) as e:
-            logger.warning("Fallo en ping MongoDB: %s", e)
+            logger.warning("Fallo en ping MongoDB: %s", e.__class__.__name__)
             raise DatabaseUnavailableError("MongoDB", e)
 
     def close(self) -> None:

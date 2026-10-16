@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     api_host: str = Field(default="0.0.0.0", alias="API_HOST")
     api_port: int = Field(default=8000, alias="API_PORT")
     api_debug: bool = Field(default=False, alias="API_DEBUG")
-    db_timeout_seconds: float = Field(default=5.0, alias="DB_TIMEOUT_SECONDS")
+    db_timeout_seconds: float = Field(default=5.0, gt=0, le=60, alias="DB_TIMEOUT_SECONDS")
 
     # --- MongoDB ---
     mongo_uri: str = Field(default="mongodb://localhost:27017", alias="MONGO_URI")
@@ -26,11 +26,12 @@ class Settings(BaseSettings):
     # --- Neo4j ---
     neo4j_uri: str = Field(default="bolt://localhost:7687", alias="NEO4J_URI")
     neo4j_user: str = Field(default="neo4j", alias="NEO4J_USER")
-    neo4j_password: str = Field(default="password123", alias="NEO4J_PASSWORD")
+    neo4j_password: str = Field(default="", alias="NEO4J_PASSWORD")
     neo4j_database: str = Field(default="neo4j", alias="NEO4J_DATABASE")
 
     # --- Cassandra ---
     cassandra_hosts_raw: str = Field(default="localhost", alias="CASSANDRA_HOSTS")
+    cassandra_local_dc: str = Field(default="datacenter1", alias="CASSANDRA_LOCAL_DC")
     cassandra_port: int = Field(default=9042, alias="CASSANDRA_PORT")
     cassandra_keyspace: str = Field(default="fixture2030_comentarios", alias="CASSANDRA_KEYSPACE")
 
@@ -55,7 +56,7 @@ class Settings(BaseSettings):
     iris_port: int = Field(default=1972, alias="IRIS_PORT")
     iris_namespace: str = Field(default="USER", alias="IRIS_NAMESPACE")
     iris_user: str = Field(default="_SYSTEM", alias="IRIS_USER")
-    iris_password: str = Field(default="SYS", alias="IRIS_PASSWORD")
+    iris_password: str = Field(default="", alias="IRIS_PASSWORD")
 
     model_config = SettingsConfigDict(
         env_file=".env",

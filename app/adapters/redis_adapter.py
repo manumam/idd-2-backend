@@ -11,6 +11,7 @@ from redis.retry import Retry
 from redis.exceptions import RedisError, ConnectionError, TimeoutError
 
 from app.adapters.base import BaseAdapter
+from app.core.observability import observe
 from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
 
@@ -38,7 +39,7 @@ class RedisAdapter(BaseAdapter):
                     retry=Retry(NoBackoff(), 0),  # sin reintentos: falla dentro del timeout
                 )
             except Exception as e:
-                logger.error("Error al inicializar cliente Redis: %s", e)
+                logger.error("Error al inicializar cliente Redis: %s", e.__class__.__name__)
                 raise DatabaseUnavailableError("Redis", e)
         return self._client
 
@@ -55,6 +56,7 @@ class RedisAdapter(BaseAdapter):
             logger.warning("Fallo en operación Redis: %s", e.__class__.__name__)
             raise DatabaseUnavailableError("Redis", e) from e
 
+    @observe("Redis")
     def get_sesion(self, sesion_id: str) -> Optional[Dict[str, Any]]:
         """Lee la sesión y su TTL restante; None si no existe o expiró.
 
@@ -80,17 +82,19 @@ class RedisAdapter(BaseAdapter):
 
         return self._execute(lectura)
 
+    @observe("Redis")
     def delete_sesion(self, sesion_id: str) -> None:
         """Invalida la sesión. Es idempotente: borrar una clave ausente no falla."""
         self._execute(lambda: self.client.delete(f"sesion:{sesion_id}"))
 
+    @observe("Redis")
     def ping(self) -> bool:
         """Verifica la conectividad activa contra Redis."""
         try:
             client = self.get_client()
             return bool(client.ping())
         except (ConnectionError, TimeoutError, RedisError, Exception) as e:
-            logger.warning("Fallo en ping Redis: %s", e)
+            logger.warning("Fallo en ping Redis: %s", e.__class__.__name__)
             raise DatabaseUnavailableError("Redis", e)
 
     def close(self) -> None:

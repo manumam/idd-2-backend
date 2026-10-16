@@ -5,10 +5,11 @@ Encapsula el driver Bolt oficial y sesiones para consultas Cypher parametrizadas
 
 import logging
 from typing import Any, Dict, List, Optional
-from neo4j import GraphDatabase, Driver
+from neo4j import GraphDatabase, Driver, Query
 from neo4j.exceptions import AuthError, ServiceUnavailable, SessionExpired, TransientError
 
 from app.adapters.base import BaseAdapter
+from app.core.observability import observe
 from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
 
@@ -71,9 +72,11 @@ class Neo4jAdapter(BaseAdapter):
                     auth=(settings.neo4j_user, settings.neo4j_password),
                     connection_timeout=settings.db_timeout_seconds,
                     max_connection_lifetime=3600,
+                    connection_acquisition_timeout=settings.db_timeout_seconds,
+                    max_transaction_retry_time=0,
                 )
             except Exception as e:
-                logger.error("Error al inicializar driver Neo4j: %s", e)
+                logger.error("Error al inicializar driver Neo4j: %s", e.__class__.__name__)
                 raise DatabaseUnavailableError("Neo4j", e)
         return self._driver
 
@@ -81,11 +84,12 @@ class Neo4jAdapter(BaseAdapter):
         """Ejecuta una consulta de lectura y traduce los errores del driver a 'fuente no disponible'."""
         try:
             with self.get_driver().session(database=settings.neo4j_database) as session:
-                return [registro.data() for registro in session.run(cypher, params)]
+                return [registro.data() for registro in session.run(Query(cypher, timeout=settings.db_timeout_seconds), params)]
         except (ServiceUnavailable, SessionExpired, AuthError, TransientError) as e:
             logger.warning("Fallo en consulta Neo4j: %s", e.__class__.__name__)
             raise DatabaseUnavailableError("Neo4j", e) from e
 
+    @observe("Neo4j")
     def find_partido(self, partido_id: str) -> Optional[Dict[str, Any]]:
         """Ficha del partido con sede y equipos; None si no existe."""
         filas = self._run(_CYPHER_PARTIDO, id=partido_id)
@@ -100,6 +104,7 @@ class Neo4jAdapter(BaseAdapter):
                 partido[equipo["condicion"].lower()] = {"id": equipo["id"], "nombre": equipo["nombre"]}
         return partido
 
+    @observe("Neo4j")
     def find_eventos(self, partido_id: str, limit: int) -> Optional[List[Dict[str, Any]]]:
         """Eventos del partido por minuto; None si el partido no existe, lista vacía si no tiene eventos."""
         if not self._run(_CYPHER_PARTIDO, id=partido_id):
@@ -115,9 +120,11 @@ class Neo4jAdapter(BaseAdapter):
                 )
         return eventos
 
+    @observe("Neo4j")
     def sede_existe(self, sede_id: str) -> bool:
         return bool(self._run(_CYPHER_SEDE, id=sede_id))
 
+    @observe("Neo4j")
     def find_goleadores(self, sede_id: str, confederacion: str, limit: int) -> List[Dict[str, Any]]:
         """Goles de jugadores de una confederación en los partidos de una sede."""
         goles = self._run(_CYPHER_GOLEADORES, sede=sede_id, confederacion=confederacion, limit=limit)
@@ -125,6 +132,7 @@ class Neo4jAdapter(BaseAdapter):
             gol["jugador_nombre"] = f"{gol['jugador_nombre']} {gol.pop('jugador_apellido')}"
         return goles
 
+    @observe("Neo4j")
     def ping(self) -> bool:
         """Verifica conectividad y autenticación contra Neo4j."""
         try:
@@ -132,7 +140,7 @@ class Neo4jAdapter(BaseAdapter):
             driver.verify_connectivity()
             return True
         except Exception as e:
-            logger.warning("Fallo en ping Neo4j: %s", e)
+            logger.warning("Fallo en ping Neo4j: %s", e.__class__.__name__)
             raise DatabaseUnavailableError("Neo4j", e)
 
     def close(self) -> None:
