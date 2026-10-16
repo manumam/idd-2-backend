@@ -25,7 +25,7 @@ prueba la API desde Swagger UI o Postman. Todos los datos son sintéticos. En la
 | # | Caso de uso | Entrada | Fuente | Éxito | Si no existe | Tipo |
 | - | ----------- | ------- | ------ | ----- | ------------ | ---- |
 | 1 | Ver la ficha de un equipo | `codigo` | MongoDB `equipos` | 200 con la ficha | 404 `EQUIPO_NO_ENCONTRADO` | Lectura |
-| 2 | Listar jugadores, por equipo y posición | `equipo`, `posicion`, `limit`, `skip` | MongoDB `jugadores` | 200 con una página (puede ser vacía) | Filtro sin resultados: 200 vacío. No se valida que `equipo` exista | Lectura |
+| 2 | Listar el plantel de un equipo, opcionalmente por posición | `equipo` (obligatorio), `posicion`, `limit`, `skip` | MongoDB `jugadores` | 200 con una página ordenada por dorsal (puede ser vacía) | Filtro sin resultados: 200 vacío. No se valida que `equipo` exista | Lectura |
 | 3 | Ver un jugador | `codigo` | MongoDB `jugadores` | 200 con el jugador | 404 `JUGADOR_NO_ENCONTRADO` | Lectura |
 | 4 | Ver un partido (fase, fecha, sede, equipos) | `codigo` | Neo4j | 200 con el partido | 404 `PARTIDO_NO_ENCONTRADO` | Lectura |
 | 5 | Ver los eventos de un partido con sus protagonistas | `codigo`, `limit` | Neo4j | 200 con los eventos | Partido inexistente: 404 `PARTIDO_NO_ENCONTRADO`. Partido sin eventos: 200 con lista vacía | Lectura |
@@ -71,7 +71,7 @@ El caso 8 (`POST /partidos/{codigo}/comentarios`) se agrega al mapa cuando se de
 
 - **Validación antes de consultar.** Formato de cada identificador (tabla de arriba),
   fechas con formato `AAAA-MM-DDThh:mm:ssZ` en hora UTC, `desde` anterior a `hasta`,
-  `limit` entre 1 y un máximo fijo. Una entrada inválida devuelve 400 sin tocar la base.
+  `limit` entre 1 y un máximo fijo (100), `skip` entre 0 y 1000. Una entrada inválida devuelve 400 sin tocar la base.
 - **Ausencia vs. vacío vs. caída.** Un recurso inexistente es 404. Una consulta válida
   sin resultados es 200 con lista vacía. Una dependencia caída o lenta es 503; nunca
   se devuelve una lista vacía para esconder una falla.
@@ -118,9 +118,9 @@ El caso 8 (`POST /partidos/{codigo}/comentarios`) se agrega al mapa cuando se de
 
 | Caso | Campos |
 | ---- | ------ |
-| 1 | `codigo`, `nombre`, `confederacion`, `grupo`, `rankingFifa`, `directorTecnico`, `anfitrion` |
+| 1 | `codigo`, `nombre`, `confederacion`, `grupo`, `rankingFifa`, `directorTecnico` (puede ser `null`), `anfitrion` |
 | 2 | `items[]` con `codigo`, `nombre`, `apellido`, `dorsal`, `posicion`, `equipo` (`codigo`, `nombre`); `limit`, `skip` |
-| 3 | los de `items[]` del caso 2, más `fechaNacimiento`, `club`, `capitan` |
+| 3 | los de `items[]` del caso 2, más `fechaNacimiento`, `club` y `capitan` (estos dos pueden ser `null`) |
 | 4 | `codigo`, `fase`, `grupo` (`null` fuera de la fase de grupos), `fecha`, `sede` (`codigo`, `nombre`, `ciudad`), `local`, `visitante` (`codigo`, `nombre`) |
 | 5 | `partido` (código), `items[]` con `codigo` (`E-0001`), `tipo`, `minuto`, `protagonistas[]` (`jugador` con `codigo` y `nombre`, `rol`) |
 | 6 | `sede` (código), `confederacion`, `items[]` con `jugador` (`codigo`, `nombre`), `equipo` (`codigo`, `nombre`), `partido` (código), `minuto` |
