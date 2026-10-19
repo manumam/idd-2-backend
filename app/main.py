@@ -10,7 +10,7 @@ from fastapi.openapi.utils import get_openapi
 
 from app.core.handlers import register_handlers
 from app.core.request_context import request_context_middleware
-from app.routes import comentarios, equipos, estadisticas, health, objetos, partidos, sesiones
+from app.routes import comentarios, equipos, estadisticas, health, partidos, sesiones
 from app.schemas.errors import ErrorResponse
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -44,7 +44,6 @@ app.include_router(sesiones.router)
 app.include_router(partidos.router)
 app.include_router(estadisticas.router)
 app.include_router(comentarios.router)
-app.include_router(objetos.router)
 
 
 def custom_openapi():

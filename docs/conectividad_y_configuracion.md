@@ -5,15 +5,12 @@ mantienen sus propios volúmenes y cargas; no se migran ni se inicializan al imp
 
 1. Clonar `https://github.com/mateolewinzon/idd-2-tp` junto a este repositorio.
 2. En `fixture2030-mongo`, `fixture2030-neo4j`, `fixture2030-cassandra`,
-   `fixture2030-redis`, `fixture2030-influxdb` y `fixture2030-InterSystems-iris`,
+   `fixture2030-redis` y `fixture2030-influxdb`,
    seguir el README propio: `docker compose up -d`, esperar disponibilidad y ejecutar
    los scripts de esquema y datos indicados por cada módulo. No ejecutar cargas
    masivas para probar esta API; alcanza el conjunto sintético representativo.
 3. Cassandra: cargar `scripts/esquema.cql` antes de los comentarios. El keyspace es
    `fixture2030_comentarios`, datacenter `datacenter1` salvo configuración distinta.
-4. IRIS: importar/compilar las clases `Fixture.*` y ejecutar `scripts/demo_objetos.sh`.
-   Usar el ID persistente informado por la demo en `/objetos/partidos/{id}`. Cada
-   ejecución de esa demo crea nuevos objetos, de modo que el ID no siempre será 1.
 5. Configurar `.env` con los valores reales locales y ejecutar
    `python scripts/verificar_conectividad.py`. Salida no cero si alguna fuente falla.
 6. Iniciar Uvicorn y ejecutar los ejemplos HTTP y tests según el README.
@@ -26,11 +23,10 @@ mantienen sus propios volúmenes y cargas; no se migran ni se inicializan al imp
 | `CASSANDRA_LOCAL_DC` | `datacenter1` |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB` | `localhost`, `6380`, `0` |
 | `INFLUX_URL`, `INFLUX_DATABASE` | `http://127.0.0.1:8181`, `fixture2030_resumen` |
-| `IRIS_HOST`, `IRIS_PORT`, `IRIS_NAMESPACE` | `127.0.0.1`, `1972`, `USER` |
 | `DB_TIMEOUT_SECONDS` | `5` |
 
 Hosts y puertos deben coincidir con los mappings del Compose de cada módulo.
-`NEO4J_USER/PASSWORD`, `REDIS_PASSWORD`, `INFLUX_TOKEN`, `IRIS_USER/PASSWORD`
+`NEO4J_USER/PASSWORD`, `REDIS_PASSWORD`, `INFLUX_TOKEN`
 se configuran localmente; no copiar credenciales reales a ejemplos ni capturas.
 Influx acepta token por variable o archivo local `.influxdb3-token`; se recomienda
 la variable para evitar depender del directorio de trabajo. No se necesitan tokens
@@ -42,7 +38,7 @@ puerto publicado del host como si fuese el puerto interno. El repositorio no
 incluye una imagen de la API; el procedimiento de referencia es ejecutar Python
 en la notebook. Docker Desktop y Linux pueden requerir hosts distintos.
 
-`/health` prueba conexiones (en IRIS SELECT 1, en Influx /health), pero no garantiza
+`/health` prueba conexiones (en Influx /health), pero no garantiza
 que existan tablas, clases o datos. Los tests `LIVE_MODULES` sí consultan los
 endpoints de dominio y exigen resultados no vacíos. Si falla una fuente, revisar
 puerto, namespace/keyspace, carga de esquema, permisos y timeout en ese orden.

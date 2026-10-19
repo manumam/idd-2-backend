@@ -11,7 +11,7 @@ from app.adapters import mongo_adapter, redis_adapter
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--laboratorio-descartable", required=True, action="store_true")
-    parser.add_argument("--sources", default="mongodb,redis", help="mongodb,redis,neo4j,cassandra,influxdb,iris")
+    parser.add_argument("--sources", default="mongodb,redis", help="mongodb,redis,neo4j,cassandra,influxdb")
     args = parser.parse_args()
     sources = set(args.sources.split(","))
     try:
@@ -39,7 +39,7 @@ def seed_redis():
 
 
 def seed_extra(source):
-    from app.adapters import cassandra_adapter, neo4j_adapter, iris_adapter
+    from app.adapters import cassandra_adapter, neo4j_adapter
     from app.config.settings import settings
     from datetime import timezone
     from uuid import UUID
@@ -71,13 +71,6 @@ def seed_extra(source):
         response = requests.post(settings.influx_url + "/api/v3/write_lp", params={"db": settings.influx_database, "precision": "second"},
             headers=headers, data="estadisticas_partido,partido_id=P-001,equipo_id=ARG posesion_pct=60.0,tiros_acumulados=2i,pases_intervalo=10i 1908561600\n", timeout=10)
         response.raise_for_status()
-    elif source == "iris":
-        with iris_adapter._cursor() as cursor:
-            cursor.execute("INSERT INTO Fixture.Partido (Codigo, Estado) VALUES (?, ?)", ["P-001", "Finalizado"])
-            cursor.execute("SELECT TOP 1 ID FROM Fixture.Partido WHERE Codigo = ? ORDER BY ID DESC", ["P-001"])
-            id = cursor.fetchone()[0]
-            cursor.execute("INSERT INTO Fixture.Evento (Tipo, Minuto, Partido) VALUES (?, ?, ?)", ["Gol", 15, id])
-            print(f"IRIS_TEST_ID={id}")
     else:
         raise ValueError("Fuente de laboratorio desconocida")
 

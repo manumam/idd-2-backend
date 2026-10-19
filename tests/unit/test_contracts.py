@@ -4,7 +4,7 @@ from uuid import UUID
 from unittest.mock import Mock
 
 import pytest
-from app.adapters import mongo_adapter, neo4j_adapter, cassandra_adapter, redis_adapter, influx_adapter, iris_adapter
+from app.adapters import mongo_adapter, neo4j_adapter, cassandra_adapter, redis_adapter, influx_adapter
 from app.core.exceptions import DatabaseUnavailableError
 from app.main import app
 
@@ -20,8 +20,6 @@ SESION = dict(usuario_id="U001", nombre_usuario="Demo", rol="hincha", idioma="es
               ultimo_acceso="2030-06-24T20:00:00Z", acciones=1, ttl_segundos=60)
 PUNTO = dict(time="2030-06-24T20:00:00Z", equipo_id="ARG", posesion_pct=60,
              tiros_acumulados=2, pases_intervalo=10)
-OBJETO = dict(id="1", codigo="P-001", estado="Finalizado",
-              eventos=[dict(id="1", tipo="Gol", minuto=15, partidoId="1")])
 STATS = "/partidos/P-001/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z"
 COMMENTS = "/partidos/ARG-ESP-20300624/comentarios?bloque=2030-06-24T20:05:00Z"
 CASES = [
@@ -33,7 +31,6 @@ CASES = [
     (COMMENTS, cassandra_adapter, "list_comentarios", [COMENTARIO]),
     ("/sesiones/SES-DEMO", redis_adapter, "get_sesion", SESION),
     (STATS, influx_adapter, "find_estadisticas", [PUNTO]),
-    ("/objetos/partidos/1", iris_adapter, "find_partido", OBJETO),
 ]
 
 
@@ -58,7 +55,7 @@ def test_goleadores(client, monkeypatch):
 @pytest.mark.parametrize("url,adapter,method,data", CASES)
 def test_dependency_down(client, monkeypatch, url, adapter, method, data):
     source = {id(mongo_adapter): "MongoDB", id(neo4j_adapter): "Neo4j", id(cassandra_adapter): "Cassandra",
-              id(redis_adapter): "Redis", id(influx_adapter): "InfluxDB", id(iris_adapter): "IRIS"}[id(adapter)]
+              id(redis_adapter): "Redis", id(influx_adapter): "InfluxDB"}[id(adapter)]
     monkeypatch.setattr(adapter, method, Mock(side_effect=DatabaseUnavailableError(source, RuntimeError("secret-token"))))
     response = client.get(url)
     assert response.status_code == 503
@@ -74,7 +71,6 @@ def test_dependency_down(client, monkeypatch, url, adapter, method, data):
     ("/partidos/P-001", neo4j_adapter, "find_partido"),
     ("/partidos/P-001/eventos", neo4j_adapter, "find_eventos"),
     ("/sesiones/SES-EXPIRED", redis_adapter, "get_sesion"),
-    ("/objetos/partidos/1", iris_adapter, "find_partido"),
 ])
 def test_not_found(client, monkeypatch, url, adapter, method):
     monkeypatch.setattr(adapter, method, Mock(return_value=None))
@@ -84,7 +80,7 @@ def test_not_found(client, monkeypatch, url, adapter, method):
 @pytest.mark.parametrize("url", [
     "/equipos/arg", "/jugadores", "/jugadores?equipo=ARG&limit=101", "/jugadores?equipo=ARG&skip=-1",
     "/jugadores?equipo=ARG&posicion=Invalido", "/partidos/INVALID/eventos",
-    "/sesiones/invalid", "/objetos/partidos/0", "/objetos/partidos/1?skip=1001",
+    "/sesiones/invalid",
     COMMENTS.replace("20:05:00", "20:06:00"), COMMENTS.replace("2030-06-24", "2030-02-30"),
     COMMENTS + "&cursor=not-a-uuid", COMMENTS + "&cursor=550e8400-e29b-41d4-a716-446655440000",
     COMMENTS.replace("ARG-ESP-20300624", "P-001"), COMMENTS + "&limit=0",
@@ -146,10 +142,10 @@ def test_delete_idempotent(client, monkeypatch):
 def test_health_all_sources(client, monkeypatch):
     from app.services.health_service import FUENTES
     for name, adapter in FUENTES.items():
-        monkeypatch.setattr(adapter, "ping", Mock(side_effect=DatabaseUnavailableError(name)) if name == "iris" else Mock(return_value=True))
+        monkeypatch.setattr(adapter, "ping", Mock(return_value=True))
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json()["estado"] == dict(mongodb="up", neo4j="up", cassandra="up", redis="up", influxdb="up", iris="down")
+    assert response.json()["estado"] == dict(mongodb="up", neo4j="up", cassandra="up", redis="up", influxdb="up")
 
 
 def test_openapi_matches_export(client):

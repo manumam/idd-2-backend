@@ -1,0 +1,393 @@
+{
+  "info": {
+    "_postman_id": "8faab34a-0a6f-4d44-9db7-2030fixture001",
+    "name": "Fixture 2030 API",
+    "description": "Colección generada desde openapi/openapi.yaml. Iniciá la API local en http://localhost:8000 o cambiá la variable baseUrl. Los endpoints de datos requieren sus dependencias disponibles.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Sistema",
+      "item": [
+        {
+          "name": "Estado de las dependencias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ],
+              "query": []
+            },
+            "description": "Responde 200 aunque una fuente esté caída: la marca como `down`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Equipos y jugadores",
+      "item": [
+        {
+          "name": "Ficha de un equipo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/equipos/{{codigoEquipo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipos",
+                "{{codigoEquipo}}"
+              ],
+              "query": []
+            },
+            "description": "Ficha de un equipo"
+          },
+          "response": []
+        },
+        {
+          "name": "Plantel de un equipo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jugadores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jugadores"
+              ],
+              "query": [
+                {
+                  "key": "equipo",
+                  "value": "ARG",
+                  "description": "Código FIFA del equipo",
+                  "disabled": false
+                },
+                {
+                  "key": "posicion",
+                  "value": "",
+                  "description": null,
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Máximo de elementos por página",
+                  "disabled": false
+                },
+                {
+                  "key": "skip",
+                  "value": "0",
+                  "description": "Elementos a saltear",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Ordenado por dorsal. Un filtro sin resultados devuelve 200 con lista vacía."
+          },
+          "response": []
+        },
+        {
+          "name": "Ficha de un jugador",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jugadores/{{codigoJugador}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jugadores",
+                "{{codigoJugador}}"
+              ],
+              "query": []
+            },
+            "description": "Ficha de un jugador"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sesiones",
+      "item": [
+        {
+          "name": "Consultar una sesión",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sesiones/{{sesionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sesiones",
+                "{{sesionId}}"
+              ],
+              "query": []
+            },
+            "description": "No renueva la sesión. 404 si no existe o ya expiró."
+          },
+          "response": []
+        },
+        {
+          "name": "Cerrar una sesión",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sesiones/{{sesionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sesiones",
+                "{{sesionId}}"
+              ],
+              "query": []
+            },
+            "description": "Idempotente: responde 204 aunque la sesión ya no exista."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Partidos y eventos",
+      "item": [
+        {
+          "name": "Ficha de un partido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/partidos/{{codigoPartido}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "partidos",
+                "{{codigoPartido}}"
+              ],
+              "query": []
+            },
+            "description": "Ficha de un partido"
+          },
+          "response": []
+        },
+        {
+          "name": "Eventos de un partido con sus protagonistas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "partidos",
+                "{{codigoPartido}}",
+                "eventos"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Máximo de eventos a devolver",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Ordenados por minuto. Un partido sin eventos devuelve 200 con lista vacía."
+          },
+          "response": []
+        },
+        {
+          "name": "Goles de jugadores de una confederación en una sede",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sedes/{{codigoSede}}/goleadores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sedes",
+                "{{codigoSede}}",
+                "goleadores"
+              ],
+              "query": [
+                {
+                  "key": "confederacion",
+                  "value": "{{confederacion}}",
+                  "description": "Confederación del equipo del goleador",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Máximo de goles a devolver",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Recorre sede, partidos, goles, autores y equipos. Sin goles devuelve 200 con lista vacía."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Estadísticas",
+      "item": [
+        {
+          "name": "Estadísticas de un partido en un intervalo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/estadisticas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "partidos",
+                "{{codigoPartido}}",
+                "estadisticas"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "",
+                  "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                  "disabled": false
+                },
+                {
+                  "key": "hasta",
+                  "value": "",
+                  "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                  "disabled": false
+                },
+                {
+                  "key": "equipo",
+                  "value": "{{codigoEquipo}}",
+                  "description": null,
+                  "disabled": false
+                },
+                {
+                  "key": "ventana",
+                  "value": "",
+                  "description": null,
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Puntos cada 5 segundos por equipo en [`desde`, `hasta`). Sin `ventana`, el intervalo máximo es de 30 minutos; con `ventana` (`1m` o `5m`) es de 2 horas y cada medida se agrega según su tipo (promedio de posesión, máximo de tiros, suma de pases). Un intervalo sin puntos o un partido sin datos devuelve 200 con lista vacía."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Comentarios",
+      "item": [
+        {
+          "name": "Feed de una ventana de cinco minutos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/comentarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "partidos",
+                "{{codigoPartido}}",
+                "comentarios"
+              ],
+              "query": [
+                {
+                  "key": "bloque",
+                  "value": "{{bloqueComentarios}}",
+                  "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Máximo de elementos por página",
+                  "disabled": false
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": null,
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Partición exacta de Cassandra. Más nuevos primero; cursor timeuuid exclusivo. Sin datos devuelve 200 vacío. El feed vence a los 14 días."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "default"
+    },
+    {
+      "key": "codigoEquipo",
+      "value": "ARG",
+      "type": "default"
+    },
+    {
+      "key": "codigoJugador",
+      "value": "ARG-10",
+      "type": "default"
+    },
+    {
+      "key": "codigoPartido",
+      "value": "P-001",
+      "type": "default"
+    },
+    {
+      "key": "codigoSede",
+      "value": "SED-001",
+      "type": "default"
+    },
+    {
+      "key": "confederacion",
+      "value": "CONMEBOL",
+      "type": "default"
+    },
+    {
+      "key": "sesionId",
+      "value": "SES-0001",
+      "type": "default"
+    },
+    {
+      "key": "bloqueComentarios",
+      "value": "2030-06-24T18:00:00Z",
+      "type": "default"
+    }
+  ]
+}

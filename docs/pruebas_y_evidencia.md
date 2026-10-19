@@ -29,9 +29,9 @@ de conectividad. La prueba de DELETE crea una sesión específica de test.
 El laboratorio sintético descartable puede prepararse con
 `python scripts/preparar_lab.py --laboratorio-descartable --sources mongodb,redis`.
 Este script reemplaza ARG y ARG-10 y crea SES-DEMO; no usarlo sobre los datos del grupo.
-Las otras fuentes se seleccionan por `--sources` y requieren el esquema/clases previos.
-Los fixtures Cassandra e IRIS se copiaron de los hitos 6 y 9 del repositorio del equipo;
-son modelos de laboratorio, no migraciones de datos. La carga IRIS crea objetos nuevos.
+Las otras fuentes se seleccionan por `--sources` y requieren el esquema previo.
+El fixture Cassandra se copió del Hito 6 del repositorio del equipo; es un modelo de
+laboratorio, no una migración de datos.
 
 ## Rendimiento y límites de la evidencia
 
@@ -46,6 +46,6 @@ imágenes agotó el disco. Se limpiaron exclusivamente contenedores/imágenes de
 laboratorio y se continuó en grupos. Los fallos de infraestructura no se cuentan
 como operaciones exitosas. La tabla de resultados está en `docs/evidencia/validacion.md`.
 
-Resultado final: 66 pruebas generales aprobadas; 13 casos de integración aprobados
-por tandas contra los seis motores (8 Mongo/Redis/Neo4j, 2 Cassandra, 2 Influx, 1 IRIS).
+Resultado final: 66 pruebas generales aprobadas; 12 casos de integración aprobados
+por tandas contra los cinco motores (8 Mongo/Redis/Neo4j, 2 Cassandra, 2 Influx).
 Las omisiones de cada tanda son otros módulos, no integraciones pendientes.

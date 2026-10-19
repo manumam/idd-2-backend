@@ -5,7 +5,6 @@ from concurrent.futures import ThreadPoolExecutor
 from app.adapters import (
     cassandra_adapter,
     influx_adapter,
-    iris_adapter,
     mongo_adapter,
     neo4j_adapter,
     redis_adapter,
@@ -18,7 +17,6 @@ FUENTES = {
     "cassandra": cassandra_adapter,
     "redis": redis_adapter,
     "influxdb": influx_adapter,
-    "iris": iris_adapter,
 }
 
 

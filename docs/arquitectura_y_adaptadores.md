@@ -12,21 +12,15 @@ Ninguna ruta acepta nombres de tablas, Cypher, SQL o comandos arbitrarios.
 | Cassandra | `CASSANDRA_KEYSPACE`; partición completa `(partido_id,bloque_temporal)` | `LOCAL_ONE`, ventana 5 minutos; `comentario_id < cursor`, `limit + 1` <= 101; sin ALLOW FILTERING |
 | Redis | `REDIS_DB`; clave `sesion:{sesionId}` | hash y TTL; no se expone IP/dispositivo; sin reintentos del cliente |
 | InfluxDB 3 | `INFLUX_DATABASE`; SQL con parámetros por partido, tiempo y equipo | `[desde,hasta)`, 30 min crudos / 2 h agregados; 5000 puntos como protección |
-| IRIS | `IRIS_NAMESPACE`; vista SQL de `Fixture.Partido` y `Fixture.Evento` | búsqueda por ID y relación `Partido`, eventos ordenados por ID; hasta `limit + skip` <= 1100 filas |
 
 Cassandra consulta el feed descendente y lee una fila adicional para saber si hay
 otra página. El cursor es el timeuuid del último elemento devuelto, no la fila extra.
 Con inserciones concurrentes se mantiene la navegación exclusiva; no es un snapshot.
 Cambiar partido o bloque inicia otro recorrido. El TTL de 14 días puede vaciar el feed.
 
-IRIS preserva ID persistente, código de negocio, estado e ID del padre de cada evento.
-Los IDs se serializan como strings en la respuesta. No modifica el árbol ni necesita
-aplicar transiciones de estado. No reemplaza a Neo4j como fuente autorizada.
-Su conexión DB-API se abre y cierra por operación para evitar compartirla entre threads.
-
 `DB_TIMEOUT_SECONDS` (mayor que cero, máximo 60) controla conexión/socket en Mongo y
 Redis, conexión y ejecución de CQL, conexión/adquisición y consulta en Neo4j,
-conexión/lectura HTTP en Influx e inicio/consulta en IRIS (redondeado a segundos).
+conexión/lectura HTTP en Influx.
 No es un presupuesto único por request: una operación con varias consultas puede
 acumular varios timeouts. Influx usa el timeout de Requests por fase, no un deadline
 total de descarga. Los clientes/sistemas remotos pueden introducir latencia adicional.

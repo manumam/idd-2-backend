@@ -14,7 +14,7 @@ un UUID. El mismo valor se devuelve en el encabezado de todas las respuestas.
 | 200 | Recurso o lista válida; lista vacía permitida donde corresponda |
 | 204 | Sesión invalidada, también si ya estaba ausente |
 | 400 | `VALIDACION_INVALIDA`: formato, valor, límite, fecha, ventana o cursor inválidos |
-| 404 | Código de ausencia específico; `OBJETO_NO_ENCONTRADO` para IRIS |
+| 404 | Código de ausencia específico |
 | 404 / 405 | `RUTA_NO_ENCONTRADA` / `METODO_NO_PERMITIDO` |
 | 500 | `ERROR_INTERNO`: error inesperado seguro |
 | 503 | `<FUENTE>_UNAVAILABLE`: dependencia inaccesible, autenticación fallida o timeout |
