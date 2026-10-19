@@ -1,15 +1,17 @@
 # Conectividad y configuración
 
-La API se ejecuta en la notebook, fuera de Docker. Los servicios de los hitos previos
-mantienen sus propios volúmenes y cargas; no se migran ni se inicializan al importar la API.
+La API se ejecuta en la notebook, fuera de Docker. El Compose unificado está en la raíz
+de este repositorio y monta los scripts del repositorio de los hitos anteriores, que debe
+estar clonado al mismo nivel con el nombre `idd-2-tp`.
 
 1. Clonar `https://github.com/mateolewinzon/idd-2-tp` junto a este repositorio.
-2. En `fixture2030-mongo`, `fixture2030-neo4j`, `fixture2030-cassandra`,
-   `fixture2030-redis` y `fixture2030-influxdb`,
-   seguir el README propio: `docker compose up -d`, esperar disponibilidad y ejecutar
-   los scripts de esquema y datos indicados por cada módulo. No ejecutar cargas
-   masivas para probar esta API; alcanza el conjunto sintético representativo.
-3. Cassandra: cargar `scripts/esquema.cql` antes de los comentarios. El keyspace es
+2. Desde la raíz del backend, ejecutar `docker compose up -d` y esperar a que estén
+   disponibles los cinco servicios. El Compose conserva los volúmenes nombrados y
+   monta los scripts y archivos locales del repo vecino.
+3. Ejecutar los scripts de esquema y datos indicados por el README de cada módulo.
+   No ejecutar cargas masivas para probar esta API; alcanza el conjunto sintético
+   representativo.
+4. Cassandra: cargar `scripts/esquema.cql` antes de los comentarios. El keyspace es
    `fixture2030_comentarios`, datacenter `datacenter1` salvo configuración distinta.
 5. Configurar `.env` con los valores reales locales y ejecutar
    `python scripts/verificar_conectividad.py`. Salida no cero si alguna fuente falla.
@@ -25,7 +27,7 @@ mantienen sus propios volúmenes y cargas; no se migran ni se inicializan al imp
 | `INFLUX_URL`, `INFLUX_DATABASE` | `http://127.0.0.1:8181`, `fixture2030_resumen` |
 | `DB_TIMEOUT_SECONDS` | `5` |
 
-Hosts y puertos deben coincidir con los mappings del Compose de cada módulo.
+Hosts y puertos deben coincidir con los mappings de `docker-compose.yaml`.
 `NEO4J_USER/PASSWORD`, `REDIS_PASSWORD`, `INFLUX_TOKEN`
 se configuran localmente; no copiar credenciales reales a ejemplos ni capturas.
 Influx acepta token por variable o archivo local `.influxdb3-token`; se recomienda
@@ -43,7 +45,8 @@ que existan tablas, clases o datos. Los tests `LIVE_MODULES` sí consultan los
 endpoints de dominio y exigen resultados no vacíos. Si falla una fuente, revisar
 puerto, namespace/keyspace, carga de esquema, permisos y timeout en ese orden.
 
-Detener con Ctrl+C y `docker compose stop` en cada módulo; conservar volúmenes.
+Detener la API con Ctrl+C y las bases con `docker compose stop` desde la raíz del backend;
+conservar volúmenes.
 No publicar `.env`, archivos token, dumps o logs del motor con credenciales.
 
 Si el proceso hereda un proxy HTTP corporativo o del entorno cloud, conservarlo para

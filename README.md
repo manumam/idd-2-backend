@@ -26,9 +26,11 @@ La colección de Postman está en [postman_collection.json](postman_collection.j
 Importala desde **Import → File**; la variable `baseUrl` apunta por defecto a
 `http://localhost:8000`.
 
-Las bases y sus esquemas se levantan desde el [repositorio de los hitos anteriores](https://github.com/mateolewinzon/idd-2-tp).
-Ver [conectividad y configuración](docs/conectividad_y_configuracion.md) para el
-orden de carga, puertos, hosts en Docker y datos necesarios.
+Cloná el [repositorio de los hitos anteriores](https://github.com/mateolewinzon/idd-2-tp)
+al mismo nivel que este repositorio. Desde el directorio del backend, levantá las
+bases con `docker compose up -d`; el archivo `docker-compose.yaml` usa los scripts y
+datos del repositorio vecino. Ver [conectividad y configuración](docs/conectividad_y_configuracion.md)
+para el orden de carga, puertos, hosts en Docker y datos necesarios.
 
 ## Probar y reproducir
 
@@ -69,8 +71,8 @@ se publican en respuestas ni logs.
 
 ## Detener
 
-Ctrl+C detiene Uvicorn y cierra los adaptadores. En cada módulo de bases, ejecutar
-`docker compose stop`; conserva los datos. No se necesita eliminar volúmenes.
+Ctrl+C detiene Uvicorn y cierra los adaptadores. Desde el backend, `docker compose stop`
+detiene las bases y conserva los datos. No se necesita eliminar volúmenes.
 
 ## Alcance de validación
 
