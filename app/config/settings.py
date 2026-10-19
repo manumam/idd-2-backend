@@ -51,13 +51,6 @@ class Settings(BaseSettings):
     influx_database: str = Field(default="fixture2030_resumen", alias="INFLUX_DATABASE")
     influx_token: Optional[str] = Field(default=None, alias="INFLUX_TOKEN")
 
-    # --- InterSystems IRIS ---
-    iris_host: str = Field(default="127.0.0.1", alias="IRIS_HOST")
-    iris_port: int = Field(default=1972, alias="IRIS_PORT")
-    iris_namespace: str = Field(default="USER", alias="IRIS_NAMESPACE")
-    iris_user: str = Field(default="_SYSTEM", alias="IRIS_USER")
-    iris_password: str = Field(default="", alias="IRIS_PASSWORD")
-
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

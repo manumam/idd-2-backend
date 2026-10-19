@@ -5,7 +5,6 @@ from app.adapters.neo4j_adapter import neo4j_adapter
 from app.adapters.cassandra_adapter import cassandra_adapter
 from app.adapters.redis_adapter import redis_adapter
 from app.adapters.influx_adapter import influx_adapter
-from app.adapters.iris_adapter import iris_adapter
 
 __all__ = [
     "mongo_adapter",
@@ -13,5 +12,4 @@ __all__ = [
     "cassandra_adapter",
     "redis_adapter",
     "influx_adapter",
-    "iris_adapter",
 ]

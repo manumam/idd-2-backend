@@ -3,7 +3,7 @@
 Linux cloud x86_64; Python 3.12.14; Docker 28.4.0; versiones Python exactas en
 `requirements.lock`. Requests ASGI con drivers reales hacia puertos publicados en
 loopback. Fixtures sintéticos mínimos, cargados con `scripts/preparar_lab.py`;
-esquema Cassandra y clases IRIS en `tests/fixtures`, copiados del repositorio de
+esquema Cassandra en `tests/fixtures`, copiados del repositorio de
 hitos anteriores del equipo.
 
 | Comando / configuración | Resultado | Evidencia |
@@ -11,7 +11,6 @@ hitos anteriores del equipo.
 | `python -m pytest -q` (sin LIVE_MODULES) | 66 passed, 13 skipped; incluye conexión rechazada real, integración omitida explícitamente | `suite.xml` |
 | `LIVE_MODULES=mongodb,redis,neo4j python -m pytest tests/integration -q` | 8 passed, 5 skipped | `integracion_mongo_redis_neo4j.xml` |
 | `CASSANDRA_HOSTS=127.0.0.1 LIVE_MODULES=cassandra python -m pytest tests/integration -q` | 2 passed, 11 skipped; lectura y cursor con dos comentarios | `integracion_cassandra.xml` |
-| `LIVE_MODULES=iris IRIS_TEST_ID=1 python -m pytest tests/integration -q` | 1 passed, 12 skipped; partido y eventos relacionados reales | `integracion_iris.xml` |
 | `NO_PROXY=127.0.0.1,localhost LIVE_MODULES=influxdb python -m pytest tests/integration -q` | 2 passed, 11 skipped; puntos y agregado de 1 minuto | `integracion_influx.xml` |
 
 Imágenes de laboratorio: `mongo:7`, `redis:7`, `neo4j:5-community`, `cassandra:5`,
@@ -34,11 +33,7 @@ Las pruebas de otras fallas de dependencia usan dobles y están identificadas co
 No se mide capacidad productiva. Los tiempos JUnit incluyen toda la ejecución del
 test y el entorno es de almacenamiento y memoria compartidos.
 
-IRIS: imagen `intersystems/iris-community:latest-cd`, puerto local 1972, namespace USER.
-Se compilaron las dos clases del fixture, se configuró una credencial efímera solo
-en el proceso de validación y se insertó un partido con un evento. No se conservó
-ni versionó la credencial. El password predeterminado requería cambio; se configuró
-correctamente antes de la ejecución final.
+
 
 `http_tcp.json` registra seis requests TCP reales a Uvicorn en localhost:8000:
 equipo, jugador, sesión, validación 400, OpenAPI y Swagger UI. Encabezado

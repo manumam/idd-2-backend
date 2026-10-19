@@ -15,7 +15,6 @@ CASES = [
     ("redis", "/sesiones/SES-DEMO", "sesionId"),
     ("influxdb", "/partidos/P-001/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z", "items"),
     ("influxdb", "/partidos/P-001/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z&ventana=1m", "items"),
-    ("iris", "/objetos/partidos/" + os.getenv("IRIS_TEST_ID", "1"), "eventos"),
 ]
 
 

@@ -1,7 +1,7 @@
 # Hito 10 — API REST integrada del Fixture 2030
 
 FastAPI con capas HTTP → servicios → adaptadores para MongoDB, Neo4j, Cassandra,
-Redis, InfluxDB 3 e InterSystems IRIS. Rama de entrega: `Hito-10`.
+Redis e InfluxDB 3. Rama de entrega: `Hito-10`.
 
 ## Instalar e iniciar
 
@@ -22,9 +22,15 @@ Swagger UI: <http://localhost:8000/docs>. Contrato dinámico:
 <http://localhost:8000/openapi.json>. Copia versionada:
 [openapi/openapi.yaml](openapi/openapi.yaml).
 
-Las bases y sus esquemas se levantan desde el [repositorio de los hitos anteriores](https://github.com/mateolewinzon/idd-2-tp).
-Ver [conectividad y configuración](docs/conectividad_y_configuracion.md) para el
-orden de carga, puertos, hosts en Docker y datos necesarios.
+La colección de Postman está en [postman_collection.json](postman_collection.json).
+Importala desde **Import → File**; la variable `baseUrl` apunta por defecto a
+`http://localhost:8000`.
+
+Cloná el [repositorio de los hitos anteriores](https://github.com/mateolewinzon/idd-2-tp)
+al mismo nivel que este repositorio. Desde el directorio del backend, levantá las
+bases con `docker compose up -d`; el archivo `docker-compose.yaml` usa los scripts y
+datos del repositorio vecino. Ver [conectividad y configuración](docs/conectividad_y_configuracion.md)
+para el orden de carga, puertos, hosts en Docker y datos necesarios.
 
 ## Probar y reproducir
 
@@ -38,7 +44,7 @@ La suite normal incluye tests de integración desactivados explícitamente. Para
 probar las fuentes reales cargadas con datos representativos:
 
 ```bash
-LIVE_MODULES=mongodb,neo4j,cassandra,redis,influxdb,iris IRIS_TEST_ID=1 \
+LIVE_MODULES=mongodb,neo4j,cassandra,redis,influxdb \
   python -m pytest tests/integration -v
 ```
 
@@ -55,8 +61,7 @@ y borra exclusivamente `sesion:SES-HITO10TEST`. Ver [tests/README.md](tests/READ
 - [Pruebas y evidencia disponible](docs/pruebas_y_evidencia.md).
 
 El feed Cassandra conserva su identificador `ARG-ESP-20300624`; Neo4j e InfluxDB usan
-`P-001`. No se inventa una traducción. IRIS expone una vista de demostración por ID
-persistente, separada de los partidos operativos. Los comentarios son de solo lectura:
+`P-001`. No se inventa una traducción. Los comentarios son de solo lectura:
 no se ofrece una escritura parcial que desincronice tablas y contadores del Hito 6.
 La única mutación HTTP es invalidar una sesión (DELETE idempotente).
 
@@ -66,8 +71,8 @@ se publican en respuestas ni logs.
 
 ## Detener
 
-Ctrl+C detiene Uvicorn y cierra los adaptadores. En cada módulo de bases, ejecutar
-`docker compose stop`; conserva los datos. No se necesita eliminar volúmenes.
+Ctrl+C detiene Uvicorn y cierra los adaptadores. Desde el backend, `docker compose stop`
+detiene las bases y conserva los datos. No se necesita eliminar volúmenes.
 
 ## Alcance de validación
 

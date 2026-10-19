@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Script CLI para verificar la conectividad de los seis motores NoSQL.
+"""Script CLI para verificar la conectividad de los cinco motores NoSQL.
 
 Cumple con RF17, RNF11 y entrega de scripts de la consigna (§9):
 - Ejecuta un ping activo sobre cada adaptador.
@@ -21,7 +21,6 @@ from app.adapters import (
     cassandra_adapter,
     redis_adapter,
     influx_adapter,
-    iris_adapter,
 )
 from app.core.exceptions import DatabaseUnavailableError
 
@@ -54,7 +53,7 @@ def main():
     targets = [(name, adapter, "configuración de entorno") for name, adapter in [
         ("MongoDB", mongo_adapter), ("Neo4j", neo4j_adapter),
         ("Cassandra", cassandra_adapter), ("Redis", redis_adapter),
-        ("InfluxDB", influx_adapter), ("IRIS", iris_adapter),
+        ("InfluxDB", influx_adapter),
     ]]
 
     results = []

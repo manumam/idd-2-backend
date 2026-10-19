@@ -13,7 +13,6 @@ Los identificadores son los de cada módulo anterior, sin traducir:
 | Usuario | `U` + 6 dígitos | `U000001` | MongoDB (Hito 4, `usuarios`) |
 | Partido operativo | `P-` + 3 dígitos | `P-001` | Neo4j (Hito 5) |
 | Partido en comentarios | `<local>-<visitante>-AAAAMMDD` | `ARG-ESP-20300624` | Cassandra (Hito 6) |
-| Objeto partido | ID persistente entero positivo | `1` | IRIS (Hito 9, demostración) |
 | Sede | `S-` + 2 dígitos | `S-04` | Neo4j (Hito 5) |
 | Sesión | `SES-` + letras mayúsculas o dígitos | `SES-0001`, `SES-DEMO` | Redis (Hito 7) |
 | Evento | `E-` + 4 dígitos | `E-0001` | Neo4j (Hito 5) |
@@ -37,7 +36,6 @@ prueba la API desde Swagger UI o Postman. Todos los datos son sintéticos. En la
 | 9 | Consultar una sesión | `sesionId` | Redis | 200 con los datos de la sesión y su TTL restante | 404 `SESION_NO_VIGENTE` (ausente o expirada) | Lectura |
 | 10 | Cerrar una sesión | `sesionId` | Redis | 204 | 204 (ya estaba cerrada) | Invalidación |
 | 11 | Ver estadísticas de un partido en un intervalo | `codigo`, `desde`, `hasta`, `equipo`, `ventana` | InfluxDB `estadisticas_partido` | 200 con los puntos | Intervalo sin puntos o partido que no existe: 200 vacío | Lectura |
-| 13 | Consultar un árbol de objetos persistentes | `id`, `limit`, `skip` | IRIS `Fixture.Partido` y `Fixture.Evento` | 200 con partido y página de eventos | 404 `OBJETO_NO_ENCONTRADO` | Lectura |
 | 12 | Ver el estado de las dependencias | — | Todas | 200 con el estado de cada fuente (`up` o `down`) | — | Lectura |
 
 Decisión sobre los casos 7 y 11: no se consulta Neo4j para comprobar que el partido
@@ -48,9 +46,6 @@ vacío. Si el partido sí existe y la fuente no tiene datos, el resultado es el 
 Decisión sobre el caso 12: `/health` es una ruta de diagnóstico propia del grupo (no
 la pide el enunciado) y responde 200 aunque una fuente esté caída, marcándola `down`.
 Ningún endpoint de datos esconde una caída con 200.
-
-IRIS conserva el carácter de demostración del Hito 9. Se incluye una vista de lectura
-por identidad persistente para cubrir RF8, sin reemplazar las fuentes operativas.
 
 ## 2. Mapa de endpoints
 
@@ -67,7 +62,6 @@ por identidad persistente para cubrir RF8, sin reemplazar las fuentes operativas
 | DELETE | `/sesiones/{sesionId}` | Redis | 10 |
 | GET | `/partidos/{codigo}/estadisticas` | InfluxDB | 11 |
 | GET | `/health` | Todas | 12 |
-| GET | `/objetos/partidos/{id}` | IRIS | 13 |
 
 El caso 8 no se implementa: RF5 permite lectura; no se ofrece un POST parcial.
 
@@ -85,13 +79,13 @@ El caso 8 no se implementa: RF5 permite lectura; no se ofrece un POST parcial.
 | HTTP | `code` | Cuándo |
 | ---- | ------ | ------ |
 | 400 | `VALIDACION_INVALIDA` | Parámetro de ruta, query o cuerpo ausente o con formato incorrecto |
-| 404 | `EQUIPO_NO_ENCONTRADO`, `JUGADOR_NO_ENCONTRADO`, `PARTIDO_NO_ENCONTRADO`, `SEDE_NO_ENCONTRADA`, `SESION_NO_VIGENTE`, `OBJETO_NO_ENCONTRADO` | Recurso inexistente |
+| 404 | `EQUIPO_NO_ENCONTRADO`, `JUGADOR_NO_ENCONTRADO`, `PARTIDO_NO_ENCONTRADO`, `SEDE_NO_ENCONTRADA`, `SESION_NO_VIGENTE` | Recurso inexistente |
 | 404 | `RUTA_NO_ENCONTRADA` | La ruta no existe en la API |
 | 405 | `METODO_NO_PERMITIDO` | La ruta existe pero no admite ese método |
 | 4xx | `ERROR_HTTP` | Otro error HTTP del framework no contemplado arriba |
 | 409 | — | Reservado para conflictos de negocio. Ningún endpoint actual lo produce (no se implementa el caso 8) |
 | 500 | `ERROR_INTERNO` | Error inesperado; el detalle queda solo en los logs |
-| 503 | `MONGODB_UNAVAILABLE`, `NEO4J_UNAVAILABLE`, `CASSANDRA_UNAVAILABLE`, `REDIS_UNAVAILABLE`, `INFLUXDB_UNAVAILABLE`, `IRIS_UNAVAILABLE` | Fuente caída o con timeout |
+| 503 | `MONGODB_UNAVAILABLE`, `NEO4J_UNAVAILABLE`, `CASSANDRA_UNAVAILABLE`, `REDIS_UNAVAILABLE`, `INFLUXDB_UNAVAILABLE` | Fuente caída o con timeout |
 
 - **Identificador de request.** Encabezado `X-Request-Id` (nombre elegido por el grupo,
   el enunciado solo pide un identificador de request o correlación). Se genera si el
@@ -124,8 +118,6 @@ El caso 8 no se implementa: RF5 permite lectura; no se ofrece un POST parcial.
 4. **Timeout de consulta en Neo4j.** Cada Cypher usa `Query(timeout=DB_TIMEOUT_SECONDS)`;
    también hay límite de conexión y adquisición. Una request puede ejecutar varias
    consultas: el timeout no es un presupuesto total HTTP.
-5. **IRIS.** Lectura de `Fixture.Partido` por ID persistente y de sus eventos por relación
-   padre-hijo. `limit` hasta 100, `skip` hasta 1000. No hay transición ni escritura.
 
 ## 5. Respuestas por caso
 
@@ -140,9 +132,7 @@ El caso 8 no se implementa: RF5 permite lectura; no se ofrece un POST parcial.
 | 7 | `partido`, `bloque`, `items[]` con `comentarioId`, `usuarioId`, `nombreUsuario`, `idioma`, `texto`, `estadoModeracion`; `siguienteCursor` (`null` si no hay más) |
 | 9 | `sesionId`, `usuarioId`, `nombreUsuario`, `rol`, `idioma`, `ultimoAcceso`, `acciones`, `ttlSegundos` (todos menos `sesionId` pueden ser `null` si el hash no los tiene; `ttlSegundos` es `null` si la clave no vence; no se exponen `ubicacion`, `dispositivo`, `ip_publica` ni `tipo_conexion`) |
 | 11 | `partido`, `desde`, `hasta`, `ventana`, `items[]` con `hora`, `equipo` (código, tag `equipo_id`), `posesionPct`, `tiros` y `pasesIntervalo`. Con `ventana`, cada medida se agrega según su tipo: promedio de `posesion_pct`, máximo de `tiros_acumulados` y suma de `pases_intervalo` (nunca `SUM` sobre las dos primeras) |
-| 12 | `estado` por fuente: `mongodb`, `neo4j`, `cassandra`, `redis`, `influxdb`, `iris` |
+| 12 | `estado` por fuente: `mongodb`, `neo4j`, `cassandra`, `redis`, `influxdb` |
 
 Los nombres exactos de los campos quedan fijados en el contrato OpenAPI, que debe
 coincidir con esta tabla.
-
-Caso 13: `id`, `codigo`, `estado`, `eventos[]` (`id`, `tipo`, `minuto`, `partidoId`), `limit`, `skip`.
