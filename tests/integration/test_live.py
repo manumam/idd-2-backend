@@ -11,7 +11,6 @@ CASES = [
     ("neo4j", "/partidos/P-001", "codigo"),
     ("neo4j", "/partidos/P-001/eventos?limit=2", "items"),
     ("neo4j", "/sedes/S-04/goleadores?confederacion=CONMEBOL&limit=2", "items"),
-    ("cassandra", "/partidos/ARG-ESP-20300624/comentarios?bloque=2030-06-24T20:05:00Z&limit=1", "items"),
     ("redis", "/sesiones/SES-DEMO", "sesionId"),
     ("influxdb", "/partidos/P-001/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z", "items"),
     ("influxdb", "/partidos/P-001/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z&ventana=1m", "items"),
@@ -36,18 +35,3 @@ def test_real_redis_delete_repeat(client):
     for _ in range(2):
         assert client.delete("/sesiones/SES-HITO10TEST").status_code == 204
     assert client.get("/sesiones/SES-HITO10TEST").status_code == 404
-
-
-def test_real_cassandra_cursor(client):
-    if "cassandra" not in MODULES:
-        pytest.skip("Requiere dos comentarios en la ventana")
-    url = "/partidos/ARG-ESP-20300624/comentarios?bloque=2030-06-24T20:05:00Z&limit=1"
-    response = client.get(url)
-    assert response.status_code == 200
-    first = response.json()
-    assert first["siguienteCursor"]
-    response = client.get(url + "&cursor=" + first["siguienteCursor"])
-    assert response.status_code == 200
-    second = response.json()
-    assert second["items"]
-    assert second["items"][0]["comentarioId"] != first["items"][0]["comentarioId"]

@@ -27,6 +27,44 @@
             "description": "Responde 200 aunque una fuente esté caída: la marca como `down`."
           },
           "response": []
+        },
+        {
+          "name": "Liveness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/live",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "live"
+              ],
+              "query": []
+            },
+            "description": "No consulta dependencias; 200 con estado alive."
+          },
+          "response": []
+        },
+        {
+          "name": "Readiness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ready",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ready"
+              ],
+              "query": []
+            },
+            "description": "Consulta pings de cuatro dependencias en paralelo; 200 listo=true o 503 listo=false. No certifica datos de dominio."
+          },
+          "response": []
         }
       ]
     },
@@ -49,9 +87,138 @@
               ],
               "query": []
             },
-            "description": "Ficha de un equipo"
+            "description": "Ficha de un equipo\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
           },
-          "response": []
+          "response": [
+            {
+              "name": "MONGODB_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/equipos/{{codigoEquipo}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "equipos",
+                    "{{codigoEquipo}}"
+                  ],
+                  "query": []
+                },
+                "description": "Ficha de un equipo\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_AUTHENTICATION_FAILED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/equipos/{{codigoEquipo}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "equipos",
+                    "{{codigoEquipo}}"
+                  ],
+                  "query": []
+                },
+                "description": "Ficha de un equipo\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_ACCESS_DENIED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/equipos/{{codigoEquipo}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "equipos",
+                    "{{codigoEquipo}}"
+                  ],
+                  "query": []
+                },
+                "description": "Ficha de un equipo\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_CONTEXT_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/equipos/{{codigoEquipo}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "equipos",
+                    "{{codigoEquipo}}"
+                  ],
+                  "query": []
+                },
+                "description": "Ficha de un equipo\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
         },
         {
           "name": "Plantel de un equipo",
@@ -93,9 +260,234 @@
                 }
               ]
             },
-            "description": "Ordenado por dorsal. Un filtro sin resultados devuelve 200 con lista vacía."
+            "description": "Ordenado por dorsal. Un filtro sin resultados devuelve 200 con lista vacía.\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
           },
-          "response": []
+          "response": [
+            {
+              "name": "MONGODB_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/jugadores",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "jugadores"
+                  ],
+                  "query": [
+                    {
+                      "key": "equipo",
+                      "value": "ARG",
+                      "description": "Código FIFA del equipo",
+                      "disabled": false
+                    },
+                    {
+                      "key": "posicion",
+                      "value": "",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20",
+                      "description": "Máximo de elementos por página",
+                      "disabled": false
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0",
+                      "description": "Elementos a saltear",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Ordenado por dorsal. Un filtro sin resultados devuelve 200 con lista vacía.\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_AUTHENTICATION_FAILED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/jugadores",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "jugadores"
+                  ],
+                  "query": [
+                    {
+                      "key": "equipo",
+                      "value": "ARG",
+                      "description": "Código FIFA del equipo",
+                      "disabled": false
+                    },
+                    {
+                      "key": "posicion",
+                      "value": "",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20",
+                      "description": "Máximo de elementos por página",
+                      "disabled": false
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0",
+                      "description": "Elementos a saltear",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Ordenado por dorsal. Un filtro sin resultados devuelve 200 con lista vacía.\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_ACCESS_DENIED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/jugadores",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "jugadores"
+                  ],
+                  "query": [
+                    {
+                      "key": "equipo",
+                      "value": "ARG",
+                      "description": "Código FIFA del equipo",
+                      "disabled": false
+                    },
+                    {
+                      "key": "posicion",
+                      "value": "",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20",
+                      "description": "Máximo de elementos por página",
+                      "disabled": false
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0",
+                      "description": "Elementos a saltear",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Ordenado por dorsal. Un filtro sin resultados devuelve 200 con lista vacía.\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_CONTEXT_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/jugadores",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "jugadores"
+                  ],
+                  "query": [
+                    {
+                      "key": "equipo",
+                      "value": "ARG",
+                      "description": "Código FIFA del equipo",
+                      "disabled": false
+                    },
+                    {
+                      "key": "posicion",
+                      "value": "",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20",
+                      "description": "Máximo de elementos por página",
+                      "disabled": false
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0",
+                      "description": "Elementos a saltear",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Ordenado por dorsal. Un filtro sin resultados devuelve 200 con lista vacía.\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
         },
         {
           "name": "Ficha de un jugador",
@@ -113,9 +505,138 @@
               ],
               "query": []
             },
-            "description": "Ficha de un jugador"
+            "description": "Ficha de un jugador\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
           },
-          "response": []
+          "response": [
+            {
+              "name": "MONGODB_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/jugadores/{{codigoJugador}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "jugadores",
+                    "{{codigoJugador}}"
+                  ],
+                  "query": []
+                },
+                "description": "Ficha de un jugador\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_AUTHENTICATION_FAILED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/jugadores/{{codigoJugador}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "jugadores",
+                    "{{codigoJugador}}"
+                  ],
+                  "query": []
+                },
+                "description": "Ficha de un jugador\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_ACCESS_DENIED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/jugadores/{{codigoJugador}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "jugadores",
+                    "{{codigoJugador}}"
+                  ],
+                  "query": []
+                },
+                "description": "Ficha de un jugador\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_CONTEXT_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/jugadores/{{codigoJugador}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "jugadores",
+                    "{{codigoJugador}}"
+                  ],
+                  "query": []
+                },
+                "description": "Ficha de un jugador\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
         }
       ]
     },
@@ -138,9 +659,138 @@
               ],
               "query": []
             },
-            "description": "No renueva la sesión. 404 si no existe o ya expiró."
+            "description": "No renueva la sesión. 404 si no existe o ya expiró.\nErrores de dependencia: 504 REDIS_TIMEOUT; 503 REDIS_UNAVAILABLE, REDIS_AUTHENTICATION_FAILED, REDIS_ACCESS_DENIED o REDIS_CONTEXT_UNAVAILABLE; 500 REDIS_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
           },
-          "response": []
+          "response": [
+            {
+              "name": "REDIS_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/sesiones/{{sesionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "sesiones",
+                    "{{sesionId}}"
+                  ],
+                  "query": []
+                },
+                "description": "No renueva la sesión. 404 si no existe o ya expiró.\nErrores de dependencia: 504 REDIS_TIMEOUT; 503 REDIS_UNAVAILABLE, REDIS_AUTHENTICATION_FAILED, REDIS_ACCESS_DENIED o REDIS_CONTEXT_UNAVAILABLE; 500 REDIS_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"REDIS_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "REDIS_AUTHENTICATION_FAILED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/sesiones/{{sesionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "sesiones",
+                    "{{sesionId}}"
+                  ],
+                  "query": []
+                },
+                "description": "No renueva la sesión. 404 si no existe o ya expiró.\nErrores de dependencia: 504 REDIS_TIMEOUT; 503 REDIS_UNAVAILABLE, REDIS_AUTHENTICATION_FAILED, REDIS_ACCESS_DENIED o REDIS_CONTEXT_UNAVAILABLE; 500 REDIS_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"REDIS_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "REDIS_ACCESS_DENIED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/sesiones/{{sesionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "sesiones",
+                    "{{sesionId}}"
+                  ],
+                  "query": []
+                },
+                "description": "No renueva la sesión. 404 si no existe o ya expiró.\nErrores de dependencia: 504 REDIS_TIMEOUT; 503 REDIS_UNAVAILABLE, REDIS_AUTHENTICATION_FAILED, REDIS_ACCESS_DENIED o REDIS_CONTEXT_UNAVAILABLE; 500 REDIS_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"REDIS_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "REDIS_CONTEXT_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/sesiones/{{sesionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "sesiones",
+                    "{{sesionId}}"
+                  ],
+                  "query": []
+                },
+                "description": "No renueva la sesión. 404 si no existe o ya expiró.\nErrores de dependencia: 504 REDIS_TIMEOUT; 503 REDIS_UNAVAILABLE, REDIS_AUTHENTICATION_FAILED, REDIS_ACCESS_DENIED o REDIS_CONTEXT_UNAVAILABLE; 500 REDIS_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"REDIS_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
         },
         {
           "name": "Cerrar una sesión",
@@ -158,9 +808,138 @@
               ],
               "query": []
             },
-            "description": "Idempotente: responde 204 aunque la sesión ya no exista."
+            "description": "Idempotente: responde 204 aunque la sesión ya no exista.\nErrores de dependencia: 504 REDIS_TIMEOUT; 503 REDIS_UNAVAILABLE, REDIS_AUTHENTICATION_FAILED, REDIS_ACCESS_DENIED o REDIS_CONTEXT_UNAVAILABLE; 500 REDIS_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
           },
-          "response": []
+          "response": [
+            {
+              "name": "REDIS_TIMEOUT",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/sesiones/{{sesionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "sesiones",
+                    "{{sesionId}}"
+                  ],
+                  "query": []
+                },
+                "description": "Idempotente: responde 204 aunque la sesión ya no exista.\nErrores de dependencia: 504 REDIS_TIMEOUT; 503 REDIS_UNAVAILABLE, REDIS_AUTHENTICATION_FAILED, REDIS_ACCESS_DENIED o REDIS_CONTEXT_UNAVAILABLE; 500 REDIS_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"REDIS_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "REDIS_AUTHENTICATION_FAILED",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/sesiones/{{sesionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "sesiones",
+                    "{{sesionId}}"
+                  ],
+                  "query": []
+                },
+                "description": "Idempotente: responde 204 aunque la sesión ya no exista.\nErrores de dependencia: 504 REDIS_TIMEOUT; 503 REDIS_UNAVAILABLE, REDIS_AUTHENTICATION_FAILED, REDIS_ACCESS_DENIED o REDIS_CONTEXT_UNAVAILABLE; 500 REDIS_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"REDIS_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "REDIS_ACCESS_DENIED",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/sesiones/{{sesionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "sesiones",
+                    "{{sesionId}}"
+                  ],
+                  "query": []
+                },
+                "description": "Idempotente: responde 204 aunque la sesión ya no exista.\nErrores de dependencia: 504 REDIS_TIMEOUT; 503 REDIS_UNAVAILABLE, REDIS_AUTHENTICATION_FAILED, REDIS_ACCESS_DENIED o REDIS_CONTEXT_UNAVAILABLE; 500 REDIS_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"REDIS_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "REDIS_CONTEXT_UNAVAILABLE",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/sesiones/{{sesionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "sesiones",
+                    "{{sesionId}}"
+                  ],
+                  "query": []
+                },
+                "description": "Idempotente: responde 204 aunque la sesión ya no exista.\nErrores de dependencia: 504 REDIS_TIMEOUT; 503 REDIS_UNAVAILABLE, REDIS_AUTHENTICATION_FAILED, REDIS_ACCESS_DENIED o REDIS_CONTEXT_UNAVAILABLE; 500 REDIS_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"REDIS_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
         }
       ]
     },
@@ -183,9 +962,138 @@
               ],
               "query": []
             },
-            "description": "Ficha de un partido"
+            "description": "Ficha de un partido\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
           },
-          "response": []
+          "response": [
+            {
+              "name": "NEO4J_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}"
+                  ],
+                  "query": []
+                },
+                "description": "Ficha de un partido\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"NEO4J_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "NEO4J_AUTHENTICATION_FAILED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}"
+                  ],
+                  "query": []
+                },
+                "description": "Ficha de un partido\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"NEO4J_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "NEO4J_ACCESS_DENIED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}"
+                  ],
+                  "query": []
+                },
+                "description": "Ficha de un partido\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"NEO4J_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "NEO4J_CONTEXT_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}"
+                  ],
+                  "query": []
+                },
+                "description": "Ficha de un partido\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"NEO4J_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
         },
         {
           "name": "Eventos de un partido con sus protagonistas",
@@ -211,9 +1119,170 @@
                 }
               ]
             },
-            "description": "Ordenados por minuto. Un partido sin eventos devuelve 200 con lista vacía."
+            "description": "Ordenados por minuto. Un partido sin eventos devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
           },
-          "response": []
+          "response": [
+            {
+              "name": "NEO4J_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "eventos"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "50",
+                      "description": "Máximo de eventos a devolver",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Ordenados por minuto. Un partido sin eventos devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"NEO4J_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "NEO4J_AUTHENTICATION_FAILED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "eventos"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "50",
+                      "description": "Máximo de eventos a devolver",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Ordenados por minuto. Un partido sin eventos devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"NEO4J_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "NEO4J_ACCESS_DENIED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "eventos"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "50",
+                      "description": "Máximo de eventos a devolver",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Ordenados por minuto. Un partido sin eventos devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"NEO4J_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "NEO4J_CONTEXT_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "eventos"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "50",
+                      "description": "Máximo de eventos a devolver",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Ordenados por minuto. Un partido sin eventos devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"NEO4J_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
         },
         {
           "name": "Goles de jugadores de una confederación en una sede",
@@ -245,9 +1314,194 @@
                 }
               ]
             },
-            "description": "Recorre sede, partidos, goles, autores y equipos. Sin goles devuelve 200 con lista vacía."
+            "description": "Recorre sede, partidos, goles, autores y equipos. Sin goles devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
           },
-          "response": []
+          "response": [
+            {
+              "name": "NEO4J_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/sedes/{{codigoSede}}/goleadores",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "sedes",
+                    "{{codigoSede}}",
+                    "goleadores"
+                  ],
+                  "query": [
+                    {
+                      "key": "confederacion",
+                      "value": "{{confederacion}}",
+                      "description": "Confederación del equipo del goleador",
+                      "disabled": false
+                    },
+                    {
+                      "key": "limit",
+                      "value": "50",
+                      "description": "Máximo de goles a devolver",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Recorre sede, partidos, goles, autores y equipos. Sin goles devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"NEO4J_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "NEO4J_AUTHENTICATION_FAILED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/sedes/{{codigoSede}}/goleadores",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "sedes",
+                    "{{codigoSede}}",
+                    "goleadores"
+                  ],
+                  "query": [
+                    {
+                      "key": "confederacion",
+                      "value": "{{confederacion}}",
+                      "description": "Confederación del equipo del goleador",
+                      "disabled": false
+                    },
+                    {
+                      "key": "limit",
+                      "value": "50",
+                      "description": "Máximo de goles a devolver",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Recorre sede, partidos, goles, autores y equipos. Sin goles devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"NEO4J_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "NEO4J_ACCESS_DENIED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/sedes/{{codigoSede}}/goleadores",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "sedes",
+                    "{{codigoSede}}",
+                    "goleadores"
+                  ],
+                  "query": [
+                    {
+                      "key": "confederacion",
+                      "value": "{{confederacion}}",
+                      "description": "Confederación del equipo del goleador",
+                      "disabled": false
+                    },
+                    {
+                      "key": "limit",
+                      "value": "50",
+                      "description": "Máximo de goles a devolver",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Recorre sede, partidos, goles, autores y equipos. Sin goles devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"NEO4J_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "NEO4J_CONTEXT_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/sedes/{{codigoSede}}/goleadores",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "sedes",
+                    "{{codigoSede}}",
+                    "goleadores"
+                  ],
+                  "query": [
+                    {
+                      "key": "confederacion",
+                      "value": "{{confederacion}}",
+                      "description": "Confederación del equipo del goleador",
+                      "disabled": false
+                    },
+                    {
+                      "key": "limit",
+                      "value": "50",
+                      "description": "Máximo de goles a devolver",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Recorre sede, partidos, goles, autores y equipos. Sin goles devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"NEO4J_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
         }
       ]
     },
@@ -296,56 +1550,248 @@
                 }
               ]
             },
-            "description": "Puntos cada 5 segundos por equipo en [`desde`, `hasta`). Sin `ventana`, el intervalo máximo es de 30 minutos; con `ventana` (`1m` o `5m`) es de 2 horas y cada medida se agrega según su tipo (promedio de posesión, máximo de tiros, suma de pases). Un intervalo sin puntos o un partido sin datos devuelve 200 con lista vacía."
+            "description": "Puntos cada 5 segundos por equipo en [`desde`, `hasta`). Sin `ventana`, el intervalo máximo es de 30 minutos; con `ventana` (`1m` o `5m`) es de 2 horas y cada medida se agrega según su tipo (promedio de posesión, máximo de tiros, suma de pases). Un intervalo sin puntos o un partido sin datos devuelve 200 con lista vacía.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE, INFLUXDB_AUTHENTICATION_FAILED, INFLUXDB_ACCESS_DENIED o INFLUXDB_CONTEXT_UNAVAILABLE; 500 INFLUXDB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
           },
-          "response": []
+          "response": [
+            {
+              "name": "INFLUXDB_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/estadisticas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "estadisticas"
+                  ],
+                  "query": [
+                    {
+                      "key": "desde",
+                      "value": "",
+                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "hasta",
+                      "value": "",
+                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "equipo",
+                      "value": "{{codigoEquipo}}",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "ventana",
+                      "value": "",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Puntos cada 5 segundos por equipo en [`desde`, `hasta`). Sin `ventana`, el intervalo máximo es de 30 minutos; con `ventana` (`1m` o `5m`) es de 2 horas y cada medida se agrega según su tipo (promedio de posesión, máximo de tiros, suma de pases). Un intervalo sin puntos o un partido sin datos devuelve 200 con lista vacía.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE, INFLUXDB_AUTHENTICATION_FAILED, INFLUXDB_ACCESS_DENIED o INFLUXDB_CONTEXT_UNAVAILABLE; 500 INFLUXDB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"INFLUXDB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "INFLUXDB_AUTHENTICATION_FAILED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/estadisticas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "estadisticas"
+                  ],
+                  "query": [
+                    {
+                      "key": "desde",
+                      "value": "",
+                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "hasta",
+                      "value": "",
+                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "equipo",
+                      "value": "{{codigoEquipo}}",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "ventana",
+                      "value": "",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Puntos cada 5 segundos por equipo en [`desde`, `hasta`). Sin `ventana`, el intervalo máximo es de 30 minutos; con `ventana` (`1m` o `5m`) es de 2 horas y cada medida se agrega según su tipo (promedio de posesión, máximo de tiros, suma de pases). Un intervalo sin puntos o un partido sin datos devuelve 200 con lista vacía.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE, INFLUXDB_AUTHENTICATION_FAILED, INFLUXDB_ACCESS_DENIED o INFLUXDB_CONTEXT_UNAVAILABLE; 500 INFLUXDB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"INFLUXDB_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "INFLUXDB_ACCESS_DENIED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/estadisticas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "estadisticas"
+                  ],
+                  "query": [
+                    {
+                      "key": "desde",
+                      "value": "",
+                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "hasta",
+                      "value": "",
+                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "equipo",
+                      "value": "{{codigoEquipo}}",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "ventana",
+                      "value": "",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Puntos cada 5 segundos por equipo en [`desde`, `hasta`). Sin `ventana`, el intervalo máximo es de 30 minutos; con `ventana` (`1m` o `5m`) es de 2 horas y cada medida se agrega según su tipo (promedio de posesión, máximo de tiros, suma de pases). Un intervalo sin puntos o un partido sin datos devuelve 200 con lista vacía.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE, INFLUXDB_AUTHENTICATION_FAILED, INFLUXDB_ACCESS_DENIED o INFLUXDB_CONTEXT_UNAVAILABLE; 500 INFLUXDB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"INFLUXDB_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "INFLUXDB_CONTEXT_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/estadisticas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "estadisticas"
+                  ],
+                  "query": [
+                    {
+                      "key": "desde",
+                      "value": "",
+                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "hasta",
+                      "value": "",
+                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "equipo",
+                      "value": "{{codigoEquipo}}",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "ventana",
+                      "value": "",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Puntos cada 5 segundos por equipo en [`desde`, `hasta`). Sin `ventana`, el intervalo máximo es de 30 minutos; con `ventana` (`1m` o `5m`) es de 2 horas y cada medida se agrega según su tipo (promedio de posesión, máximo de tiros, suma de pases). Un intervalo sin puntos o un partido sin datos devuelve 200 con lista vacía.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE, INFLUXDB_AUTHENTICATION_FAILED, INFLUXDB_ACCESS_DENIED o INFLUXDB_CONTEXT_UNAVAILABLE; 500 INFLUXDB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"INFLUXDB_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
         }
       ]
     },
     {
       "name": "Comentarios",
-      "item": [
-        {
-          "name": "Feed de una ventana de cinco minutos",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/comentarios",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "partidos",
-                "{{codigoPartido}}",
-                "comentarios"
-              ],
-              "query": [
-                {
-                  "key": "bloque",
-                  "value": "{{bloqueComentarios}}",
-                  "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
-                  "disabled": false
-                },
-                {
-                  "key": "limit",
-                  "value": "20",
-                  "description": "Máximo de elementos por página",
-                  "disabled": false
-                },
-                {
-                  "key": "cursor",
-                  "value": "",
-                  "description": null,
-                  "disabled": false
-                }
-              ]
-            },
-            "description": "Partición exacta de Cassandra. Más nuevos primero; cursor timeuuid exclusivo. Sin datos devuelve 200 vacío. El feed vence a los 14 días."
-          },
-          "response": []
-        }
-      ]
+      "item": []
     }
   ],
   "variable": [

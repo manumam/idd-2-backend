@@ -1,0 +1,66 @@
+{
+  "fecha": "2026-10-23T21:28:08.070245+00:00",
+  "python": "3.12.13",
+  "sistema": "Darwin",
+  "arquitectura": "arm64",
+  "docker": "29.4.0",
+  "paquetes": {
+    "fastapi": "0.143.3",
+    "pydantic": "2.14.1",
+    "pymongo": "4.19.0",
+    "neo4j": "6.4.1",
+    "redis": "8.1.0",
+    "requests": "2.34.2",
+    "pytest": "9.1.1",
+    "uvicorn": "0.54.0"
+  },
+  "productos": {
+    "mongo": "db version v7.0.40\nBuild Info: {\n    \"version\": \"7.0.40\",\n    \"gitVersion\": \"37741b538c02da076d1e34d66113ac0230d4523a\",\n    \"openSSLVersion\": \"OpenSSL 3.0.2 15 Mar 2022\",\n    \"modules\": [],\n    \"allocator\": \"tcmalloc\",\n    \"environment\": {\n        \"distmod\": \"ubuntu2204\",\n        \"distarch\": \"aarch64\",\n        \"target_arch\": \"aarch64\"\n    }\n}",
+    "neo4j": "5.26.32",
+    "redis": "Redis server v=7.4.11 sha=00000000:0 malloc=jemalloc-5.3.0 bits=64 build=dc395baf3ab4da8b",
+    "influxdb": "influxdb3 InfluxDB 3 Core, 3.12.1, revision 692ea4a9943fc343c5fdf830d7dff82eef1f7fca"
+  },
+  "imagenes": [
+    {
+      "Id": "sha256:b6421fd6d1c5ded6377b397d8983e2f82e2100dc5123332dcfda2065a472be5b",
+      "RepoTags": [
+        "mongo:7.0"
+      ],
+      "RepoDigests": [
+        "mongo@sha256:b6421fd6d1c5ded6377b397d8983e2f82e2100dc5123332dcfda2065a472be5b"
+      ],
+      "Architecture": "arm64"
+    },
+    {
+      "Id": "sha256:adaa077a3ab023015143b8f73f7076a7d053f12985f5b06f4c6a128c3a2f7240",
+      "RepoTags": [
+        "neo4j:5-community"
+      ],
+      "RepoDigests": [
+        "neo4j@sha256:adaa077a3ab023015143b8f73f7076a7d053f12985f5b06f4c6a128c3a2f7240"
+      ],
+      "Architecture": "arm64"
+    },
+    {
+      "Id": "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+      "RepoTags": [
+        "redis:7-alpine",
+        "redis:7.4-alpine"
+      ],
+      "RepoDigests": [
+        "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
+      ],
+      "Architecture": "arm64"
+    },
+    {
+      "Id": "sha256:47d815e88248b61498182b9ecc618342a80cda3d8c181a672208347cb3d29e38",
+      "RepoTags": [
+        "influxdb:3-core"
+      ],
+      "RepoDigests": [
+        "influxdb@sha256:47d815e88248b61498182b9ecc618342a80cda3d8c181a672208347cb3d29e38"
+      ],
+      "Architecture": "arm64"
+    }
+  ]
+}

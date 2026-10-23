@@ -13,23 +13,22 @@ un UUID. El mismo valor se devuelve en el encabezado de todas las respuestas.
 | --- | --- |
 | 200 | Recurso o lista válida; lista vacía permitida donde corresponda |
 | 204 | Sesión invalidada, también si ya estaba ausente |
-| 400 | `VALIDACION_INVALIDA`: formato, valor, límite, fecha, ventana o cursor inválidos |
+| 400 | `VALIDACION_INVALIDA`: formato, valor, límite, fecha, ventana inválidos |
 | 404 | Código de ausencia específico |
 | 404 / 405 | `RUTA_NO_ENCONTRADA` / `METODO_NO_PERMITIDO` |
 | 500 | `ERROR_INTERNO`: error inesperado seguro |
-| 503 | `<FUENTE>_UNAVAILABLE`: dependencia inaccesible, autenticación fallida o timeout |
+| 503 | `<FUENTE>_UNAVAILABLE`, `_AUTHENTICATION_FAILED`, `_ACCESS_DENIED` o `_CONTEXT_UNAVAILABLE` |
+| 504 | `<FUENTE>_TIMEOUT`: conexión, selección de servidor o consulta agotó su espera |
 
 No se documenta 409 en las rutas actuales porque no hay una operación con conflicto
-de negocio. No se implementan altas ni transiciones de objetos, ni POST de comentarios.
+de negocio. No se implementan altas ni transiciones de objetos.
 El DELETE de Redis es idempotente; no se cuentan invalidaciones ni se reintenta la
 operación en el cliente Redis. Un fallo de red produce 503 y el consumidor puede
 repetir DELETE: una respuesta perdida no genera duplicados.
 
 La validación ocurre antes del adaptador: códigos por módulo, `limit` entre 1 y 100
 (eventos hasta 200), `skip` entre 0 y 1000, instantes UTC con sufijo Z y calendario
-válido, `desde < hasta`, ventanas estadísticas `1m/5m`. Cassandra exige bloque exacto
-múltiplo de cinco minutos y UUID v1 para el cursor. El código Cassandra no prueba
-existencia del partido en Neo4j. Influx tampoco cruza bases para validar existencia.
+válido, `desde < hasta`, ventanas estadísticas `1m/5m`. Influx no cruza bases para validar existencia.
 
 La agregación Influx se hace sobre puntos limitados: promedio de posesión, máximo de
 tiros acumulados y suma de pases por intervalo. Ventanas alineadas al reloj UTC;
@@ -37,3 +36,13 @@ la primera y la última pueden ser parciales. Se presupone el modelo del Hito 8:
 dos equipos por partido y un punto cada cinco segundos (2880 puntos en dos horas).
 El tope 5000 es protección; datos que violen esa cardinalidad pueden truncarse y
 requieren revisar el contrato antes de usarlos como estadísticas completas.
+
+## Diagnóstico de dependencias (Hito 11)
+
+La clasificación usa tipos y códigos estructurados del driver, sin analizar ni publicar sus mensajes. Los fallos de autenticación y permisos son errores de configuración entre API y motor: responden 503 al consumidor, no 401/403 de autenticación HTTP del usuario. Un timeout responde 504 y tiene código propio; una conexión rechazada sigue siendo 503 UNAVAILABLE. Los logs registran además category y tipo seguro.
+
+Mongo reconoce OperationFailure 18 (identidad), 13 (permisos), 26 (namespace ausente) y excepciones de timeout. Una colección/database ausente puede dar una lectura vacía: ese caso no se convierte automáticamente en una falla de contexto. Neo4j clasifica códigos de seguridad, database y consultas; Redis distingue AuthenticationError, AuthorizationError y TimeoutError. Influx clasifica HTTP 401/403/404 como identidad/permisos/contexto no disponible en la operación de consulta; 404 no prueba por sí solo que falte la database (también revisar la URL del endpoint). Otros rechazos de consulta 4xx y consultas inválidas reconocidas producen 500 `<FUENTE>_QUERY_FAILED`; no se atribuyen a parámetros del consumidor ya validados.
+
+No todas las excepciones permiten identificar una capa: las desconocidas mantienen UNAVAILABLE o ERROR_INTERNO según dónde se originen. La selección de servidor Mongo agotada se clasifica como timeout sin afirmar si la causa raíz fue red, DNS o rechazo. `/health` mantiene 200 y marca down ante cualquiera de estas fallas de dependencia.
+
+Los endpoints de sistema tienen sus propios schemas: `/live` devuelve `{estado: alive}` sin consultar motores; `/ready` devuelve `{listo, estado}` con 200/503 según los pings. Su 503 no utiliza el schema de error de negocio, porque incluye el estado individual de las dependencias. `/health` conserva 200 aun con fuentes down. Ver `hito_11/health_readiness.md`.

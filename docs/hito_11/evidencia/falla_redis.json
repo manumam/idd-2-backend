@@ -1,0 +1,243 @@
+{
+  "resultados": [
+    {
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/live",
+      "status_http": 200,
+      "request_id": "hito11-5062f1f750f847d480391191485321fa",
+      "correlacion_esperada": "hito11-5062f1f750f847d480391191485321fa",
+      "sistema": {
+        "estado": "alive"
+      },
+      "etapa": "inicial",
+      "fecha": "2026-10-23T21:28:05.087459+00:00",
+      "duracion_ms": 1.74,
+      "esperado": 200,
+      "correcto": true
+    },
+    {
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/health",
+      "status_http": 200,
+      "request_id": "hito11-dbe9e05465444bf89e1b00826eb5db99",
+      "correlacion_esperada": "hito11-dbe9e05465444bf89e1b00826eb5db99",
+      "sistema": {
+        "estado": {
+          "mongodb": "up",
+          "neo4j": "up",
+          "redis": "up",
+          "influxdb": "up"
+        }
+      },
+      "etapa": "inicial",
+      "fecha": "2026-10-23T21:28:05.091483+00:00",
+      "duracion_ms": 4.02,
+      "esperado": 200,
+      "correcto": true
+    },
+    {
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/ready",
+      "status_http": 200,
+      "request_id": "hito11-f113d1464c25446ca429cd33849ee423",
+      "correlacion_esperada": "hito11-f113d1464c25446ca429cd33849ee423",
+      "sistema": {
+        "estado": {
+          "mongodb": "up",
+          "neo4j": "up",
+          "redis": "up",
+          "influxdb": "up"
+        },
+        "listo": true
+      },
+      "etapa": "inicial",
+      "fecha": "2026-10-23T21:28:05.093709+00:00",
+      "duracion_ms": 2.22,
+      "esperado": 200,
+      "correcto": true
+    },
+    {
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/sesiones/SES-DEMO",
+      "status_http": 200,
+      "request_id": "hito11-b7dded4309384538992be7fe1bd03834",
+      "correlacion_esperada": "hito11-b7dded4309384538992be7fe1bd03834",
+      "etapa": "inicial",
+      "fecha": "2026-10-23T21:28:05.095625+00:00",
+      "duracion_ms": 1.91,
+      "esperado": 200,
+      "correcto": true
+    },
+    {
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/live",
+      "status_http": 200,
+      "request_id": "hito11-ff65e2dd7afa4d3b924293507c5a95e3",
+      "correlacion_esperada": "hito11-ff65e2dd7afa4d3b924293507c5a95e3",
+      "sistema": {
+        "estado": "alive"
+      },
+      "etapa": "detenido",
+      "fecha": "2026-10-23T21:28:05.492624+00:00",
+      "duracion_ms": 3.51,
+      "esperado": 200,
+      "correcto": true
+    },
+    {
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/health",
+      "status_http": 200,
+      "request_id": "hito11-22c5d3623a644f729cedbedd2643dd2c",
+      "correlacion_esperada": "hito11-22c5d3623a644f729cedbedd2643dd2c",
+      "sistema": {
+        "estado": {
+          "mongodb": "up",
+          "neo4j": "up",
+          "redis": "down",
+          "influxdb": "up"
+        }
+      },
+      "etapa": "detenido",
+      "fecha": "2026-10-23T21:28:05.499813+00:00",
+      "duracion_ms": 7.15,
+      "esperado": 200,
+      "correcto": true
+    },
+    {
+      "estado": "degradado",
+      "metodo": "GET",
+      "path": "/ready",
+      "status_http": 503,
+      "request_id": "hito11-4a4b8175e08945988a83f1f40253c4b2",
+      "correlacion_esperada": "hito11-4a4b8175e08945988a83f1f40253c4b2",
+      "sistema": {
+        "estado": {
+          "mongodb": "up",
+          "neo4j": "up",
+          "redis": "down",
+          "influxdb": "up"
+        },
+        "listo": false
+      },
+      "etapa": "detenido",
+      "fecha": "2026-10-23T21:28:05.505243+00:00",
+      "duracion_ms": 5.42,
+      "esperado": 503,
+      "correcto": true
+    },
+    {
+      "estado": "degradado",
+      "metodo": "GET",
+      "path": "/sesiones/SES-DEMO",
+      "status_http": 503,
+      "request_id": "hito11-b6767feb0b32468896e803227c6d481f",
+      "correlacion_esperada": "hito11-b6767feb0b32468896e803227c6d481f",
+      "etapa": "detenido",
+      "fecha": "2026-10-23T21:28:05.507351+00:00",
+      "duracion_ms": 2.1,
+      "esperado": 503,
+      "correcto": true
+    },
+    {
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/ready",
+      "status_http": 200,
+      "request_id": "hito11-b358943dbecd40fe9342a81d82c0c4cc",
+      "correlacion_esperada": "hito11-b358943dbecd40fe9342a81d82c0c4cc",
+      "sistema": {
+        "estado": {
+          "mongodb": "up",
+          "neo4j": "up",
+          "redis": "up",
+          "influxdb": "up"
+        },
+        "listo": true
+      },
+      "etapa": "recuperacion",
+      "fecha": "2026-10-23T21:28:05.791338+00:00",
+      "duracion_ms": 5.96,
+      "esperado": 200,
+      "correcto": true
+    },
+    {
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/live",
+      "status_http": 200,
+      "request_id": "hito11-32523b9c31ff4e448bf2c33d6d1ea87e",
+      "correlacion_esperada": "hito11-32523b9c31ff4e448bf2c33d6d1ea87e",
+      "sistema": {
+        "estado": "alive"
+      },
+      "etapa": "recuperado",
+      "fecha": "2026-10-23T21:28:05.792736+00:00",
+      "duracion_ms": 1.39,
+      "esperado": 200,
+      "correcto": true
+    },
+    {
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/health",
+      "status_http": 200,
+      "request_id": "hito11-6e6fc5ceddeb42859ba9a38c1c356017",
+      "correlacion_esperada": "hito11-6e6fc5ceddeb42859ba9a38c1c356017",
+      "sistema": {
+        "estado": {
+          "mongodb": "up",
+          "neo4j": "up",
+          "redis": "up",
+          "influxdb": "up"
+        }
+      },
+      "etapa": "recuperado",
+      "fecha": "2026-10-23T21:28:05.796637+00:00",
+      "duracion_ms": 3.9,
+      "esperado": 200,
+      "correcto": true
+    },
+    {
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/ready",
+      "status_http": 200,
+      "request_id": "hito11-8cf3182147934fe09b74f50d56182492",
+      "correlacion_esperada": "hito11-8cf3182147934fe09b74f50d56182492",
+      "sistema": {
+        "estado": {
+          "mongodb": "up",
+          "neo4j": "up",
+          "redis": "up",
+          "influxdb": "up"
+        },
+        "listo": true
+      },
+      "etapa": "recuperado",
+      "fecha": "2026-10-23T21:28:05.804626+00:00",
+      "duracion_ms": 7.99,
+      "esperado": 200,
+      "correcto": true
+    },
+    {
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/sesiones/SES-DEMO",
+      "status_http": 200,
+      "request_id": "hito11-dd610719e960416bac4677482e512f7b",
+      "correlacion_esperada": "hito11-dd610719e960416bac4677482e512f7b",
+      "etapa": "recuperado",
+      "fecha": "2026-10-23T21:28:05.814199+00:00",
+      "duracion_ms": 9.58,
+      "esperado": 200,
+      "correcto": true
+    }
+  ],
+  "persistencia": "Volumen redis_lab conservado; no se borraron datos ni volumenes."
+}

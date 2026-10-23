@@ -32,6 +32,9 @@ class InfluxAdapter(BaseAdapter):
             self._token = settings.influx_token
             return self._token
 
+        if not settings.influx_token_file_enabled:
+            return None
+
         # Rutas comunes donde la práctica genera el token administrativo
         candidate_paths = [
             ".influxdb3-token",
@@ -88,7 +91,8 @@ class InfluxAdapter(BaseAdapter):
             if response.status_code == 200:
                 return True
             logger.warning("InfluxDB health retornó status %s", response.status_code)
-            raise DatabaseUnavailableError("InfluxDB")
+            error = requests.HTTPError(response=response)
+            raise DatabaseUnavailableError("InfluxDB", error) from error
         except requests.RequestException as e:
             logger.warning("Fallo en ping InfluxDB: %s", e.__class__.__name__)
             raise DatabaseUnavailableError("InfluxDB", e)
@@ -122,9 +126,10 @@ class InfluxAdapter(BaseAdapter):
             logger.warning("Fallo de conexión con InfluxDB: %s", e.__class__.__name__)
             raise DatabaseUnavailableError("InfluxDB", e) from e
 
-        if response.status_code in (401, 403) or response.status_code >= 500:
+        if response.status_code >= 400:
             logger.warning("InfluxDB respondió %s", response.status_code)
-            raise DatabaseUnavailableError("InfluxDB")
+            error = requests.HTTPError(response=response)
+            raise DatabaseUnavailableError("InfluxDB", error) from error
         response.raise_for_status()
         return response.json()
 

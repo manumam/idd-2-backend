@@ -1,7 +1,19 @@
-# Hito 10 — API REST integrada del Fixture 2030
+# Fixture 2030 — Backend e Hito 11
 
-FastAPI con capas HTTP → servicios → adaptadores para MongoDB, Neo4j, Cassandra,
-Redis e InfluxDB 3. Rama de entrega: `Hito-10`.
+FastAPI con capas HTTP → servicios → adaptadores para MongoDB, Neo4j,
+Redis e InfluxDB 3. Rama de entrega: `codex/hito-11-conectividad`.
+
+Entrega actual: [Hito 11: procedimiento y evidencia](docs/hito_11/README.md).
+
+Para reproducir la entrega en un laboratorio aislado (Python 3.12 y Docker Compose):
+
+```bash
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r requirements.lock
+.venv/bin/python scripts/cerrar_hito11.py
+```
+
+El procedimiento conserva volúmenes, no usa datos de los hitos anteriores y guarda la evidencia en `docs/hito_11/evidencia/`. La configuración manual que sigue sirve para conectar la API a los motores existentes.
 
 ## Instalar e iniciar
 
@@ -44,14 +56,12 @@ La suite normal incluye tests de integración desactivados explícitamente. Para
 probar las fuentes reales cargadas con datos representativos:
 
 ```bash
-LIVE_MODULES=mongodb,neo4j,cassandra,redis,influxdb \
+LIVE_MODULES=mongodb,neo4j,redis,influxdb \
   python -m pytest tests/integration -v
 ```
 
 Se puede seleccionar un subconjunto en `LIVE_MODULES`. Los tests habilitados fallan
-si la fuente cae o no devuelve los datos esperados. La lectura de Cassandra requiere
-dos comentarios en el bloque indicado para probar el cursor. La prueba Redis crea
-y borra exclusivamente `sesion:SES-HITO10TEST`. Ver [tests/README.md](tests/README.md).
+si la fuente cae o no devuelve los datos esperados. Ver [tests/README.md](tests/README.md).
 
 ## Contrato y decisiones
 
@@ -60,13 +70,11 @@ y borra exclusivamente `sesion:SES-HITO10TEST`. Ver [tests/README.md](tests/READ
 - [Validación, errores e idempotencia](docs/contratos_y_errores.md).
 - [Pruebas y evidencia disponible](docs/pruebas_y_evidencia.md).
 
-El feed Cassandra conserva su identificador `ARG-ESP-20300624`; Neo4j e InfluxDB usan
-`P-001`. No se inventa una traducción. Los comentarios son de solo lectura:
-no se ofrece una escritura parcial que desincronice tablas y contadores del Hito 6.
+Cassandra y la ruta de comentarios se retiraron por decisión del equipo para el Hito 11.
 La única mutación HTTP es invalidar una sesión (DELETE idempotente).
 
-`/health` devuelve 200 con `up/down` por fuente aun si alguna está caída. Los endpoints
-de datos responden 503 ante una dependencia inaccesible. Los detalles del driver no
+`/live` comprueba el proceso sin consultar motores. `/ready` devuelve 200 si todas las fuentes responden a su ping o 503 si alguna falla. `/health` devuelve 200 con `up/down` por fuente aun si alguna está caída. Los endpoints
+de datos responden 503 ante una dependencia inaccesible o con identidad/permisos/contexto rechazados, y 504 ante timeout. Los detalles del driver no
 se publican en respuestas ni logs.
 
 ## Detener
@@ -79,3 +87,5 @@ detiene las bases y conserva los datos. No se necesita eliminar volúmenes.
 Las pruebas con dobles verifican contratos y errores, pero no prueban conectividad.
 La evidencia separa esas pruebas de las ejecutadas contra motores reales. No se
 presentan cifras de capacidad productiva ni se afirma validación de fuentes no ejecutadas.
+
+Casos HTTP negativos del Hito 11: `.venv/bin/python scripts/prueba_api_negativos.py` con la API del laboratorio iniciada. Los casos de driver simulados y los casos HTTP reales se identifican en la evidencia.

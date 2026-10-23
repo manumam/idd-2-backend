@@ -6,7 +6,7 @@ Encapsula el driver Bolt oficial y sesiones para consultas Cypher parametrizadas
 import logging
 from typing import Any, Dict, List, Optional
 from neo4j import GraphDatabase, Driver, Query
-from neo4j.exceptions import AuthError, ServiceUnavailable, SessionExpired, TransientError
+from neo4j.exceptions import AuthError, ServiceUnavailable, SessionExpired, TransientError, Neo4jError
 
 from app.adapters.base import BaseAdapter
 from app.core.observability import observe
@@ -69,7 +69,7 @@ class Neo4jAdapter(BaseAdapter):
             try:
                 self._driver = GraphDatabase.driver(
                     settings.neo4j_uri,
-                    auth=(settings.neo4j_user, settings.neo4j_password),
+                    auth=(settings.neo4j_user, settings.neo4j_password) if settings.neo4j_user else None,
                     connection_timeout=settings.db_timeout_seconds,
                     max_connection_lifetime=3600,
                     connection_acquisition_timeout=settings.db_timeout_seconds,
@@ -85,7 +85,7 @@ class Neo4jAdapter(BaseAdapter):
         try:
             with self.get_driver().session(database=settings.neo4j_database) as session:
                 return [registro.data() for registro in session.run(Query(cypher, timeout=settings.db_timeout_seconds), params)]
-        except (ServiceUnavailable, SessionExpired, AuthError, TransientError) as e:
+        except (ServiceUnavailable, SessionExpired, Neo4jError) as e:
             logger.warning("Fallo en consulta Neo4j: %s", e.__class__.__name__)
             raise DatabaseUnavailableError("Neo4j", e) from e
 
