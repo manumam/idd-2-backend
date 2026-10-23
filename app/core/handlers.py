@@ -27,8 +27,8 @@ def _error(status_code: int, code: str, message: str) -> JSONResponse:
 async def app_exception_handler(request: Request, exc: BaseAppException) -> JSONResponse:
     if isinstance(exc, DatabaseUnavailableError):
         logger.warning(
-            "request_id=%s fuente=%s error=%s",
-            current_request_id(), exc.source, exc.original_error.__class__.__name__,
+            "request_id=%s dependency=%s category=%s error=%s",
+            current_request_id(), exc.source, exc.category, type(exc.original_error).__name__,
         )
     return _error(exc.status_code, exc.code, exc.message)
 

@@ -12,7 +12,10 @@ class ErrorResponse(BaseModel):
 # Respuestas de error para la documentación de rutas de lectura
 RESPUESTA_400 = {400: {"model": ErrorResponse, "description": "Parámetro inválido"}}
 RESPUESTA_404 = {404: {"model": ErrorResponse, "description": "Recurso inexistente"}}
-RESPUESTA_503 = {503: {"model": ErrorResponse, "description": "Fuente de datos no disponible"}}
+RESPUESTA_503 = {
+    503: {"model": ErrorResponse, "description": "Dependencia no disponible, identidad rechazada, permisos o contexto incorrectos"},
+    504: {"model": ErrorResponse, "description": "Timeout de dependencia (<FUENTE>_TIMEOUT)"},
+}
 
 RESPUESTAS_FICHA = {**RESPUESTA_400, **RESPUESTA_404, **RESPUESTA_503}
 RESPUESTAS_LISTA = {**RESPUESTA_400, **RESPUESTA_503}

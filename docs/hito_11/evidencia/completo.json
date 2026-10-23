@@ -1,0 +1,259 @@
+{
+  "origen": "proceso_python_en_host",
+  "resultados": [
+    {
+      "producto": "mongodb",
+      "capa": "configuracion",
+      "fecha": "2026-10-23T21:28:02.610280+00:00",
+      "estado": "disponible",
+      "host": "127.0.0.1",
+      "puerto": 37017,
+      "duracion_ms": 0.02
+    },
+    {
+      "producto": "mongodb",
+      "capa": "resolucion",
+      "fecha": "2026-10-23T21:28:02.610305+00:00",
+      "estado": "disponible",
+      "duracion_ms": 1.15
+    },
+    {
+      "producto": "mongodb",
+      "capa": "tcp",
+      "fecha": "2026-10-23T21:28:02.611458+00:00",
+      "estado": "disponible",
+      "duracion_ms": 0.28
+    },
+    {
+      "producto": "mongodb",
+      "capa": "protocolo",
+      "fecha": "2026-10-23T21:28:02.611740+00:00",
+      "estado": "disponible",
+      "duracion_ms": 7.01
+    },
+    {
+      "producto": "mongodb",
+      "capa": "contexto_y_lectura",
+      "fecha": "2026-10-23T21:28:02.618752+00:00",
+      "estado": "disponible",
+      "resultado": "datos_presentes",
+      "duracion_ms": 3.76
+    },
+    {
+      "producto": "mongodb",
+      "capa": "api",
+      "fecha": "2026-10-23T21:28:02.622515+00:00",
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/equipos/ARG",
+      "status_http": 200,
+      "request_id": "hito11-6079dc8c10c84d7b9ee67c3a4cc3c057",
+      "correlacion_esperada": "hito11-6079dc8c10c84d7b9ee67c3a4cc3c057",
+      "duracion_ms": 11.85
+    },
+    {
+      "producto": "mongodb",
+      "capa": "api",
+      "fecha": "2026-10-23T21:28:02.634363+00:00",
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/jugadores?equipo=ARG&limit=2",
+      "status_http": 200,
+      "request_id": "hito11-b4704600d5be4f7ca9c3a13a25d9d4af",
+      "correlacion_esperada": "hito11-b4704600d5be4f7ca9c3a13a25d9d4af",
+      "duracion_ms": 3.35
+    },
+    {
+      "producto": "mongodb",
+      "capa": "api",
+      "fecha": "2026-10-23T21:28:02.637719+00:00",
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/jugadores/ARG-10",
+      "status_http": 200,
+      "request_id": "hito11-ec2c3b7bc20249d4896db85a21ba1a17",
+      "correlacion_esperada": "hito11-ec2c3b7bc20249d4896db85a21ba1a17",
+      "duracion_ms": 1.92
+    },
+    {
+      "producto": "neo4j",
+      "capa": "configuracion",
+      "fecha": "2026-10-23T21:28:02.639637+00:00",
+      "estado": "disponible",
+      "host": "127.0.0.1",
+      "puerto": 37687,
+      "duracion_ms": 0.01
+    },
+    {
+      "producto": "neo4j",
+      "capa": "resolucion",
+      "fecha": "2026-10-23T21:28:02.639648+00:00",
+      "estado": "disponible",
+      "duracion_ms": 0.01
+    },
+    {
+      "producto": "neo4j",
+      "capa": "tcp",
+      "fecha": "2026-10-23T21:28:02.639660+00:00",
+      "estado": "disponible",
+      "duracion_ms": 0.37
+    },
+    {
+      "producto": "neo4j",
+      "capa": "protocolo",
+      "fecha": "2026-10-23T21:28:02.640033+00:00",
+      "estado": "disponible",
+      "duracion_ms": 6.87
+    },
+    {
+      "producto": "neo4j",
+      "capa": "contexto_y_lectura",
+      "fecha": "2026-10-23T21:28:02.646902+00:00",
+      "estado": "disponible",
+      "resultado": "datos_presentes",
+      "duracion_ms": 17.68
+    },
+    {
+      "producto": "neo4j",
+      "capa": "api",
+      "fecha": "2026-10-23T21:28:02.664590+00:00",
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/partidos/P-001",
+      "status_http": 200,
+      "request_id": "hito11-371a3423239247c986058bb97988caf8",
+      "correlacion_esperada": "hito11-371a3423239247c986058bb97988caf8",
+      "duracion_ms": 43.14
+    },
+    {
+      "producto": "neo4j",
+      "capa": "api",
+      "fecha": "2026-10-23T21:28:02.707732+00:00",
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/partidos/P-001/eventos?limit=2",
+      "status_http": 200,
+      "request_id": "hito11-f938c47509a2410bb07cd1ac8e3799c2",
+      "correlacion_esperada": "hito11-f938c47509a2410bb07cd1ac8e3799c2",
+      "duracion_ms": 9.54
+    },
+    {
+      "producto": "neo4j",
+      "capa": "api",
+      "fecha": "2026-10-23T21:28:02.717277+00:00",
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/sedes/S-04/goleadores?confederacion=CONMEBOL&limit=2",
+      "status_http": 200,
+      "request_id": "hito11-096119cb02d34042ae61d9d2537dcb60",
+      "correlacion_esperada": "hito11-096119cb02d34042ae61d9d2537dcb60",
+      "duracion_ms": 6.24
+    },
+    {
+      "producto": "redis",
+      "capa": "configuracion",
+      "fecha": "2026-10-23T21:28:02.723518+00:00",
+      "estado": "disponible",
+      "host": "127.0.0.1",
+      "puerto": 36379,
+      "duracion_ms": 0.01
+    },
+    {
+      "producto": "redis",
+      "capa": "resolucion",
+      "fecha": "2026-10-23T21:28:02.723527+00:00",
+      "estado": "disponible",
+      "duracion_ms": 0.02
+    },
+    {
+      "producto": "redis",
+      "capa": "tcp",
+      "fecha": "2026-10-23T21:28:02.723547+00:00",
+      "estado": "disponible",
+      "duracion_ms": 0.21
+    },
+    {
+      "producto": "redis",
+      "capa": "protocolo",
+      "fecha": "2026-10-23T21:28:02.723763+00:00",
+      "estado": "disponible",
+      "duracion_ms": 2.85
+    },
+    {
+      "producto": "redis",
+      "capa": "contexto_y_lectura",
+      "fecha": "2026-10-23T21:28:02.726614+00:00",
+      "estado": "disponible",
+      "resultado": "clave_presente",
+      "ttl": 3598,
+      "duracion_ms": 2.14
+    },
+    {
+      "producto": "redis",
+      "capa": "api",
+      "fecha": "2026-10-23T21:28:02.728760+00:00",
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/sesiones/SES-DEMO",
+      "status_http": 200,
+      "request_id": "hito11-7db17bbf5e904495af4649b2853ad8ab",
+      "correlacion_esperada": "hito11-7db17bbf5e904495af4649b2853ad8ab",
+      "duracion_ms": 5.99
+    },
+    {
+      "producto": "influxdb",
+      "capa": "configuracion",
+      "fecha": "2026-10-23T21:28:02.734751+00:00",
+      "estado": "disponible",
+      "host": "127.0.0.1",
+      "puerto": 38181,
+      "duracion_ms": 0.01
+    },
+    {
+      "producto": "influxdb",
+      "capa": "resolucion",
+      "fecha": "2026-10-23T21:28:02.734766+00:00",
+      "estado": "disponible",
+      "duracion_ms": 0.01
+    },
+    {
+      "producto": "influxdb",
+      "capa": "tcp",
+      "fecha": "2026-10-23T21:28:02.734778+00:00",
+      "estado": "disponible",
+      "duracion_ms": 0.2
+    },
+    {
+      "producto": "influxdb",
+      "capa": "protocolo",
+      "fecha": "2026-10-23T21:28:02.734978+00:00",
+      "estado": "disponible",
+      "duracion_ms": 1.08
+    },
+    {
+      "producto": "influxdb",
+      "capa": "contexto_y_lectura",
+      "fecha": "2026-10-23T21:28:02.736056+00:00",
+      "estado": "disponible",
+      "resultado": "datos_presentes",
+      "duracion_ms": 5.12
+    },
+    {
+      "producto": "influxdb",
+      "capa": "api",
+      "fecha": "2026-10-23T21:28:02.741174+00:00",
+      "estado": "disponible",
+      "metodo": "GET",
+      "path": "/partidos/P-001/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z",
+      "status_http": 200,
+      "request_id": "hito11-96740f24711247bb8b89ec790f2859aa",
+      "correlacion_esperada": "hito11-96740f24711247bb8b89ec790f2859aa",
+      "duracion_ms": 9.6
+    }
+  ],
+  "limitaciones": [
+    "Identidad, autorizacion y contexto se verifican conjuntamente con la lectura; no se certifican por separado.",
+    "Laboratorio sin autenticacion: no evalua rechazo de credenciales.",
+    "IRIS y Cassandra fuera del alcance por decision del equipo."
+  ]
+}

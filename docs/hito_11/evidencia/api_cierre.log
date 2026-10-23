@@ -1,0 +1,106 @@
+INFO:     Started server process [45841]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:18001 (Press CTRL+C to quit)
+2026-10-23 18:28:02,284 INFO fixture2030.access request_id=a47eb6a0-0724-47a3-bf2c-d705df5d63b6 method=GET path=/live status=200 duration_ms=1.8
+INFO:     127.0.0.1:61503 - "GET /live HTTP/1.1" 200 OK
+2026-10-23 18:28:02,633 INFO fixture2030.adapters request_id=hito11-6079dc8c10c84d7b9ee67c3a4cc3c057 dependency=MongoDB operation=find_equipo result=ok duration_ms=7.5
+2026-10-23 18:28:02,633 INFO fixture2030.access request_id=hito11-6079dc8c10c84d7b9ee67c3a4cc3c057 method=GET path=/equipos/ARG status=200 duration_ms=10.5
+INFO:     127.0.0.1:61509 - "GET /equipos/ARG HTTP/1.1" 200 OK
+2026-10-23 18:28:02,637 INFO fixture2030.adapters request_id=hito11-b4704600d5be4f7ca9c3a13a25d9d4af dependency=MongoDB operation=list_jugadores result=ok duration_ms=2.1
+2026-10-23 18:28:02,637 INFO fixture2030.access request_id=hito11-b4704600d5be4f7ca9c3a13a25d9d4af method=GET path=/jugadores status=200 duration_ms=2.5
+INFO:     127.0.0.1:61513 - "GET /jugadores?equipo=ARG&limit=2 HTTP/1.1" 200 OK
+2026-10-23 18:28:02,639 INFO fixture2030.adapters request_id=hito11-ec2c3b7bc20249d4896db85a21ba1a17 dependency=MongoDB operation=find_jugador result=ok duration_ms=0.9
+2026-10-23 18:28:02,639 INFO fixture2030.access request_id=hito11-ec2c3b7bc20249d4896db85a21ba1a17 method=GET path=/jugadores/ARG-10 status=200 duration_ms=1.3
+INFO:     127.0.0.1:61514 - "GET /jugadores/ARG-10 HTTP/1.1" 200 OK
+2026-10-23 18:28:02,706 INFO fixture2030.adapters request_id=hito11-371a3423239247c986058bb97988caf8 dependency=Neo4j operation=find_partido result=ok duration_ms=38.6
+2026-10-23 18:28:02,707 INFO fixture2030.access request_id=hito11-371a3423239247c986058bb97988caf8 method=GET path=/partidos/P-001 status=200 duration_ms=42.0
+INFO:     127.0.0.1:61517 - "GET /partidos/P-001 HTTP/1.1" 200 OK
+2026-10-23 18:28:02,716 INFO fixture2030.adapters request_id=hito11-f938c47509a2410bb07cd1ac8e3799c2 dependency=Neo4j operation=find_eventos result=ok duration_ms=7.6
+2026-10-23 18:28:02,716 INFO fixture2030.access request_id=hito11-f938c47509a2410bb07cd1ac8e3799c2 method=GET path=/partidos/P-001/eventos status=200 duration_ms=8.2
+INFO:     127.0.0.1:61519 - "GET /partidos/P-001/eventos?limit=2 HTTP/1.1" 200 OK
+2026-10-23 18:28:02,719 INFO fixture2030.adapters request_id=hito11-096119cb02d34042ae61d9d2537dcb60 dependency=Neo4j operation=sede_existe result=ok duration_ms=1.7
+2026-10-23 18:28:02,722 INFO fixture2030.adapters request_id=hito11-096119cb02d34042ae61d9d2537dcb60 dependency=Neo4j operation=find_goleadores result=ok duration_ms=2.9
+2026-10-23 18:28:02,723 INFO fixture2030.access request_id=hito11-096119cb02d34042ae61d9d2537dcb60 method=GET path=/sedes/S-04/goleadores status=200 duration_ms=5.2
+INFO:     127.0.0.1:61520 - "GET /sedes/S-04/goleadores?confederacion=CONMEBOL&limit=2 HTTP/1.1" 200 OK
+2026-10-23 18:28:02,734 INFO fixture2030.adapters request_id=hito11-7db17bbf5e904495af4649b2853ad8ab dependency=Redis operation=get_sesion result=ok duration_ms=4.3
+2026-10-23 18:28:02,734 INFO fixture2030.access request_id=hito11-7db17bbf5e904495af4649b2853ad8ab method=GET path=/sesiones/SES-DEMO status=200 duration_ms=5.1
+INFO:     127.0.0.1:61523 - "GET /sesiones/SES-DEMO HTTP/1.1" 200 OK
+2026-10-23 18:28:02,750 INFO fixture2030.adapters request_id=hito11-96740f24711247bb8b89ec790f2859aa dependency=InfluxDB operation=find_estadisticas result=ok duration_ms=5.3
+2026-10-23 18:28:02,750 INFO fixture2030.access request_id=hito11-96740f24711247bb8b89ec790f2859aa method=GET path=/partidos/P-001/estadisticas status=200 duration_ms=8.7
+INFO:     127.0.0.1:61527 - "GET /partidos/P-001/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z HTTP/1.1" 200 OK
+2026-10-23 18:28:03,606 INFO fixture2030.adapters request_id=hito11-neg-5292f8c5d6d94c388db9ff5b199be133 dependency=MongoDB operation=find_equipo result=ok duration_ms=2.6
+2026-10-23 18:28:03,606 INFO fixture2030.access request_id=hito11-neg-5292f8c5d6d94c388db9ff5b199be133 method=GET path=/equipos/ZZZ status=404 duration_ms=3.0
+INFO:     127.0.0.1:61530 - "GET /equipos/ZZZ HTTP/1.1" 404 Not Found
+2026-10-23 18:28:03,609 INFO fixture2030.adapters request_id=hito11-neg-2468e27ca2f94e359b6efc11a85a82eb dependency=MongoDB operation=list_jugadores result=ok duration_ms=1.7
+2026-10-23 18:28:03,609 INFO fixture2030.access request_id=hito11-neg-2468e27ca2f94e359b6efc11a85a82eb method=GET path=/jugadores status=200 duration_ms=2.0
+INFO:     127.0.0.1:61531 - "GET /jugadores?equipo=ZZZ HTTP/1.1" 200 OK
+2026-10-23 18:28:03,611 INFO fixture2030.access request_id=hito11-neg-a9704856de7f48779c114748f57430ad method=GET path=/jugadores status=400 duration_ms=0.2
+INFO:     127.0.0.1:61532 - "GET /jugadores?equipo=ARG&limit=0 HTTP/1.1" 400 Bad Request
+2026-10-23 18:28:03,612 INFO fixture2030.access request_id=hito11-neg-abbc0fb290b2409ead4ba68ba2647b43 method=GET path=/ruta-inexistente-hito11 status=404 duration_ms=0.2
+INFO:     127.0.0.1:61533 - "GET /ruta-inexistente-hito11 HTTP/1.1" 404 Not Found
+2026-10-23 18:28:05,087 INFO fixture2030.access request_id=hito11-5062f1f750f847d480391191485321fa method=GET path=/live status=200 duration_ms=0.3
+INFO:     127.0.0.1:61540 - "GET /live HTTP/1.1" 200 OK
+2026-10-23 18:28:05,090 INFO fixture2030.adapters request_id=- dependency=Redis operation=ping result=ok duration_ms=1.9
+2026-10-23 18:28:05,090 INFO fixture2030.adapters request_id=- dependency=InfluxDB operation=ping result=ok duration_ms=1.9
+2026-10-23 18:28:05,090 INFO fixture2030.adapters request_id=- dependency=MongoDB operation=ping result=ok duration_ms=2.4
+2026-10-23 18:28:05,091 INFO fixture2030.adapters request_id=- dependency=Neo4j operation=ping result=ok duration_ms=2.8
+2026-10-23 18:28:05,091 INFO fixture2030.access request_id=hito11-dbe9e05465444bf89e1b00826eb5db99 method=GET path=/health status=200 duration_ms=3.3
+INFO:     127.0.0.1:61541 - "GET /health HTTP/1.1" 200 OK
+2026-10-23 18:28:05,092 INFO fixture2030.adapters request_id=- dependency=MongoDB operation=ping result=ok duration_ms=0.6
+2026-10-23 18:28:05,093 INFO fixture2030.adapters request_id=- dependency=Redis operation=ping result=ok duration_ms=0.8
+2026-10-23 18:28:05,093 INFO fixture2030.adapters request_id=- dependency=InfluxDB operation=ping result=ok duration_ms=0.9
+2026-10-23 18:28:05,093 INFO fixture2030.adapters request_id=- dependency=Neo4j operation=ping result=ok duration_ms=1.1
+2026-10-23 18:28:05,093 INFO fixture2030.access request_id=hito11-f113d1464c25446ca429cd33849ee423 method=GET path=/ready status=200 duration_ms=1.6
+INFO:     127.0.0.1:61542 - "GET /ready HTTP/1.1" 200 OK
+2026-10-23 18:28:05,095 INFO fixture2030.adapters request_id=hito11-b7dded4309384538992be7fe1bd03834 dependency=Redis operation=get_sesion result=ok duration_ms=1.0
+2026-10-23 18:28:05,095 INFO fixture2030.access request_id=hito11-b7dded4309384538992be7fe1bd03834 method=GET path=/sesiones/SES-DEMO status=200 duration_ms=1.3
+INFO:     127.0.0.1:61543 - "GET /sesiones/SES-DEMO HTTP/1.1" 200 OK
+2026-10-23 18:28:05,491 INFO fixture2030.access request_id=hito11-ff65e2dd7afa4d3b924293507c5a95e3 method=GET path=/live status=200 duration_ms=0.8
+INFO:     127.0.0.1:61547 - "GET /live HTTP/1.1" 200 OK
+2026-10-23 18:28:05,495 WARNING app.adapters.redis_adapter Fallo en ping Redis: ConnectionError
+2026-10-23 18:28:05,495 INFO fixture2030.adapters request_id=- dependency=Redis operation=ping result=error duration_ms=1.1
+2026-10-23 18:28:05,497 INFO fixture2030.adapters request_id=- dependency=InfluxDB operation=ping result=ok duration_ms=2.4
+2026-10-23 18:28:05,497 INFO fixture2030.adapters request_id=- dependency=MongoDB operation=ping result=ok duration_ms=3.4
+2026-10-23 18:28:05,498 INFO fixture2030.adapters request_id=- dependency=Neo4j operation=ping result=ok duration_ms=4.3
+2026-10-23 18:28:05,499 INFO fixture2030.access request_id=hito11-22c5d3623a644f729cedbedd2643dd2c method=GET path=/health status=200 duration_ms=5.3
+INFO:     127.0.0.1:61548 - "GET /health HTTP/1.1" 200 OK
+2026-10-23 18:28:05,502 WARNING app.adapters.redis_adapter Fallo en ping Redis: ConnectionError
+2026-10-23 18:28:05,502 INFO fixture2030.adapters request_id=- dependency=MongoDB operation=ping result=ok duration_ms=1.2
+2026-10-23 18:28:05,502 INFO fixture2030.adapters request_id=- dependency=Redis operation=ping result=error duration_ms=0.9
+2026-10-23 18:28:05,503 INFO fixture2030.adapters request_id=- dependency=Neo4j operation=ping result=ok duration_ms=2.5
+2026-10-23 18:28:05,504 INFO fixture2030.adapters request_id=- dependency=InfluxDB operation=ping result=ok duration_ms=2.4
+2026-10-23 18:28:05,504 INFO fixture2030.access request_id=hito11-4a4b8175e08945988a83f1f40253c4b2 method=GET path=/ready status=503 duration_ms=3.9
+INFO:     127.0.0.1:61550 - "GET /ready HTTP/1.1" 503 Service Unavailable
+2026-10-23 18:28:05,506 WARNING app.adapters.redis_adapter Fallo en operación Redis: ConnectionError
+2026-10-23 18:28:05,506 INFO fixture2030.adapters request_id=hito11-b6767feb0b32468896e803227c6d481f dependency=Redis operation=get_sesion result=error duration_ms=0.3
+2026-10-23 18:28:05,506 WARNING fixture2030.errors request_id=hito11-b6767feb0b32468896e803227c6d481f dependency=Redis category=connection_refused error=ConnectionError
+2026-10-23 18:28:05,506 INFO fixture2030.access request_id=hito11-b6767feb0b32468896e803227c6d481f method=GET path=/sesiones/SES-DEMO status=503 duration_ms=0.8
+INFO:     127.0.0.1:61552 - "GET /sesiones/SES-DEMO HTTP/1.1" 503 Service Unavailable
+2026-10-23 18:28:05,788 INFO fixture2030.adapters request_id=- dependency=MongoDB operation=ping result=ok duration_ms=1.3
+2026-10-23 18:28:05,789 INFO fixture2030.adapters request_id=- dependency=InfluxDB operation=ping result=ok duration_ms=1.5
+2026-10-23 18:28:05,789 INFO fixture2030.adapters request_id=- dependency=Neo4j operation=ping result=ok duration_ms=2.0
+2026-10-23 18:28:05,790 INFO fixture2030.adapters request_id=- dependency=Redis operation=ping result=ok duration_ms=3.3
+2026-10-23 18:28:05,790 INFO fixture2030.access request_id=hito11-b358943dbecd40fe9342a81d82c0c4cc method=GET path=/ready status=200 duration_ms=4.5
+INFO:     127.0.0.1:61557 - "GET /ready HTTP/1.1" 200 OK
+2026-10-23 18:28:05,792 INFO fixture2030.access request_id=hito11-32523b9c31ff4e448bf2c33d6d1ea87e method=GET path=/live status=200 duration_ms=0.4
+INFO:     127.0.0.1:61559 - "GET /live HTTP/1.1" 200 OK
+2026-10-23 18:28:05,794 INFO fixture2030.adapters request_id=- dependency=MongoDB operation=ping result=ok duration_ms=0.8
+2026-10-23 18:28:05,794 INFO fixture2030.adapters request_id=- dependency=Redis operation=ping result=ok duration_ms=1.0
+2026-10-23 18:28:05,795 INFO fixture2030.adapters request_id=- dependency=InfluxDB operation=ping result=ok duration_ms=1.3
+2026-10-23 18:28:05,795 INFO fixture2030.adapters request_id=- dependency=Neo4j operation=ping result=ok duration_ms=2.0
+2026-10-23 18:28:05,796 INFO fixture2030.access request_id=hito11-6e6fc5ceddeb42859ba9a38c1c356017 method=GET path=/health status=200 duration_ms=2.8
+INFO:     127.0.0.1:61560 - "GET /health HTTP/1.1" 200 OK
+2026-10-23 18:28:05,799 INFO fixture2030.adapters request_id=- dependency=Redis operation=ping result=ok duration_ms=1.1
+2026-10-23 18:28:05,799 INFO fixture2030.adapters request_id=- dependency=InfluxDB operation=ping result=ok duration_ms=1.1
+2026-10-23 18:28:05,799 INFO fixture2030.adapters request_id=- dependency=MongoDB operation=ping result=ok duration_ms=2.1
+2026-10-23 18:28:05,800 INFO fixture2030.adapters request_id=- dependency=Neo4j operation=ping result=ok duration_ms=2.6
+2026-10-23 18:28:05,801 INFO fixture2030.access request_id=hito11-8cf3182147934fe09b74f50d56182492 method=GET path=/ready status=200 duration_ms=4.0
+INFO:     127.0.0.1:61561 - "GET /ready HTTP/1.1" 200 OK
+2026-10-23 18:28:05,807 INFO fixture2030.adapters request_id=hito11-dd610719e960416bac4677482e512f7b dependency=Redis operation=get_sesion result=ok duration_ms=1.9
+2026-10-23 18:28:05,813 INFO fixture2030.access request_id=hito11-dd610719e960416bac4677482e512f7b method=GET path=/sesiones/SES-DEMO status=200 duration_ms=7.8
+INFO:     127.0.0.1:61562 - "GET /sesiones/SES-DEMO HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [45841]

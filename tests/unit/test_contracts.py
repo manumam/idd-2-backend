@@ -4,7 +4,7 @@ from uuid import UUID
 from unittest.mock import Mock
 
 import pytest
-from app.adapters import mongo_adapter, neo4j_adapter, cassandra_adapter, redis_adapter, influx_adapter
+from app.adapters import mongo_adapter, neo4j_adapter, redis_adapter, influx_adapter
 from app.core.exceptions import DatabaseUnavailableError
 from app.main import app
 
@@ -14,21 +14,17 @@ JUGADOR = dict(_id="ARG-10", nombre="Jugador", apellido="Demo", dorsal=10, posic
                equipo={"_id": "ARG", "nombre": "Argentina"}, fecha_nacimiento=datetime(2000, 1, 1))
 PARTIDO = dict(id="P-001", fase="Grupos", grupo="A", fecha="2030-06-24", sede=None,
                local={"id": "ARG", "nombre": "Argentina"}, visitante=None)
-COMENTARIO = dict(comentario_id=UUID("ba894580-ec17-11f5-8123-0242ac120002"), usuario_id="U001",
-                  nombre_usuario="Demo", idioma="es", texto="Vamos", estado_moderacion="APROBADO")
 SESION = dict(usuario_id="U001", nombre_usuario="Demo", rol="hincha", idioma="es",
               ultimo_acceso="2030-06-24T20:00:00Z", acciones=1, ttl_segundos=60)
 PUNTO = dict(time="2030-06-24T20:00:00Z", equipo_id="ARG", posesion_pct=60,
              tiros_acumulados=2, pases_intervalo=10)
 STATS = "/partidos/P-001/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z"
-COMMENTS = "/partidos/ARG-ESP-20300624/comentarios?bloque=2030-06-24T20:05:00Z"
 CASES = [
     ("/equipos/ARG", mongo_adapter, "find_equipo", EQUIPO),
     ("/jugadores/ARG-10", mongo_adapter, "find_jugador", JUGADOR),
     ("/jugadores?equipo=ARG", mongo_adapter, "list_jugadores", [JUGADOR]),
     ("/partidos/P-001", neo4j_adapter, "find_partido", PARTIDO),
     ("/partidos/P-001/eventos", neo4j_adapter, "find_eventos", []),
-    (COMMENTS, cassandra_adapter, "list_comentarios", [COMENTARIO]),
     ("/sesiones/SES-DEMO", redis_adapter, "get_sesion", SESION),
     (STATS, influx_adapter, "find_estadisticas", [PUNTO]),
 ]
@@ -54,7 +50,7 @@ def test_goleadores(client, monkeypatch):
 
 @pytest.mark.parametrize("url,adapter,method,data", CASES)
 def test_dependency_down(client, monkeypatch, url, adapter, method, data):
-    source = {id(mongo_adapter): "MongoDB", id(neo4j_adapter): "Neo4j", id(cassandra_adapter): "Cassandra",
+    source = {id(mongo_adapter): "MongoDB", id(neo4j_adapter): "Neo4j",
               id(redis_adapter): "Redis", id(influx_adapter): "InfluxDB"}[id(adapter)]
     monkeypatch.setattr(adapter, method, Mock(side_effect=DatabaseUnavailableError(source, RuntimeError("secret-token"))))
     response = client.get(url)
@@ -81,9 +77,6 @@ def test_not_found(client, monkeypatch, url, adapter, method):
     "/equipos/arg", "/jugadores", "/jugadores?equipo=ARG&limit=101", "/jugadores?equipo=ARG&skip=-1",
     "/jugadores?equipo=ARG&posicion=Invalido", "/partidos/INVALID/eventos",
     "/sesiones/invalid",
-    COMMENTS.replace("20:05:00", "20:06:00"), COMMENTS.replace("2030-06-24", "2030-02-30"),
-    COMMENTS + "&cursor=not-a-uuid", COMMENTS + "&cursor=550e8400-e29b-41d4-a716-446655440000",
-    COMMENTS.replace("ARG-ESP-20300624", "P-001"), COMMENTS + "&limit=0",
     STATS.replace("20:05:00", "19:00:00"), STATS.replace("20:05:00", "21:00:00"),
     STATS.replace("20:05:00", "25:00:00"), STATS + "&ventana=10m",
 ])
@@ -101,25 +94,13 @@ def test_invalid_before_database(client, monkeypatch, url):
 
 @pytest.mark.parametrize("url,adapter,method", [
     ("/jugadores?equipo=ARG", mongo_adapter, "list_jugadores"),
-    (COMMENTS, cassandra_adapter, "list_comentarios"), (STATS, influx_adapter, "find_estadisticas"),
+    (STATS, influx_adapter, "find_estadisticas"),
 ])
 def test_valid_empty(client, monkeypatch, url, adapter, method):
     monkeypatch.setattr(adapter, method, Mock(return_value=[]))
     response = client.get(url)
     assert response.status_code == 200
     assert response.json()["items"] == []
-
-
-def test_cursor_and_partition(client, monkeypatch):
-    older = dict(COMENTARIO, comentario_id=UUID("11424f80-ec17-11f5-8123-0242ac120002"))
-    operation = Mock(side_effect=[[COMENTARIO, older], [older]])
-    monkeypatch.setattr(cassandra_adapter, "list_comentarios", operation)
-    first = client.get(COMMENTS + "&limit=1").json()
-    assert first["siguienteCursor"] == str(COMENTARIO["comentario_id"])
-    second = client.get(COMMENTS + "&limit=1&cursor=" + first["siguienteCursor"]).json()
-    assert second["siguienteCursor"] is None
-    assert second["items"][0]["comentarioId"] != first["items"][0]["comentarioId"]
-    assert operation.call_args.args == ("ARG-ESP-20300624", datetime(2030, 6, 24, 20, 5, tzinfo=timezone.utc), 2, COMENTARIO["comentario_id"])
 
 
 def test_aggregation(client, monkeypatch):
@@ -145,7 +126,7 @@ def test_health_all_sources(client, monkeypatch):
         monkeypatch.setattr(adapter, "ping", Mock(return_value=True))
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json()["estado"] == dict(mongodb="up", neo4j="up", cassandra="up", redis="up", influxdb="up")
+    assert response.json()["estado"] == dict(mongodb="up", neo4j="up", redis="up", influxdb="up")
 
 
 def test_openapi_matches_export(client):
@@ -175,3 +156,33 @@ def test_framework_errors(client, method, url, status):
     response = getattr(client, method)(url)
     assert response.status_code == status
     assert set(response.json()) == {"code", "message", "requestId"}
+
+
+def test_postman_operations_and_parameters_match_openapi():
+    import json
+    import re
+    from pathlib import Path
+    collection = json.loads(Path('postman_collection.json').read_text())
+    operations = {}
+    def walk(items):
+        for item in items:
+            if 'item' in item:
+                walk(item['item'])
+            if 'request' not in item:
+                continue
+            request = item['request']
+            path = request['url']['raw'].replace('{{baseUrl}}', '').split('?')[0]
+            path = re.sub(r'\{\{codigo(?:Equipo|Jugador|Partido|Sede)\}\}', '{codigo}', path)
+            path = path.replace('{{sesionId}}', '{sesionId}')
+            key = (path, request['method'].lower())
+            assert key not in operations
+            operations[key] = item
+    walk(collection['item'])
+    schema = app.openapi()
+    assert set(operations) == {(path, method) for path, methods in schema['paths'].items() for method in methods}
+    for (path, method), item in operations.items():
+        expected = {p['name'] for p in schema['paths'][path][method].get('parameters', []) if p['in'] == 'query'}
+        assert expected == {p['key'] for p in item['request']['url'].get('query', [])}
+        if path not in ('/health', '/live', '/ready'):
+            assert 504 in {response['code'] for response in item['response']}
+            assert '504' in schema['paths'][path][method]['responses']

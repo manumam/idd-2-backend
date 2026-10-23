@@ -37,6 +37,78 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
+  /live:
+    get:
+      tags:
+      - Sistema
+      summary: Proceso de la API activo
+      description: No consulta dependencias ni verifica datos de dominio.
+      operationId: live_live_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LivenessResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+  /ready:
+    get:
+      tags:
+      - Sistema
+      summary: Readiness de conectividad
+      description: 200 si pasan los pings de las cuatro dependencias requeridas; 503
+        si alguna falla. No certifica datos de dominio.
+      operationId: ready_ready_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '503':
+          description: Una o más dependencias no están disponibles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
   /equipos/{codigo}:
     get:
       tags:
@@ -101,7 +173,19 @@ paths:
               schema:
                 type: string
         '503':
-          description: Fuente de datos no disponible
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
           content:
             application/json:
               schema:
@@ -201,7 +285,19 @@ paths:
               schema:
                 type: string
         '503':
-          description: Fuente de datos no disponible
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
           content:
             application/json:
               schema:
@@ -275,7 +371,19 @@ paths:
               schema:
                 type: string
         '503':
-          description: Fuente de datos no disponible
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
           content:
             application/json:
               schema:
@@ -350,7 +458,19 @@ paths:
               schema:
                 type: string
         '503':
-          description: Fuente de datos no disponible
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
           content:
             application/json:
               schema:
@@ -409,7 +529,19 @@ paths:
               schema:
                 type: string
         '503':
-          description: Fuente de datos no disponible
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
           content:
             application/json:
               schema:
@@ -483,7 +615,19 @@ paths:
               schema:
                 type: string
         '503':
-          description: Fuente de datos no disponible
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
           content:
             application/json:
               schema:
@@ -570,7 +714,19 @@ paths:
               schema:
                 type: string
         '503':
-          description: Fuente de datos no disponible
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
           content:
             application/json:
               schema:
@@ -672,7 +828,19 @@ paths:
               schema:
                 type: string
         '503':
-          description: Fuente de datos no disponible
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
           content:
             application/json:
               schema:
@@ -781,7 +949,8 @@ paths:
               schema:
                 type: string
         '503':
-          description: Fuente de datos no disponible
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
           content:
             application/json:
               schema:
@@ -791,91 +960,8 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
-  /partidos/{codigo}/comentarios:
-    get:
-      tags:
-      - Comentarios
-      summary: Feed de una ventana de cinco minutos
-      description: Partición exacta de Cassandra. Más nuevos primero; cursor timeuuid
-        exclusivo. Sin datos devuelve 200 vacío. El feed vence a los 14 días.
-      operationId: comentarios_partidos__codigo__comentarios_get
-      parameters:
-      - name: codigo
-        in: path
-        required: true
-        schema:
-          type: string
-          pattern: ^[A-Z]{3}-[A-Z]{3}-[0-9]{8}$
-          description: Identificador nativo del Hito 6; no es el código de Neo4j.
-          examples:
-          - ARG-ESP-20300624
-          title: Codigo
-        description: Identificador nativo del Hito 6; no es el código de Neo4j.
-      - name: bloque
-        in: query
-        required: true
-        schema:
-          type: string
-          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$
-          description: Hora UTC `AAAA-MM-DDThh:mm:ssZ`
-          title: Bloque
-        description: Hora UTC `AAAA-MM-DDThh:mm:ssZ`
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          maximum: 100
-          minimum: 1
-          description: Máximo de elementos por página
-          default: 20
-          title: Limit
-        description: Máximo de elementos por página
-      - name: cursor
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: string
-            maxLength: 36
-          - type: 'null'
-          title: Cursor
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ComentariosPagina'
-          headers:
-            X-Request-Id:
-              description: Identificador de correlación
-              schema:
-                type: string
-        '500':
-          description: Error interno
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          headers:
-            X-Request-Id:
-              description: Identificador de correlación
-              schema:
-                type: string
-        '400':
-          description: Parámetro inválido
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          headers:
-            X-Request-Id:
-              description: Identificador de correlación
-              schema:
-                type: string
-        '503':
-          description: Fuente de datos no disponible
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
           content:
             application/json:
               schema:
@@ -887,60 +973,6 @@ paths:
                 type: string
 components:
   schemas:
-    Comentario:
-      properties:
-        comentarioId:
-          type: string
-          title: Comentarioid
-        usuarioId:
-          type: string
-          title: Usuarioid
-        nombreUsuario:
-          type: string
-          title: Nombreusuario
-        idioma:
-          type: string
-          title: Idioma
-        texto:
-          type: string
-          title: Texto
-        estadoModeracion:
-          type: string
-          title: Estadomoderacion
-      type: object
-      required:
-      - comentarioId
-      - usuarioId
-      - nombreUsuario
-      - idioma
-      - texto
-      - estadoModeracion
-      title: Comentario
-    ComentariosPagina:
-      properties:
-        partido:
-          type: string
-          title: Partido
-        bloque:
-          type: string
-          title: Bloque
-        items:
-          items:
-            $ref: '#/components/schemas/Comentario'
-          type: array
-          title: Items
-        siguienteCursor:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Siguientecursor
-      type: object
-      required:
-      - partido
-      - bloque
-      - items
-      - siguienteCursor
-      title: ComentariosPagina
     EquipoRef:
       properties:
         codigo:
@@ -1232,6 +1264,15 @@ components:
       - limit
       - skip
       title: JugadoresPagina
+    LivenessResponse:
+      properties:
+        estado:
+          type: string
+          const: alive
+          title: Estado
+          default: alive
+      type: object
+      title: LivenessResponse
     PartidoResponse:
       properties:
         codigo:
@@ -1304,6 +1345,24 @@ components:
       - tiros
       - pasesIntervalo
       title: PuntoEstadistica
+    ReadinessResponse:
+      properties:
+        estado:
+          additionalProperties:
+            type: string
+            enum:
+            - up
+            - down
+          type: object
+          title: Estado
+        listo:
+          type: boolean
+          title: Listo
+      type: object
+      required:
+      - estado
+      - listo
+      title: ReadinessResponse
     SedeRef:
       properties:
         codigo:

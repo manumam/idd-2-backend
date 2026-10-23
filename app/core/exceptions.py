@@ -6,6 +6,7 @@ Cumple con RF11, RF12, RNF4, RNF9:
 """
 
 from typing import Optional
+from app.core.dependency_failures import classify_failure
 
 
 class BaseAppException(Exception):
@@ -21,16 +22,22 @@ class BaseAppException(Exception):
 class DatabaseUnavailableError(BaseAppException):
     """Lanzada cuando una base NoSQL está caída o no responde en tiempo y forma.
 
-    Mapea a HTTP 503 (Service Unavailable) y encapsula el error nativo en logs
-    sin mostrarlo en el mensaje público hacia el cliente (RF12 / RNF9).
+    Distingue timeout (504), configuración/disponibilidad (503) y consulta (500).
+    Conserva el error nativo para clasificarlo sin publicar su mensaje.
     """
 
-    def __init__(self, source: str, original_error: Optional[Exception] = None):
+    def __init__(self, source: str, original_error: Optional[Exception] = None, *, category: str | None = None):
         self.source = source
         self.original_error = original_error
-        code = f"{source.upper()}_UNAVAILABLE"
-        message = f"El servicio de datos '{source}' no se encuentra disponible temporalmente."
-        super().__init__(code=code, message=message, status_code=503)
+        self.category = category or classify_failure(original_error)
+        suffix, status, message = {
+            'timeout': ('TIMEOUT', 504, 'La dependencia excedió el tiempo de espera.'),
+            'authentication': ('AUTHENTICATION_FAILED', 503, 'No se pudo autenticar ante la dependencia.'),
+            'authorization': ('ACCESS_DENIED', 503, 'La identidad no tiene permiso para la operación.'),
+            'context': ('CONTEXT_UNAVAILABLE', 503, 'El contexto de datos no está disponible.'),
+            'query': ('QUERY_FAILED', 500, 'Error interno al consultar la dependencia.'),
+        }.get(self.category, ('UNAVAILABLE', 503, f"El servicio de datos '{source}' no se encuentra disponible temporalmente."))
+        super().__init__(code=f"{source.upper()}_{suffix}", message=message, status_code=status)
 
 
 class ResourceNotFoundError(BaseAppException):

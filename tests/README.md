@@ -1,32 +1,7 @@
 # Pruebas
 
-`python -m pytest -q` ejecuta la suite unitaria y omite integración salvo que
-`LIVE_MODULES` habilite fuentes. Usa HTTP ASGI con TestClient: verifica validación
-antes del adaptador, éxitos por módulo, ausencia, listas vacías, dependencia caída,
-TTL/expiración, invalidación repetida, cursores, agregaciones y contrato exportado.
-Los dobles no constituyen evidencia de conectividad.
-
-`tests/unit/test_adapters.py` verifica parámetros CQL/SQL/Cypher, traducción de fallas
-nativas, timeouts, privacidad y logs.
-
-Para integración, iniciar servicios y cargar los modelos de hitos previos:
-
-```bash
-LIVE_MODULES=mongodb,neo4j,cassandra,redis,influxdb \
-  python -m pytest tests/integration -v --junitxml=docs/evidencia/integracion_local.xml
-```
-
-Se pueden elegir fuentes individualmente. Habilitar una fuente hace que su error
-sea un fallo, no un skip. Los fixtures esperados son ARG, ARG-10, P-001, S-04 con
-goles CONMEBOL, SES-DEMO vigente, dos comentarios ARG-ESP-20300624 en el bloque
-2030-06-24T20:05:00Z y estadísticas P-001 entre 20:00 y 20:05 UTC del mismo día.
-Ajustar los ejemplos/tests si las cargas elegidas tienen otros identificadores.
-
-Las lecturas no mutan datos; el test de invalidación crea y elimina una clave
-exclusiva `sesion:SES-HITO10TEST`. No hay pruebas de escritura de comentarios
-porque ese endpoint no existe. No ejecutar benchmarks de millones de requests.
-
-Para una falla real, detener solo la fuente del módulo en un entorno de laboratorio,
-ejecutar su cURL y comprobar 503 con `requestId`; restaurar con `docker compose start`.
-Registrar entorno, comando, resultado y fecha sin secretos. El test unitario de
-503 simula la excepción y cubre el contrato aun cuando no hay motores disponibles.
+Ejecutar `.venv/bin/python -m pytest -q` para contratos y dobles de drivers.
+Las pruebas reales se habilitan con `LIVE_MODULES=mongodb,neo4j,redis,influxdb`.
+Preparar los datos según `docs/hito_11/README.md`; las pruebas de integración exigen datos no vacíos.
+El test de DELETE escribe y elimina únicamente `sesion:SES-HITO10TEST`.
+Cassandra y sus pruebas se retiraron en el Hito 11.

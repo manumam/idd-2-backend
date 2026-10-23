@@ -3,7 +3,6 @@
 from concurrent.futures import ThreadPoolExecutor
 
 from app.adapters import (
-    cassandra_adapter,
     influx_adapter,
     mongo_adapter,
     neo4j_adapter,
@@ -14,7 +13,6 @@ from app.core.exceptions import DatabaseUnavailableError
 FUENTES = {
     "mongodb": mongo_adapter,
     "neo4j": neo4j_adapter,
-    "cassandra": cassandra_adapter,
     "redis": redis_adapter,
     "influxdb": influx_adapter,
 }
@@ -23,7 +21,9 @@ FUENTES = {
 def _estado(adapter) -> str:
     try:
         return "up" if adapter.ping() else "down"
-    except DatabaseUnavailableError:
+    except Exception:
+        # Un ping fallido no debe ocultar el estado de las demás fuentes.
+        # Los adaptadores registran su tipo seguro; no publicar excepciones.
         return "down"
 
 

@@ -3,13 +3,11 @@ from unittest.mock import Mock, MagicMock
 from uuid import UUID
 
 import pytest
-from cassandra.cluster import NoHostAvailable
 from neo4j.exceptions import ServiceUnavailable
 from pymongo.errors import ConnectionFailure
 from redis.exceptions import ConnectionError as RedisConnectionError
 import requests
 
-from app.adapters.cassandra_adapter import CassandraAdapter
 from app.adapters.neo4j_adapter import Neo4jAdapter
 from app.adapters.mongo_adapter import MongoAdapter
 from app.adapters.redis_adapter import RedisAdapter
@@ -17,25 +15,9 @@ from app.adapters.influx_adapter import InfluxAdapter
 from app.core.exceptions import DatabaseUnavailableError
 
 
-def test_cassandra_partition_and_cursor():
-    adapter = CassandraAdapter()
-    adapter._session = Mock()
-    adapter._session.execute.return_value = []
-    bloque = datetime(2030, 6, 24, 20, 5, tzinfo=timezone.utc)
-    cursor = UUID("ba894580-ec17-11f5-8123-0242ac120002")
-    adapter.list_comentarios("ARG-ESP-20300624", bloque, 21, cursor)
-    query, params = adapter._session.execute.call_args.args
-    assert "partido_id = %s AND bloque_temporal = %s" in query
-    assert "comentario_id < %s" in query
-    assert "ALLOW FILTERING" not in query
-    assert params == ["ARG-ESP-20300624", bloque, cursor, 21]
-    assert "20300624" not in query
-
-
 @pytest.mark.parametrize("adapter,method,args,error", [
     (MongoAdapter(), "find_equipo", ["ARG"], ConnectionFailure("hidden")),
     (RedisAdapter(), "get_sesion", ["SES-DEMO"], RedisConnectionError("hidden")),
-    (CassandraAdapter(), "list_comentarios", ["ARG-ESP-20300624", datetime.now(), 20], NoHostAvailable("hidden", {})),
     (Neo4jAdapter(), "find_partido", ["P-001"], ServiceUnavailable("hidden")),
 ])
 def test_native_driver_failure_is_503(monkeypatch, adapter, method, args, error):

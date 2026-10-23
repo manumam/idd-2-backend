@@ -18,7 +18,6 @@ from app.config.settings import settings
 from app.adapters import (
     mongo_adapter,
     neo4j_adapter,
-    cassandra_adapter,
     redis_adapter,
     influx_adapter,
 )
@@ -52,7 +51,7 @@ def main():
 
     targets = [(name, adapter, "configuración de entorno") for name, adapter in [
         ("MongoDB", mongo_adapter), ("Neo4j", neo4j_adapter),
-        ("Cassandra", cassandra_adapter), ("Redis", redis_adapter),
+        ("Redis", redis_adapter),
         ("InfluxDB", influx_adapter),
     ]]
 

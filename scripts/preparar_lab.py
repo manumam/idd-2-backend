@@ -11,7 +11,7 @@ from app.adapters import mongo_adapter, redis_adapter
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--laboratorio-descartable", required=True, action="store_true")
-    parser.add_argument("--sources", default="mongodb,redis", help="mongodb,redis,neo4j,cassandra,influxdb")
+    parser.add_argument("--sources", default="mongodb,redis", help="mongodb,redis,neo4j,influxdb")
     args = parser.parse_args()
     sources = set(args.sources.split(","))
     try:
@@ -39,10 +39,8 @@ def seed_redis():
 
 
 def seed_extra(source):
-    from app.adapters import cassandra_adapter, neo4j_adapter
+    from app.adapters import neo4j_adapter
     from app.config.settings import settings
-    from datetime import timezone
-    from uuid import UUID
     import requests
     if source == "neo4j":
         neo4j_adapter._run("""
@@ -60,12 +58,6 @@ def seed_extra(source):
         RETURN p.id AS id
         """)
         neo4j_adapter.close()
-    elif source == "cassandra":
-        for id in ("ba894580-ec17-11f5-8123-0242ac120002", "11424f80-ec17-11f5-8123-0242ac120002"):
-            cassandra_adapter.session.execute(
-                "INSERT INTO comentarios_feed (partido_id,bloque_temporal,comentario_id,idioma,usuario_id,nombre_usuario,texto,estado_moderacion) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
-                ["ARG-ESP-20300624", datetime(2030,6,24,20,5,tzinfo=timezone.utc), UUID(id), "es", "U001", "Demo", "Vamos", "APROBADO"])
-        cassandra_adapter.close()
     elif source == "influxdb":
         headers = {"Authorization": "Bearer " + settings.influx_token} if settings.influx_token else {}
         response = requests.post(settings.influx_url + "/api/v3/write_lp", params={"db": settings.influx_database, "precision": "second"},

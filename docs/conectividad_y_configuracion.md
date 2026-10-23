@@ -1,18 +1,18 @@
 # Conectividad y configuración
 
+Para el laboratorio aislado y la entrega Hito 11 usar `docs/hito_11/README.md`. Este documento describe la conexión a las bases previas del equipo.
+
 La API se ejecuta en la notebook, fuera de Docker. El Compose unificado está en la raíz
 de este repositorio y monta los scripts del repositorio de los hitos anteriores, que debe
 estar clonado al mismo nivel con el nombre `idd-2-tp`.
 
 1. Clonar `https://github.com/mateolewinzon/idd-2-tp` junto a este repositorio.
 2. Desde la raíz del backend, ejecutar `docker compose up -d` y esperar a que estén
-   disponibles los cinco servicios. El Compose conserva los volúmenes nombrados y
+   disponibles los cuatro servicios. El Compose conserva los volúmenes nombrados y
    monta los scripts y archivos locales del repo vecino.
 3. Ejecutar los scripts de esquema y datos indicados por el README de cada módulo.
    No ejecutar cargas masivas para probar esta API; alcanza el conjunto sintético
    representativo.
-4. Cassandra: cargar `scripts/esquema.cql` antes de los comentarios. El keyspace es
-   `fixture2030_comentarios`, datacenter `datacenter1` salvo configuración distinta.
 5. Configurar `.env` con los valores reales locales y ejecutar
    `python scripts/verificar_conectividad.py`. Salida no cero si alguna fuente falla.
 6. Iniciar Uvicorn y ejecutar los ejemplos HTTP y tests según el README.
@@ -21,8 +21,6 @@ estar clonado al mismo nivel con el nombre `idd-2-tp`.
 | --- | --- |
 | `MONGO_URI`, `MONGO_DATABASE` | `mongodb://localhost:27017`, `fixture2030` |
 | `NEO4J_URI`, `NEO4J_DATABASE` | `bolt://localhost:7687`, `neo4j` |
-| `CASSANDRA_HOSTS`, `CASSANDRA_PORT`, `CASSANDRA_KEYSPACE` | `localhost`, `9042`, `fixture2030_comentarios` |
-| `CASSANDRA_LOCAL_DC` | `datacenter1` |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB` | `localhost`, `6380`, `0` |
 | `INFLUX_URL`, `INFLUX_DATABASE` | `http://127.0.0.1:8181`, `fixture2030_resumen` |
 | `DB_TIMEOUT_SECONDS` | `5` |

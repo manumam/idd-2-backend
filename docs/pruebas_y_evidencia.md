@@ -1,3 +1,11 @@
+# Pruebas y evidencia vigente
+
+El Hito 11 está documentado en [procedimiento](hito_11/README.md) y [matriz](hito_11/matriz_de_conectividad.md). Incluye contratos, diagnóstico de cuatro motores, HTTP real, errores simulados identificados y detención/recuperación real de Redis. El comando de cierre es `.venv/bin/python scripts/cerrar_hito11.py`.
+
+## Archivo histórico del Hito 10
+
+El texto siguiente describe pruebas ejecutadas antes del retiro de Cassandra y no representa la suite ni el alcance actual. Las referencias a fixtures eliminados y comandos antiguos se conservan únicamente como registro histórico.
+
 # Pruebas y evidencia — Hito 10
 
 Fecha: 2026-10-16. Entorno: Linux cloud x86_64, Python 3.12.14, Docker 28.4.0.

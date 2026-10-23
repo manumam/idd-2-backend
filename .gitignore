@@ -31,3 +31,8 @@ htmlcov/
 *.swp
 *.swo
 .DS_Store
+
+# Configuraciones locales adicionales; conservar ejemplos sin secretos
+.env.*
+!.env.example
+config/*.env
