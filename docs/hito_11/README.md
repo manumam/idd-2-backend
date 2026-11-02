@@ -1,6 +1,8 @@
 # Hito 11: laboratorio de conectividad
 
-Alcance confirmado: MongoDB, Neo4j, Redis e InfluxDB 3. Cassandra y la ruta de comentarios fueron retiradas el 2026-10-23. IRIS no está integrado. La evidencia anterior en `docs/evidencia/` es histórica del Hito 10.
+Alcance actual: MongoDB, Neo4j, Cassandra, Redis, InfluxDB 3 e IRIS. La evidencia guardada del Hito 11 corresponde a los cuatro motores que se probaron originalmente; no certifica la restauración de Cassandra e IRIS.
+
+Antes de ejecutar `cerrar_hito11.py`, iniciar Cassandra e IRIS por separado, configurar `CASSANDRA_*` e `IRIS_*` en el entorno e importar `tests/fixtures/cassandra.cql` y las clases de `tests/fixtures/iris`. El Compose aislado sigue aprovisionando los cuatro motores originales. El cierre carga datos de los seis motores, imprime el nuevo `IRIS_TEST_ID` y comprueba readiness de todos.
 
 La API y el diagnóstico se ejecutan en la notebook. Docker aloja cuatro motores en una red propia, con volúmenes nombrados del proyecto `fixture2030-hito11`. Los puertos se publican únicamente en loopback. El laboratorio no usa autenticación: sus resultados no certifican rechazo de credenciales ni separación de permisos.
 

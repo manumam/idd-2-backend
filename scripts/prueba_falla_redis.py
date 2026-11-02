@@ -33,7 +33,7 @@ def main():
                     check(stage, '/ready', ready), check(stage, '/sesiones/SES-DEMO', session)])
     try:
         if not check_group('inicial', 200, 200):
-            raise RuntimeError('Preparar los datos y las cuatro dependencias antes de detener Redis')
+            raise RuntimeError('Preparar los datos y las seis dependencias antes de detener Redis')
         try:
             subprocess.run(COMMAND + ['stop', 'redis'], check=True, timeout=30)
             if not check_group('detenido', 503, 503):

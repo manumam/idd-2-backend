@@ -4,7 +4,7 @@ El Hito 11 está documentado en [procedimiento](hito_11/README.md) y [matriz](hi
 
 ## Archivo histórico del Hito 10
 
-El texto siguiente describe pruebas ejecutadas antes del retiro de Cassandra y no representa la suite ni el alcance actual. Las referencias a fixtures eliminados y comandos antiguos se conservan únicamente como registro histórico.
+El texto siguiente describe pruebas históricas del Hito 10. Cassandra e IRIS están restaurados, incluidos sus fixtures; esta evidencia no certifica una nueva ejecución contra motores reales.
 
 # Pruebas y evidencia — Hito 10
 

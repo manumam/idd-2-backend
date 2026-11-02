@@ -2,6 +2,7 @@
 """Diagnóstico no destructivo; no imprime excepciones ni URI con credenciales."""
 import argparse
 import json
+import os
 import socket
 import sys
 import time
@@ -19,11 +20,17 @@ ROUTES = {
     'mongodb': ['/equipos/ARG', '/jugadores?equipo=ARG&limit=2', '/jugadores/ARG-10'],
     'neo4j': ['/partidos/P-001', '/partidos/P-001/eventos?limit=2', '/sedes/S-04/goleadores?confederacion=CONMEBOL&limit=2'],
     'redis': ['/sesiones/SES-DEMO'],
+    'cassandra': ['/partidos/ARG-ESP-20300624/comentarios?bloque=2030-06-24T20:05:00Z&limit=2'],
+    'iris': ['/objetos/partidos/' + os.getenv('IRIS_TEST_ID', '1')],
     'influxdb': ['/partidos/P-001/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z'],
 }
 
 
 def target(source):
+    if source == 'cassandra':
+        return settings.cassandra_hosts[0], settings.cassandra_port
+    if source == 'iris':
+        return settings.iris_host, settings.iris_port
     if source == 'redis':
         return settings.redis_host, settings.redis_port
     url, default = {
@@ -44,6 +51,10 @@ def read_minimum(source):
         found = db.equipos.find_one({'_id': 'ARG'}, {'_id': 1})
     elif source == 'neo4j':
         found = adapter.find_partido('P-001')
+    elif source == 'cassandra':
+        found = adapter.list_comentarios('ARG-ESP-20300624', datetime(2030, 6, 24, 20, 5, tzinfo=timezone.utc), 2)
+    elif source == 'iris':
+        found = adapter.find_partido(int(os.getenv('IRIS_TEST_ID', '1')), 2, 0)
     elif source == 'redis':
         found = adapter.get_sesion('SES-DEMO')
         ttl = adapter.client.ttl('sesion:SES-DEMO')
@@ -123,7 +134,7 @@ def main():
     report = dict(origen='proceso_python_en_host', resultados=rows,
                   limitaciones=['Identidad, autorizacion y contexto se verifican conjuntamente con la lectura; no se certifican por separado.',
                                 'Laboratorio sin autenticacion: no evalua rechazo de credenciales.',
-                                'IRIS y Cassandra fuera del alcance por decision del equipo.'])
+                                'Los resultados describen solo los motores ejecutados en esta corrida.'])
     output = json.dumps(report, indent=2, ensure_ascii=False)
     print(output)
     if args.salida:

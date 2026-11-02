@@ -44,7 +44,11 @@ def main():
         time.sleep(1)
     else:
         raise RuntimeError('Motores no disponibles dentro del plazo; ejecutar diagnostico por producto')
-    run([sys.executable, 'scripts/preparar_lab.py', '--laboratorio-descartable', '--sources', 'mongodb,neo4j,redis,influxdb'], timeout=60)
+    seed = run([sys.executable, 'scripts/preparar_lab.py', '--laboratorio-descartable', '--sources', 'mongodb,neo4j,cassandra,redis,influxdb,iris'], timeout=60, capture_output=True, text=True)
+    print(seed.stdout, end='')
+    for line in seed.stdout.splitlines():
+        if line.startswith('IRIS_TEST_ID='):
+            env['IRIS_TEST_ID'] = line.split('=', 1)[1]
     base = f'http://127.0.0.1:{args.puerto_api}'
     with (EVIDENCE / 'api_cierre.log').open('w') as log:
         server = subprocess.Popen([sys.executable, '-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', str(args.puerto_api)], cwd=ROOT, env=env, stdout=log, stderr=log)
@@ -65,7 +69,7 @@ def main():
             run([sys.executable, 'scripts/prueba_api_negativos.py', '--base-url', base], timeout=60)
             run([sys.executable, 'scripts/prueba_falla_redis.py', '--base-url', base], timeout=90)
             run([sys.executable, '-m', 'pytest', '-q', '--junitxml', str(EVIDENCE / 'suite.xml')], timeout=60)
-            integration_env = env | {'LIVE_MODULES': 'mongodb,neo4j,redis,influxdb'}
+            integration_env = env | {'LIVE_MODULES': 'mongodb,neo4j,cassandra,redis,influxdb,iris'}
             subprocess.run([sys.executable, '-m', 'pytest', 'tests/integration', '-q', '--junitxml', str(EVIDENCE / 'integracion.xml')], cwd=ROOT, env=integration_env, check=True, timeout=60)
         finally:
             server.terminate()

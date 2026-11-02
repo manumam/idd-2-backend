@@ -1,7 +1,7 @@
 # Fixture 2030 — Backend e Hito 11
 
 FastAPI con capas HTTP → servicios → adaptadores para MongoDB, Neo4j,
-Redis e InfluxDB 3. Rama de entrega: `codex/hito-11-conectividad`.
+Cassandra, Redis, InfluxDB 3 e InterSystems IRIS.
 
 Entrega actual: [Hito 11: procedimiento y evidencia](docs/hito_11/README.md).
 
@@ -10,6 +10,7 @@ Para reproducir la entrega en un laboratorio aislado (Python 3.12 y Docker Compo
 ```bash
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -r requirements.lock
+# Iniciar y cargar también Cassandra e IRIS (ver docs/hito_11/README.md)
 .venv/bin/python scripts/cerrar_hito11.py
 ```
 
@@ -56,7 +57,7 @@ La suite normal incluye tests de integración desactivados explícitamente. Para
 probar las fuentes reales cargadas con datos representativos:
 
 ```bash
-LIVE_MODULES=mongodb,neo4j,redis,influxdb \
+LIVE_MODULES=mongodb,neo4j,cassandra,redis,influxdb,iris IRIS_TEST_ID=1 \
   python -m pytest tests/integration -v
 ```
 
@@ -70,7 +71,7 @@ si la fuente cae o no devuelve los datos esperados. Ver [tests/README.md](tests/
 - [Validación, errores e idempotencia](docs/contratos_y_errores.md).
 - [Pruebas y evidencia disponible](docs/pruebas_y_evidencia.md).
 
-Cassandra y la ruta de comentarios se retiraron por decisión del equipo para el Hito 11.
+Cassandra vuelve a exponer el feed de comentarios de solo lectura. IRIS recupera la vista de partidos y eventos por ID persistente (`/objetos/partidos/{id}`). Ver `tests/fixtures/README.md` para cargar sus esquemas. IRIS se levanta por separado; sus credenciales y namespace se configuran con `IRIS_*`.
 La única mutación HTTP es invalidar una sesión (DELETE idempotente).
 
 `/live` comprueba el proceso sin consultar motores. `/ready` devuelve 200 si todas las fuentes responden a su ping o 503 si alguna falla. `/health` devuelve 200 con `up/down` por fuente aun si alguna está caída. Los endpoints
