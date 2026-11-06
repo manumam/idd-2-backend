@@ -3,6 +3,8 @@
 from concurrent.futures import ThreadPoolExecutor
 
 from app.adapters import (
+    cassandra_adapter,
+    iris_adapter,
     influx_adapter,
     mongo_adapter,
     neo4j_adapter,
@@ -11,6 +13,8 @@ from app.adapters import (
 from app.core.exceptions import DatabaseUnavailableError
 
 FUENTES = {
+    "cassandra": cassandra_adapter,
+    "iris": iris_adapter,
     "mongodb": mongo_adapter,
     "neo4j": neo4j_adapter,
     "redis": redis_adapter,

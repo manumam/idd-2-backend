@@ -1,3 +1,4 @@
+import pytest
 import importlib.util
 from pathlib import Path
 import socket
@@ -31,3 +32,16 @@ def test_api_non_success_is_not_healthy(monkeypatch):
     result = diag.api_probe('http://localhost', '/sesiones/SES-DEMO')
     assert result['estado'] == 'degradado'
     assert result['status_http'] == 503
+
+
+@pytest.mark.parametrize('source', ['cassandra', 'iris'])
+def test_restored_sources_have_network_and_read_probes(monkeypatch, source):
+    from unittest.mock import Mock
+    adapter = Mock()
+    adapter.list_comentarios.return_value = []
+    adapter.find_partido.return_value = None
+    monkeypatch.setitem(diag.FUENTES, source, adapter)
+    assert diag.target(source)[1] in (9042, 1972)
+    result = diag.read_minimum(source)
+    assert result == {'estado': 'disponible', 'resultado': 'sin_datos'}
+    assert diag.ROUTES[source]

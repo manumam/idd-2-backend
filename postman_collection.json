@@ -62,7 +62,7 @@
               ],
               "query": []
             },
-            "description": "Consulta pings de cuatro dependencias en paralelo; 200 listo=true o 503 listo=false. No certifica datos de dominio."
+            "description": "Consulta pings de seis dependencias en paralelo; 200 listo=true o 503 listo=false. No certifica datos de dominio."
           },
           "response": []
         }
@@ -1792,6 +1792,420 @@
     {
       "name": "Comentarios",
       "item": []
+    },
+    {
+      "name": "Cassandra e IRIS",
+      "item": [
+        {
+          "name": "Feed de una ventana de cinco minutos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/comentarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "partidos",
+                "{{codigoPartido}}",
+                "comentarios"
+              ],
+              "query": [
+                {
+                  "key": "bloque",
+                  "value": "{{bloqueComentarios}}",
+                  "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Máximo de elementos por página",
+                  "disabled": false
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": null,
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Partición exacta de Cassandra. Más nuevos primero; cursor timeuuid exclusivo. Sin datos devuelve 200 vacío. El feed vence a los 14 días."
+          },
+          "response": [
+            {
+              "name": "200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/comentarios",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "comentarios"
+                  ],
+                  "query": [
+                    {
+                      "key": "bloque",
+                      "value": "{{bloqueComentarios}}",
+                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20",
+                      "description": "Máximo de elementos por página",
+                      "disabled": false
+                    },
+                    {
+                      "key": "cursor",
+                      "value": "",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Partición exacta de Cassandra. Más nuevos primero; cursor timeuuid exclusivo. Sin datos devuelve 200 vacío. El feed vence a los 14 días."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"partido\": \"ARG-ESP-20300624\",\n  \"bloque\": \"2030-06-24T20:05:00Z\",\n  \"items\": [],\n  \"siguienteCursor\": null\n}"
+            },
+            {
+              "name": "400",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/comentarios",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "comentarios"
+                  ],
+                  "query": [
+                    {
+                      "key": "bloque",
+                      "value": "{{bloqueComentarios}}",
+                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20",
+                      "description": "Máximo de elementos por página",
+                      "disabled": false
+                    },
+                    {
+                      "key": "cursor",
+                      "value": "",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Partición exacta de Cassandra. Más nuevos primero; cursor timeuuid exclusivo. Sin datos devuelve 200 vacío. El feed vence a los 14 días."
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [],
+              "body": "{\n  \"code\": \"VALIDACION_INVALIDA\",\n  \"message\": \"Parámetro inválido.\",\n  \"requestId\": \"ejemplo-restauracion\"\n}"
+            },
+            {
+              "name": "503",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/comentarios",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "comentarios"
+                  ],
+                  "query": [
+                    {
+                      "key": "bloque",
+                      "value": "{{bloqueComentarios}}",
+                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20",
+                      "description": "Máximo de elementos por página",
+                      "disabled": false
+                    },
+                    {
+                      "key": "cursor",
+                      "value": "",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Partición exacta de Cassandra. Más nuevos primero; cursor timeuuid exclusivo. Sin datos devuelve 200 vacío. El feed vence a los 14 días."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [],
+              "body": "{\n  \"code\": \"CASSANDRA_UNAVAILABLE\",\n  \"message\": \"Dependencia no disponible.\",\n  \"requestId\": \"ejemplo-restauracion\"\n}"
+            },
+            {
+              "name": "504",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/comentarios",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "comentarios"
+                  ],
+                  "query": [
+                    {
+                      "key": "bloque",
+                      "value": "{{bloqueComentarios}}",
+                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20",
+                      "description": "Máximo de elementos por página",
+                      "disabled": false
+                    },
+                    {
+                      "key": "cursor",
+                      "value": "",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Partición exacta de Cassandra. Más nuevos primero; cursor timeuuid exclusivo. Sin datos devuelve 200 vacío. El feed vence a los 14 días."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [],
+              "body": "{\n  \"code\": \"CASSANDRA_TIMEOUT\",\n  \"message\": \"La dependencia excedió el tiempo de espera.\",\n  \"requestId\": \"ejemplo-restauracion\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Partido y eventos persistentes IRIS",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/objetos/partidos/{{objetoId}}?limit=20&skip=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "objetos",
+                "partidos",
+                "{{objetoId}}"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "skip",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Consulta por identidad persistente IRIS; eventos paginados."
+          },
+          "response": [
+            {
+              "name": "200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/objetos/partidos/{{objetoId}}?limit=20&skip=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "objetos",
+                    "partidos",
+                    "{{objetoId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0"
+                    }
+                  ]
+                },
+                "description": "Consulta por identidad persistente IRIS; eventos paginados."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n  \"id\": \"1\",\n  \"codigo\": \"P-001\",\n  \"estado\": \"Finalizado\",\n  \"eventos\": [\n    {\n      \"id\": \"2\",\n      \"tipo\": \"Gol\",\n      \"minuto\": 15,\n      \"partidoId\": \"1\"\n    }\n  ],\n  \"limit\": 20,\n  \"skip\": 0\n}"
+            },
+            {
+              "name": "400",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/objetos/partidos/{{objetoId}}?limit=20&skip=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "objetos",
+                    "partidos",
+                    "{{objetoId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0"
+                    }
+                  ]
+                },
+                "description": "Consulta por identidad persistente IRIS; eventos paginados."
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [],
+              "body": "{\n  \"code\": \"VALIDACION_INVALIDA\",\n  \"message\": \"Parámetro inválido.\",\n  \"requestId\": \"ejemplo-restauracion\"\n}"
+            },
+            {
+              "name": "503",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/objetos/partidos/{{objetoId}}?limit=20&skip=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "objetos",
+                    "partidos",
+                    "{{objetoId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0"
+                    }
+                  ]
+                },
+                "description": "Consulta por identidad persistente IRIS; eventos paginados."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [],
+              "body": "{\n  \"code\": \"IRIS_UNAVAILABLE\",\n  \"message\": \"Dependencia no disponible.\",\n  \"requestId\": \"ejemplo-restauracion\"\n}"
+            },
+            {
+              "name": "504",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/objetos/partidos/{{objetoId}}?limit=20&skip=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "objetos",
+                    "partidos",
+                    "{{objetoId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0"
+                    }
+                  ]
+                },
+                "description": "Consulta por identidad persistente IRIS; eventos paginados."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [],
+              "body": "{\n  \"code\": \"IRIS_TIMEOUT\",\n  \"message\": \"La dependencia excedió el tiempo de espera.\",\n  \"requestId\": \"ejemplo-restauracion\"\n}"
+            },
+            {
+              "name": "404",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/objetos/partidos/{{objetoId}}?limit=20&skip=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "objetos",
+                    "partidos",
+                    "{{objetoId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0"
+                    }
+                  ]
+                },
+                "description": "Consulta por identidad persistente IRIS; eventos paginados."
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [],
+              "body": "{\n  \"code\": \"OBJETO_NO_ENCONTRADO\",\n  \"message\": \"No existe el partido de demostración en IRIS.\",\n  \"requestId\": \"ejemplo-restauracion\"\n}"
+            }
+          ]
+        }
+      ]
     }
   ],
   "variable": [
@@ -1834,6 +2248,11 @@
       "key": "bloqueComentarios",
       "value": "2030-06-24T18:00:00Z",
       "type": "default"
+    },
+    {
+      "key": "objetoId",
+      "value": "1",
+      "type": "string"
     }
   ]
 }

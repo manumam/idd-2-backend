@@ -1,3 +1,4 @@
+from builtins import TimeoutError as PythonTimeoutError
 from unittest.mock import Mock
 
 import pytest
@@ -90,4 +91,37 @@ def test_neo4j_missing_database_through_adapter(client, monkeypatch):
     response = client.get('/partidos/P-001')
     assert response.status_code == 503
     assert response.json()['code'] == 'NEO4J_CONTEXT_UNAVAILABLE'
+    assert 'secret' not in response.text
+
+
+@pytest.mark.parametrize('native_error,status,suffix', [
+    ('timeout', 504, 'TIMEOUT'),
+    ('authentication', 503, 'AUTHENTICATION_FAILED'),
+    ('authorization', 503, 'ACCESS_DENIED'),
+    ('query', 500, 'QUERY_FAILED'),
+])
+def test_cassandra_native_failures_through_route(client, monkeypatch, native_error, status, suffix):
+    from cassandra import AuthenticationFailed, Unauthorized, InvalidRequest, OperationTimedOut
+    from cassandra.cluster import NoHostAvailable
+    from app.adapters import cassandra_adapter
+    types = dict(timeout=OperationTimedOut, authentication=AuthenticationFailed,
+                 authorization=Unauthorized, query=InvalidRequest)
+    error = types[native_error]('secret')
+    if native_error == 'authentication':
+        error = NoHostAvailable('secret', {'localhost': error})
+    session = Mock()
+    session.execute.side_effect = error
+    monkeypatch.setattr(cassandra_adapter, '_session', session)
+    response = client.get('/partidos/ARG-ESP-20300624/comentarios?bloque=2030-06-24T20:05:00Z')
+    assert response.status_code == status
+    assert response.json()['code'] == 'CASSANDRA_' + suffix
+    assert 'secret' not in response.text
+
+
+def test_iris_native_timeout_through_route(client, monkeypatch):
+    import iris.dbapi
+    monkeypatch.setattr(iris.dbapi, 'connect', Mock(side_effect=PythonTimeoutError('secret')))
+    response = client.get('/objetos/partidos/1')
+    assert response.status_code == 504
+    assert response.json()['code'] == 'IRIS_TIMEOUT'
     assert 'secret' not in response.text

@@ -8,11 +8,12 @@ estar clonado al mismo nivel con el nombre `idd-2-tp`.
 
 1. Clonar `https://github.com/mateolewinzon/idd-2-tp` junto a este repositorio.
 2. Desde la raíz del backend, ejecutar `docker compose up -d` y esperar a que estén
-   disponibles los cuatro servicios. El Compose conserva los volúmenes nombrados y
+   disponibles los cinco servicios. El Compose conserva los volúmenes nombrados y
    monta los scripts y archivos locales del repo vecino.
 3. Ejecutar los scripts de esquema y datos indicados por el README de cada módulo.
    No ejecutar cargas masivas para probar esta API; alcanza el conjunto sintético
    representativo.
+4. Iniciar IRIS por separado, importar/compilar `tests/fixtures/iris/Fixture.*.cls` en el namespace configurado y cargar datos con `python scripts/preparar_lab.py --laboratorio-descartable --sources iris`. Usar el `IRIS_TEST_ID` informado para las pruebas. Para Cassandra, cargar primero `tests/fixtures/cassandra.cql` con cqlsh y luego `python scripts/preparar_lab.py --laboratorio-descartable --sources cassandra`.
 5. Configurar `.env` con los valores reales locales y ejecutar
    `python scripts/verificar_conectividad.py`. Salida no cero si alguna fuente falla.
 6. Iniciar Uvicorn y ejecutar los ejemplos HTTP y tests según el README.
@@ -23,10 +24,13 @@ estar clonado al mismo nivel con el nombre `idd-2-tp`.
 | `NEO4J_URI`, `NEO4J_DATABASE` | `bolt://localhost:7687`, `neo4j` |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB` | `localhost`, `6380`, `0` |
 | `INFLUX_URL`, `INFLUX_DATABASE` | `http://127.0.0.1:8181`, `fixture2030_resumen` |
+| `CASSANDRA_HOSTS`, `CASSANDRA_PORT`, `CASSANDRA_KEYSPACE` | `localhost`, `9042`, `fixture2030_comentarios` |
+| `CASSANDRA_LOCAL_DC` | `datacenter1` |
+| `IRIS_HOST`, `IRIS_PORT`, `IRIS_NAMESPACE` | `127.0.0.1`, `1972`, `USER` |
 | `DB_TIMEOUT_SECONDS` | `5` |
 
 Hosts y puertos deben coincidir con los mappings de `docker-compose.yaml`.
-`NEO4J_USER/PASSWORD`, `REDIS_PASSWORD`, `INFLUX_TOKEN`
+`NEO4J_USER/PASSWORD`, `REDIS_PASSWORD`, `INFLUX_TOKEN`, `IRIS_USER/PASSWORD`
 se configuran localmente; no copiar credenciales reales a ejemplos ni capturas.
 Influx acepta token por variable o archivo local `.influxdb3-token`; se recomienda
 la variable para evitar depender del directorio de trabajo. No se necesitan tokens

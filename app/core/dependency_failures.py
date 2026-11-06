@@ -1,6 +1,9 @@
 """Clasificación por tipos/códigos del driver; nunca por mensajes con secretos."""
 import socket
 
+from cassandra import AuthenticationFailed, Unauthorized, InvalidRequest, OperationTimedOut, ReadTimeout, WriteTimeout
+from cassandra.cluster import NoHostAvailable
+
 from neo4j.exceptions import AuthError, ClientError, Neo4jError
 from pymongo.errors import ExecutionTimeout, NetworkTimeout, OperationFailure, ServerSelectionTimeoutError
 from redis.exceptions import AuthenticationError, AuthorizationError, TimeoutError as RedisTimeout
@@ -14,6 +17,20 @@ def classify_failure(error: Exception | None) -> str:
         category = getattr(error, 'category', None)
         if category and hasattr(error, 'original_error'):
             return category
+        if isinstance(error, (OperationTimedOut, ReadTimeout, WriteTimeout)):
+            return 'timeout'
+        if isinstance(error, AuthenticationFailed):
+            return 'authentication'
+        if isinstance(error, Unauthorized):
+            return 'authorization'
+        if isinstance(error, InvalidRequest):
+            return 'query'
+        if isinstance(error, NoHostAvailable):
+            for nested in error.errors.values():
+                if isinstance(nested, Exception):
+                    category = classify_failure(nested)
+                    if category != 'unavailable':
+                        return category
         if isinstance(error, (TimeoutError, requests.Timeout, RedisTimeout, ExecutionTimeout, NetworkTimeout, ServerSelectionTimeoutError)):
             return 'timeout'
         # AuthenticationError may inherit from a broader connection exception.

@@ -46,3 +46,5 @@ Mongo reconoce OperationFailure 18 (identidad), 13 (permisos), 26 (namespace aus
 No todas las excepciones permiten identificar una capa: las desconocidas mantienen UNAVAILABLE o ERROR_INTERNO según dónde se originen. La selección de servidor Mongo agotada se clasifica como timeout sin afirmar si la causa raíz fue red, DNS o rechazo. `/health` mantiene 200 y marca down ante cualquiera de estas fallas de dependencia.
 
 Los endpoints de sistema tienen sus propios schemas: `/live` devuelve `{estado: alive}` sin consultar motores; `/ready` devuelve `{listo, estado}` con 200/503 según los pings. Su 503 no utiliza el schema de error de negocio, porque incluye el estado individual de las dependencias. `/health` conserva 200 aun con fuentes down. Ver `hito_11/health_readiness.md`.
+
+Cassandra valida una partición completa y bloques UTC alineados a cinco minutos; el cursor debe ser un UUID v1. IRIS valida un ID persistente entero positivo y pagina eventos con `limit` y `skip`. Sus fallas pasan por el mismo formato de error de dependencias.
