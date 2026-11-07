@@ -37,3 +37,11 @@ parámetros, cuerpos, URIs ni mensajes del driver. Errores inesperados registran
 su tipo. `/health` evalúa fuentes en paralelo y los recursos se cierran al detener la API.
 
 `/live` no accede a drivers; `/ready` y `/health` consultan pings en paralelo bajo demanda. Las lecturas profundas de contexto están en el CLI, no en cada request de negocio. Ver `hito_11/health_readiness.md`.
+
+## Fixture (incremento demo)
+
+`routes/fixture.py` → `services/fixture_service.py` → Redis Cache-Aside / MongoDB.
+`MongoAdapter.list_fixture` proyecta solamente campos públicos y ordena usando
+`idx_partidos_fecha_codigo`. Redis ofrece GET, SET con expiración y DELETE para
+caché, separados de las operaciones de sesiones. El listado no consulta Neo4j
+ni InfluxDB y conserva las rutas históricas. Ver [guía](fixture.md).

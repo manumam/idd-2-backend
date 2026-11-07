@@ -2206,6 +2206,130 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Fixture",
+      "item": [
+        {
+          "name": "Consultar el fixture",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/fixture",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fixture"
+              ],
+              "query": []
+            },
+            "description": "Fixture completo del Mundial 2030. Horarios simulados en UTC. Caché opcional de 5 s; sin filtros."
+          },
+          "response": [
+            {
+              "name": "Fixture",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/fixture",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "fixture"
+                  ],
+                  "query": []
+                },
+                "description": "Fixture completo del Mundial 2030. Horarios simulados en UTC. Caché opcional de 5 s; sin filtros."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "fixture-demo"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"items\": [\n    {\n      \"codigo\": \"P-001\",\n      \"fecha_hora\": \"2030-06-08T18:00:00Z\",\n      \"fase\": \"Grupos\",\n      \"grupo\": \"H\",\n      \"local\": {\n        \"codigo\": \"URU\",\n        \"nombre\": \"Uruguay\"\n      },\n      \"visitante\": {\n        \"codigo\": \"KSA\",\n        \"nombre\": \"Arabia Saudita\"\n      },\n      \"estado\": \"proximo\",\n      \"resultado\": null\n    }\n  ]\n}"
+            },
+            {
+              "name": "MongoDB no disponible",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/fixture",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "fixture"
+                  ],
+                  "query": []
+                },
+                "description": "Fixture completo del Mundial 2030. Horarios simulados en UTC. Caché opcional de 5 s; sin filtros."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "fixture-demo"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": \"MONGODB_UNAVAILABLE\",\n  \"message\": \"Fuente no disponible.\",\n  \"requestId\": \"fixture-demo\"\n}"
+            },
+            {
+              "name": "Timeout MongoDB",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/fixture",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "fixture"
+                  ],
+                  "query": []
+                },
+                "description": "Fixture completo del Mundial 2030. Horarios simulados en UTC. Caché opcional de 5 s; sin filtros."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "fixture-demo"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"code\": \"MONGODB_TIMEOUT\",\n  \"message\": \"Tiempo de espera agotado.\",\n  \"requestId\": \"fixture-demo\"\n}"
+            }
+          ]
+        }
+      ]
     }
   ],
   "variable": [

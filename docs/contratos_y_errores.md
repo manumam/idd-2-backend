@@ -48,3 +48,15 @@ No todas las excepciones permiten identificar una capa: las desconocidas mantien
 Los endpoints de sistema tienen sus propios schemas: `/live` devuelve `{estado: alive}` sin consultar motores; `/ready` devuelve `{listo, estado}` con 200/503 según los pings. Su 503 no utiliza el schema de error de negocio, porque incluye el estado individual de las dependencias. `/health` conserva 200 aun con fuentes down. Ver `hito_11/health_readiness.md`.
 
 Cassandra valida una partición completa y bloques UTC alineados a cinco minutos; el cursor debe ser un UUID v1. IRIS valida un ID persistente entero positivo y pagina eventos con `limit` y `skip`. Sus fallas pasan por el mismo formato de error de dependencias.
+
+## Listado del fixture
+
+`GET /fixture` devuelve 200 con `{items: [...]}`, aun sin partidos. La respuesta
+contiene horarios UTC y estados persistidos, sin calcularlos desde el reloj. Redis
+es opcional: un fallo de caché permite consultar MongoDB y un hit válido permite
+responder con MongoDB caído. Sin caché válida, MongoDB usa sus códigos comunes
+503/504 y de consulta/configuración; no se disimula el fallo como lista vacía.
+Los encabezados de request se generan por consulta y no se cachean. TTL configurable
+`FIXTURE_CACHE_TTL_SECONDS` (5 s por defecto); clave `fixture:v1:todos`.
+El cargador usa upserts por código y preserva estado/resultado salvo reinicio
+explícito. Ver [fixture reproducible](fixture.md).

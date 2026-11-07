@@ -150,3 +150,17 @@ coincidir con esta tabla.
 Caso 13: `id`, `codigo`, `estado`, `eventos[]` (`id`, `tipo`, `minuto`, `partidoId`), `limit`, `skip`.
 
 En Hito 11, un timeout de dependencia devuelve 504 `<FUENTE>_TIMEOUT`. Los códigos 503 distinguen UNAVAILABLE, AUTHENTICATION_FAILED, ACCESS_DENIED y CONTEXT_UNAVAILABLE. Ver `contratos_y_errores.md`.
+
+## Incremento demo: consultar el fixture
+
+El requerimiento 1 de la demo se agrega sin renumerar los casos del Hito 11:
+
+| Método | Ruta | Fuente | Respuesta |
+| --- | --- | --- | --- |
+| GET | `/fixture` | MongoDB `partidos`, Redis opcional | 200 con `items`, orden por fecha/hora UTC y código; vacío permitido |
+
+Cada item tiene `codigo`, `fecha_hora`, `fase`, `grupo`, `local`, `visitante`,
+`estado` (`proximo`, `en_vivo`, `finalizado`) y `resultado`. Equipos pendientes y
+resultado previo al juego son nulos. La tanda se separa de los goles de juego.
+No hay filtros ni paginación en este incremento. Ver [seed y guía](fixture.md).
+La ficha anterior continúa en Neo4j; el fixture nuevo se persiste en MongoDB.

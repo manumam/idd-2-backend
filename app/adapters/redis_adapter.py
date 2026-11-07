@@ -88,6 +88,18 @@ class RedisAdapter(BaseAdapter):
         self._execute(lambda: self.client.delete(f"sesion:{sesion_id}"))
 
     @observe("Redis")
+    def get_cache(self, key: str) -> Optional[str]:
+        return self._execute(lambda: self.client.get(key))
+
+    @observe("Redis")
+    def set_cache(self, key: str, payload: str, ttl: int) -> None:
+        self._execute(lambda: self.client.set(key, payload, ex=ttl))
+
+    @observe("Redis")
+    def delete_cache(self, key: str) -> None:
+        self._execute(lambda: self.client.delete(key))
+
+    @observe("Redis")
     def ping(self) -> bool:
         """Verifica la conectividad activa contra Redis."""
         try:
