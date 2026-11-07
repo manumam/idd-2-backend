@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+config/*.env
+
+# Salida cruda local de pruebas; versionar sólo resúmenes y validaciones.
+*.log
+*.jtl
+resources.jsonl
+evidencia/tests_*.txt
