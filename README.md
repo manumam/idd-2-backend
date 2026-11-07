@@ -90,3 +90,14 @@ La evidencia separa esas pruebas de las ejecutadas contra motores reales. No se
 presentan cifras de capacidad productiva ni se afirma validación de fuentes no ejecutadas.
 
 Casos HTTP negativos del Hito 11: `.venv/bin/python scripts/prueba_api_negativos.py` con la API del laboratorio iniciada. Los casos de driver simulados y los casos HTTP reales se identifican en la evidencia.
+
+## Fixture Mundial 2030 (requerimiento 1)
+
+`GET /fixture` lista los partidos por fecha/hora UTC y código, con equipos, fase,
+estado y resultado. Usa MongoDB `partidos` y Redis opcional, con
+`FIXTURE_CACHE_TTL_SECONDS=5`. No requiere que Neo4j o Influx estén disponibles.
+`/ready` continúa comprobando las seis fuentes del Hito 11.
+
+El seed reproducible de 127 partidos y el escenario de tres estados se cargan desde
+el repositorio de datos: [guía del fixture](docs/fixture.md). El detalle
+`/partidos/{codigo}` sigue usando Neo4j y todavía no incorpora los estados del listado.

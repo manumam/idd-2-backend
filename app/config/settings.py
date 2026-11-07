@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     redis_db: int = Field(default=0, alias="REDIS_DB")
     redis_password: Optional[str] = Field(default=None, alias="REDIS_PASSWORD")
 
+    fixture_cache_ttl_seconds: int = Field(default=5, ge=1, le=3600, alias="FIXTURE_CACHE_TTL_SECONDS")
+
     # --- InfluxDB 3 ---
     influx_url: str = Field(default="http://127.0.0.1:8181", alias="INFLUX_URL")
     influx_database: str = Field(default="fixture2030_resumen", alias="INFLUX_DATABASE")

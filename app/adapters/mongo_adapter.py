@@ -100,6 +100,16 @@ class MongoAdapter(BaseAdapter):
         return self._execute(consulta)
 
     @observe("MongoDB")
+    def list_fixture(self) -> List[Dict[str, Any]]:
+        """Una consulta con proyección mínima; desempate estable por código."""
+        projection = {field: 1 for field in (
+            "_id", "fecha_hora", "fase", "grupo", "local", "visitante", "estado", "resultado"
+        )}
+        return self._execute(lambda: list(
+            self.db["partidos"].find({}, projection).sort([("fecha_hora", 1), ("_id", 1)])
+        ))
+
+    @observe("MongoDB")
     def ping(self) -> bool:
         """Verifica la conectividad activa contra MongoDB."""
         try:

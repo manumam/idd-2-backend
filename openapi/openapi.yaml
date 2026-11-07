@@ -109,6 +109,60 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
+  /fixture:
+    get:
+      tags:
+      - Fixture
+      summary: Consultar el fixture
+      description: Mundial 2030 completo, ordenado por fecha y código. Horarios UTC.
+        Sin partidos devuelve items vacío. Redis es opcional; caché de 5 s por defecto.
+      operationId: obtener_fixture_fixture_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '503':
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
   /equipos/{codigo}:
     get:
       tags:
@@ -1400,6 +1454,18 @@ components:
       - partido
       - items
       title: EventosResponse
+    FixtureResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/PartidoFixture'
+          type: array
+          title: Items
+      additionalProperties: false
+      type: object
+      required:
+      - items
+      title: FixtureResponse
     GolResponse:
       properties:
         jugador:
@@ -1564,6 +1630,72 @@ components:
           default: alive
       type: object
       title: LivenessResponse
+    Marcador:
+      properties:
+        goles_local:
+          type: integer
+          minimum: 0.0
+          title: Goles Local
+        goles_visitante:
+          type: integer
+          minimum: 0.0
+          title: Goles Visitante
+      additionalProperties: false
+      type: object
+      required:
+      - goles_local
+      - goles_visitante
+      title: Marcador
+    PartidoFixture:
+      properties:
+        codigo:
+          type: string
+          pattern: ^P-[0-9]{3}$
+          title: Codigo
+        fecha_hora:
+          type: string
+          format: date-time
+          title: Fecha Hora
+        fase:
+          type: string
+          minLength: 1
+          title: Fase
+        grupo:
+          anyOf:
+          - type: string
+            pattern: ^[A-P]$
+          - type: 'null'
+          title: Grupo
+        local:
+          anyOf:
+          - $ref: '#/components/schemas/EquipoRef'
+          - type: 'null'
+        visitante:
+          anyOf:
+          - $ref: '#/components/schemas/EquipoRef'
+          - type: 'null'
+        estado:
+          type: string
+          enum:
+          - proximo
+          - en_vivo
+          - finalizado
+          title: Estado
+        resultado:
+          anyOf:
+          - $ref: '#/components/schemas/ResultadoFixture'
+          - type: 'null'
+      additionalProperties: false
+      type: object
+      required:
+      - codigo
+      - fecha_hora
+      - fase
+      - local
+      - visitante
+      - estado
+      - resultado
+      title: PartidoFixture
     PartidoObjeto:
       properties:
         id:
@@ -1685,6 +1817,26 @@ components:
       - estado
       - listo
       title: ReadinessResponse
+    ResultadoFixture:
+      properties:
+        goles_local:
+          type: integer
+          minimum: 0.0
+          title: Goles Local
+        goles_visitante:
+          type: integer
+          minimum: 0.0
+          title: Goles Visitante
+        penales:
+          anyOf:
+          - $ref: '#/components/schemas/Marcador'
+          - type: 'null'
+      additionalProperties: false
+      type: object
+      required:
+      - goles_local
+      - goles_visitante
+      title: ResultadoFixture
     SedeRef:
       properties:
         codigo:
