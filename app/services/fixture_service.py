@@ -26,10 +26,13 @@ def consultar_fixture() -> FixtureResponse:
     try:
         cached = redis_adapter.get_cache(FIXTURE_CACHE_KEY)
         if cached is not None:
-            return FixtureResponse.model_validate_json(cached)
+            respuesta = FixtureResponse.model_validate_json(cached)
+            logger.info("fixture_cache=hit")
+            return respuesta
     except (DatabaseUnavailableError, ValidationError, UnicodeError):
         logger.warning("Caché del fixture no disponible o inválida")
 
+    logger.info("fixture_cache=miss")
     documentos = mongo_adapter.list_fixture()
     respuesta = FixtureResponse(items=[
         dict(codigo=d["_id"], **{k: v for k, v in d.items() if k != "_id"})

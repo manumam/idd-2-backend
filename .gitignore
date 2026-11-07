@@ -36,3 +36,6 @@ htmlcov/
 .env.*
 !.env.example
 config/*.env
+
+# Plan inicial reemplazado por la documentación de la entrega.
+docs/plan-hito-12.md

@@ -1,0 +1,62 @@
+{
+  "ok": true,
+  "raw_runs_verified": 18,
+  "audit_mode": "raw",
+  "runs": 18,
+  "profiles": [
+    1,
+    10,
+    30
+  ],
+  "repetitions": 3,
+  "measured_requests": 14468,
+  "recorded_attempts_all_phases": 15707,
+  "measured_errors": 0,
+  "source_snapshot_verified": true,
+  "same_experiment_code_and_jmx": true,
+  "all_integrity_checks_passed": true,
+  "hypothesis_before_optimization": true,
+  "tests": {
+    "backend_integration": 6,
+    "data_mart": 6,
+    "backend_unit_including_subtests": 128
+  },
+  "freshness": [
+    {
+      "ttl_seconds": 5,
+      "expiry_observed_seconds": 5.06064329110086,
+      "invalidation_observed_seconds": 0.013030541595071554,
+      "corrupt_cache_rebuilt": true
+    },
+    {
+      "ttl_seconds": 15,
+      "expiry_observed_seconds": 15.069813000038266,
+      "invalidation_observed_seconds": 0.015092500019818544,
+      "corrupt_cache_rebuilt": true
+    }
+  ],
+  "generator_negative": {
+    "ok": true,
+    "scenario": "Control negativo, NO es carga contra el backend ni fallo del sistema medido",
+    "http_status": 200,
+    "responses": 43,
+    "incorrect_bodies_rejected": 43
+  },
+  "reload": {
+    "reload": {
+      "insertados": 0,
+      "actualizados": 127,
+      "rechazados": 0
+    },
+    "unchanged": true
+  },
+  "data_mart": {
+    "source_records": 127,
+    "finished": 1,
+    "fact_count": 2,
+    "rejected": 0,
+    "unique_keys": true,
+    "goals_balanced": true,
+    "totals_match_source": true
+  }
+}
