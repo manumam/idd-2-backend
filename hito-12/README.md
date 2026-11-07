@@ -17,11 +17,11 @@ Experimento HTTP real sobre `GET /fixture` con FastAPI, MongoDB y Redis. Se comp
 
 Validación adicional: 123 tests unitarios del backend, 6 de integración real y 6 del Data Mart; control negativo del generador y auditoría de las 18 corridas aprobados. Ver [validación final](docs/validacion_final.md).
 
-## Registros locales y evidencia versionada
+## Evidencia publicada
 
-Los logs (`*.log`), las muestras de JMeter (`*.jtl`), `resources.jsonl` y las salidas de texto de tests se generan localmente y están ignorados por Git. Se versionan resúmenes JSON/CSV, reportes JUnit, manifiestos, controles de integridad y tablas.
+Se versionan una tabla CSV con las 18 corridas, `validacion_final.json` con los controles finales, el entorno, la hipótesis previa y la identificación de la fuente usada. Los datasets extraídos, manifiestos por corrida, logs, reportes de tests y demás salidas generadas quedan locales e ignorados por Git.
 
-Los informes pueden regenerarse desde esos resúmenes sin logs. `verificar_entrega.py` informa `summaries_only` si no están los registros crudos; para comprobar nuevamente cada muestra, repetir la carga y ejecutar `verificar_entrega.py --require-raw`. La auditoría original completa se hizo localmente antes de excluir los logs.
+Los informes pueden regenerarse desde el CSV sin esos detalles. `verificar_entrega.py` informa `published_summary` al revisar únicamente la entrega publicada; para comprobar cada muestra hay que repetir la carga y ejecutar `verificar_entrega.py --require-raw`. El JSON final registra la auditoría completa que se hizo localmente sobre las corridas originales.
 
 ## Requisitos y versiones
 

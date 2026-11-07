@@ -1,20 +1,19 @@
 # Validación final
 
-| Comprobación | Resultado | Evidencia |
-| --- | --- | --- |
-| Backend, tests unitarios | 123 aprobados, más 5 subtests | `evidencia/tests_backend_unit.xml`. |
-| Fixture, integración con MongoDB/Redis reales | 6 aprobados | `evidencia/tests_backend_integration.xml`. |
-| Data Mart, correcciones/reintentos/fallas/penales | 6 aprobados | `evidencia/tests_data_mart.xml`. |
-| Contenido incorrecto aunque HTTP 200 | 43 respuestas deliberadamente incorrectas rechazadas | `evidencia/generador_negativo/validation.json` y JTL. |
-| Corridas principales | 18 completas, 14.468 respuestas medidas, 0 errores | `evidencia/comparacion.json` y archivos de cada corrida. |
-| Integridad de datos | 127 códigos únicos, sin cambio de fuente/respuesta en cada corrida | `integrity_before.json` / `integrity_after.json`. |
-| Recarga | 0 nuevos insertados; fuente sin cambios relevantes | `evidencia/diagnostico.json`. |
-| Frescura y caché inválida | Ambos TTL comprobados; reconstrucción correcta | `evidencia/frescura-ttl5.json` y `frescura-ttl15.json`. |
-| Fuente archivada | Huellas del tar y archivos verificadas | `evidencia/verificacion_entrega.json`. |
-| Reproducción de seed desde extracción nueva | 127 validados, 0 rechazados | `evidencia/reproduccion_snapshot.json`. |
+Los controles consolidados están en `evidencia/validacion_final.json` y las métricas por corrida en `evidencia/comparacion.csv`.
 
-El conjunto suma 135 tests aprobados, además de los subtests y los controles experimentales. Pytest informa una advertencia de deprecación de Starlette/httpx; no hubo fallos y no se modificaron dependencias fuera del alcance del hito.
+| Control ejecutado | Resultado |
+| --- | --- |
+| Backend, tests unitarios | 123 aprobados, más 5 subtests (128 casos en JUnit). |
+| Fixture, integración MongoDB/Redis reales | 6 aprobados. |
+| Data Mart: correcciones, reintentos, fallas y penales | 6 aprobados. |
+| HTTP 200 con contenido deliberadamente incorrecto | 43 respuestas rechazadas por JMeter. |
+| Carga principal | 18 corridas, 14.468 respuestas medidas y 0 errores. |
+| Integridad | 127 códigos únicos y fuente/respuesta iguales antes/después. |
+| Recarga | Sin inserciones nuevas ni cambios relevantes. |
+| Frescura y caché inválida | Ambos TTL verificados y reconstrucción correcta. |
+| Fuente archivada | Huellas del tar y archivos comprobadas. |
 
-La auditoría comprueba configuraciones, código del orquestador y JMX iguales en ambas variantes, el registro de hipótesis anterior a la optimización y la correspondencia de conteos entre JTL, resúmenes e informe. Los controles negativos y el piloto se conservan separados de los resultados principales.
+La auditoría completa original se ejecutó con los registros locales y verificó cada muestra, igualdad de código/JMX y el registro de hipótesis anterior a la optimización. Esos detalles generados no se versionan. En un checkout nuevo, el verificador comprueba coherencia del CSV, fuente y validaciones publicadas e informa `published_summary`; no afirma volver a auditar requests que no están presentes.
 
-Los registros crudos se generan localmente y no se versionan. En un checkout sin logs, la auditoría valida resúmenes y declara `summaries_only`; revalidar cada muestra requiere repetir la carga.
+Las salidas completas se obtienen repitiendo el procedimiento del README. Pytest informó una advertencia de deprecación de Starlette/httpx, sin fallos.

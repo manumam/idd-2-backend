@@ -32,4 +32,4 @@ El resumen de adaptadores selecciona sus logs por tiempo de finalización, mient
 
 La línea base se ejecuta antes del cambio de configuración. El diagnóstico con `explain` y las pruebas de actualización se hacen fuera de la carga para no alterar la observación. La tabla completa de resultados y recursos se genera en `comparacion_antes_despues.md`.
 
-Los registros crudos se generan localmente y no se versionan. En un checkout sin logs, la auditoría valida resúmenes y declara `summaries_only`; revalidar cada muestra requiere repetir la carga.
+Los registros crudos, manifiestos por corrida y resúmenes individuales son locales. El CSV publicado conserva fecha, ventana, TTL, concurrencia y huellas de fuente/respuesta por corrida. En un checkout sin esos detalles, la auditoría valida la entrega consolidada y declara `published_summary`; revalidar cada muestra requiere repetir la carga.

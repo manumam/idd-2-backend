@@ -23,6 +23,22 @@ def main():
         archived={m.name.removeprefix('idd-2-backend/'):digest(tar.extractfile(m).read()) for m in tar.getmembers() if m.isfile()}
     assert archived==source['files']
     assert not any('.env' in Path(name).parts or '.git' in Path(name).parts for name in archived)
+    if not (evidence/'baseline').exists():
+        assert not args.require_raw, 'Repetir la carga para verificar las muestras locales'
+        rows=list(csv.DictReader((evidence/'comparacion.csv').open()))
+        validation=json.loads((evidence/'validacion_final.json').read_text())
+        assert len(rows)==validation['runs']==18
+        for stage,ttl in [('baseline',5),('optimized',15)]:
+            selected=[r for r in rows if r['stage']==stage]
+            assert sorted(int(r['users']) for r in selected)==[1,1,1,10,10,10,30,30,30]
+            assert all(int(r['ttl'])==ttl for r in selected)
+        assert sum(int(r['samples']) for r in rows)==validation['measured_requests']
+        assert all(int(r['errors'])==0 and r['samples']==r['successful'] for r in rows)
+        assert len({r['source_sha256'] for r in rows})==1
+        assert len({r['response_sha256'] for r in rows})==1
+        print(json.dumps(dict(ok=True,audit_mode='published_summary',runs=len(rows),
+              note='Verifica CSV, archivo de fuente y validaciones publicadas; no revalida muestras crudas.')))
+        return
     scenarios=[];source_hashes=set();experiment_hashes=set();jmx_hashes=set();attempts=measured=errors=0
     for stage,ttl in [('baseline',5),('optimized',15)]:
         paths=list((evidence/stage).glob('*/summary.json'))

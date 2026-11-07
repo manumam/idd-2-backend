@@ -3,8 +3,15 @@ __pycache__/
 *.pyc
 config/*.env
 
-# Salida cruda local de pruebas; versionar sólo resúmenes y validaciones.
+# Salida generada: local. Publicar sólo evidencia consolidada.
+evidencia/*
+!evidencia/comparacion.csv
+!evidencia/validacion_final.json
+!evidencia/environment.json
+!evidencia/source_manifest.json
+!evidencia/backend-source.tar.gz
+!evidencia/hipotesis_previa.json
+!evidencia/jmeter-5.6.3.sha512
 *.log
 *.jtl
 resources.jsonl
-evidencia/tests_*.txt

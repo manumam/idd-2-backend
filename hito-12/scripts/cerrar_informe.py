@@ -11,7 +11,7 @@ def main():
     base=[r for r in comparison['runs'] if r['stage']=='baseline']
     opt=[r for r in comparison['runs'] if r['stage']=='optimized']
     b=sum(r['mongo_queries'] for r in base);o=sum(r['mongo_queries'] for r in opt)
-    freshness=[json.loads((evidence/f'frescura-ttl{ttl}.json').read_text()) for ttl in (5,15)]
+    freshness=json.loads((evidence/'validacion_final.json').read_text())['freshness'] if not (evidence/'frescura-ttl5.json').exists() else [json.loads((evidence/f'frescura-ttl{ttl}.json').read_text()) for ttl in (5,15)]
     lines=['# Conclusiones del experimento','',
       f"Se completaron 18 corridas principales, con {formatted_total} respuestas HTTP correctas dentro de las ventanas sostenidas y {comparison['total_measured_errors']} errores medidos. Los 127 partidos conservaron contenido, códigos únicos y orden antes/después de cada corrida.", '',
       f'El cambio de TTL de 5 a 15 s redujo las consultas MongoDB de {b} a {o} en el conjunto de ventanas sostenidas ({(1-o/b)*100:.1f}% menos). Esto respalda la hipótesis de menor trabajo repetido para este listado compartido; no demuestra saturación previa ni capacidad máxima posterior.', '',

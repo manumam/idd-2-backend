@@ -64,33 +64,43 @@ def main():
     parser.add_argument('--docs',type=Path,default=ROOT/'docs')
     args=parser.parse_args(); evidence=args.evidence.resolve(); docs=args.docs.resolve();docs.mkdir(parents=True,exist_ok=True)
     rows=[]; all_summaries=[]
-    for stage in ('baseline','optimized'):
-        paths=sorted((evidence/stage).glob('*/summary.json'))
-        assert len(paths)==len(CONFIG['profiles'])*CONFIG['repetitions'],f'Faltan corridas {stage}'
-        for path in paths:
-            s=json.loads(path.read_text());manifest=json.loads((path.parent/'manifest.json').read_text())
-            before=json.loads((path.parent/'integrity_before.json').read_text());after=json.loads((path.parent/'integrity_after.json').read_text())
-            assert before['source_sha256']==after['source_sha256'] and before['ok'] and after['ok']
-            if (path.parent/'resources.jsonl').exists():
-                resource=resources(path.parent/'resources.jsonl',s['window_start_ms'],s['window_end_ms'])
-                write(path.parent/'resource_summary.json',resource)
-            else:
-                resource=json.loads((path.parent/'resource_summary.json').read_text())
-            if (path.parent/'api.log').exists():
-                api=api_timings(path.parent/'api.log',s['window_start_ms'],s['window_end_ms'],log_timezone(path.parent,manifest))
-                write(path.parent/'api_summary.json',api)
-            else:
-                api=json.loads((path.parent/'api_summary.json').read_text())
-            mongo=s['adapters']['operations'].get('MongoDB.list_fixture',{}).get('count',0)
-            row=dict(stage=stage,run=path.parent.name,users=manifest['users'],ttl=manifest['ttl'],
-                samples=s['samples'],successful=s['successful'],errors=s['errors'],
-                p50_ms=s['latency_ms']['p50'],p95_ms=s['latency_ms']['p95'],p99_ms=s['latency_ms']['p99'],
-                throughput=s['throughput_success_per_second'],mongo_queries=mongo,
-                cache_hit_ratio=s['adapters']['cache_hit_ratio'],api_p95_ms=api['p95_ms'],api_log_count=api['count'],
-                mongo_adapter_avg_ms=s['adapters']['operations'].get('MongoDB.list_fixture',{}).get('avg_ms'),
-                redis_get_adapter_avg_ms=s['adapters']['operations'].get('Redis.get_cache',{}).get('avg_ms'))
-            for name,summary in resource.items(): row[name]=summary['mean']
-            rows.append(row);all_summaries.append(s)
+    if (evidence/'baseline').exists():
+        for stage in ('baseline','optimized'):
+            paths=sorted((evidence/stage).glob('*/summary.json'))
+            assert len(paths)==len(CONFIG['profiles'])*CONFIG['repetitions'],f'Faltan corridas {stage}'
+            for path in paths:
+                s=json.loads(path.read_text());manifest=json.loads((path.parent/'manifest.json').read_text())
+                before=json.loads((path.parent/'integrity_before.json').read_text());after=json.loads((path.parent/'integrity_after.json').read_text())
+                assert before['source_sha256']==after['source_sha256'] and before['ok'] and after['ok']
+                if (path.parent/'resources.jsonl').exists():
+                    resource=resources(path.parent/'resources.jsonl',s['window_start_ms'],s['window_end_ms'])
+                    write(path.parent/'resource_summary.json',resource)
+                else:
+                    resource=json.loads((path.parent/'resource_summary.json').read_text())
+                if (path.parent/'api.log').exists():
+                    api=api_timings(path.parent/'api.log',s['window_start_ms'],s['window_end_ms'],log_timezone(path.parent,manifest))
+                    write(path.parent/'api_summary.json',api)
+                else:
+                    api=json.loads((path.parent/'api_summary.json').read_text())
+                mongo=s['adapters']['operations'].get('MongoDB.list_fixture',{}).get('count',0)
+                row=dict(stage=stage,run=path.parent.name,users=manifest['users'],ttl=manifest['ttl'],
+                    samples=s['samples'],successful=s['successful'],errors=s['errors'],
+                    p50_ms=s['latency_ms']['p50'],p95_ms=s['latency_ms']['p95'],p99_ms=s['latency_ms']['p99'],
+                    throughput=s['throughput_success_per_second'],mongo_queries=mongo,
+                    cache_hit_ratio=s['adapters']['cache_hit_ratio'],recorded_at=manifest['started_at'],window_start_ms=s['window_start_ms'],window_end_ms=s['window_end_ms'],source_sha256=before['source_sha256'],response_sha256=before['response_sha256'],recorded_attempts=s['all_phases']['recorded_attempts'],api_p95_ms=api['p95_ms'],api_log_count=api['count'],
+                    mongo_adapter_avg_ms=s['adapters']['operations'].get('MongoDB.list_fixture',{}).get('avg_ms'),
+                    redis_get_adapter_avg_ms=s['adapters']['operations'].get('Redis.get_cache',{}).get('avg_ms'))
+                for name,summary in resource.items(): row[name]=summary['mean']
+                rows.append(row);all_summaries.append(s)
+    else:
+        # El CSV publicado contiene una fila por corrida; el detalle queda local.
+        for row in csv.DictReader((evidence/'comparacion.csv').open()):
+            for key,value in list(row.items()):
+                if key not in ('stage','run','recorded_at','source_sha256','response_sha256'):
+                    row[key]=json.loads(value)
+            for key in ('users','ttl','samples','successful','errors','recorded_attempts'):
+                row[key]=int(row[key])
+            rows.append(row)
     keys=list(dict.fromkeys(k for row in rows for k in row))
     with (evidence/'comparacion.csv').open('w') as stream:
         w=csv.DictWriter(stream,fieldnames=keys,lineterminator="\n");w.writeheader();w.writerows(rows)
@@ -105,7 +115,7 @@ def main():
                 mongo_queries_total=sum(r['mongo_queries'] for r in group),hit_ratio_mean=mean([r['cache_hit_ratio'] for r in group])))
     write(evidence/'comparacion.json',dict(runs=rows,aggregate=aggregate,
           total_measured_requests=sum(r['samples'] for r in rows),total_measured_errors=sum(r['errors'] for r in rows),
-          total_all_phase_attempts=sum(s['all_phases']['recorded_attempts'] for s in all_summaries)))
+          total_all_phase_attempts=sum(r['recorded_attempts'] for r in rows)))
     lines=['# Comparación medida antes/después','',
       'Resultados de HTTP real con MongoDB/Redis reales. Ventana sostenida de 60 s por corrida; tres repeticiones por perfil. Línea base: TTL 5 s. Optimizada: TTL 15 s.', '',
       '| Lectores | Versión | Requests | Errores | p95 medio de corridas (rango), ms | p99 medio, ms | Éxitos/s medios | Consultas MongoDB (3 corridas) | Aciertos medios |',

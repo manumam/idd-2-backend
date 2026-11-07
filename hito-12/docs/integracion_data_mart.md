@@ -25,7 +25,7 @@ Grano: una fila por partido finalizado y selección participante, dos por partid
 
 Los goles de `resultado.penales` no se agregan a los goles del partido: el contrato sí distingue esa tanda. La prueba unitaria incluye empate 2–2 con tanda 4–3 y verifica que cada fila conserve 2 a favor y 2 en contra.
 
-La proyección agrupa las filas por `(equipo, fase)` y suma las tres medidas. La entrada está conservada en `evidencia/data_mart_source.json`; las filas, totales y controles se publican en `evidencia/data_mart.json`. El ejemplo real usa la instantánea de la demo: P-001, Uruguay 2–1 Arabia Saudita, produce una fila URU (1 partido, 2 goles a favor y 1 en contra) y otra KSA (1 partido, 1 gol a favor y 2 en contra). Son resultados sintéticos del escenario, no del Mundial oficial. Las pruebas sintéticas no se presentan como partidos realmente jugados ni como benchmark analítico.
+La proyección agrupa las filas por `(equipo, fase)` y suma las tres medidas. La entrada se genera localmente en `evidencia/data_mart_source.json`; las filas, totales y controles se generan localmente en `evidencia/data_mart.json`. El ejemplo real usa la instantánea de la demo: P-001, Uruguay 2–1 Arabia Saudita, produce una fila URU (1 partido, 2 goles a favor y 1 en contra) y otra KSA (1 partido, 1 gol a favor y 2 en contra). Son resultados sintéticos del escenario, no del Mundial oficial. Las pruebas sintéticas no se presentan como partidos realmente jugados ni como benchmark analítico.
 
 ## Extracción, transformación y publicación
 

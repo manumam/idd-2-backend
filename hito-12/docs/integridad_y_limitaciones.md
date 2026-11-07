@@ -32,7 +32,7 @@ El JTL conserva las muestras HTTP registradas por el generador, incluyendo fallo
 
 El manifiesto de fuente usa una lista explícita de archivos. No incluye `.env`, `.git`, directorios de dependencias ni dumps de otras bases. Los logs de adaptadores no imprimen consultas, parámetros ni errores detallados de drivers. Los contenedores se publican sólo en loopback y tienen nombres, puertos y datos distintos de Hito 11. No se borra ningún volumen existente.
 
-La entrega versiona manifiestos, resúmenes de métricas/recursos y verificaciones. Los JTL, logs y muestreos crudos permanecen locales, ignorados por Git. Los valores del informe se generan con `comparar_resultados.py`; una nueva reproducción no debe sobrescribir silenciosamente la evidencia original.
+La entrega versiona una tabla consolidada, validaciones finales y metadatos de entorno/fuente. Los JTL, logs y muestreos crudos permanecen locales, ignorados por Git. Los valores del informe se generan con `comparar_resultados.py`; una nueva reproducción no debe sobrescribir silenciosamente la evidencia original.
 
 ## Cobertura de requisitos
 
@@ -49,4 +49,4 @@ La entrega versiona manifiestos, resúmenes de métricas/recursos y verificacion
 | RNF6–RNF9 | Límites de extrapolación, laboratorio, exclusión de secretos y control de recursos. |
 | RNF10–RNF14 | Organización, limpieza acotada, procedencia analítica, historial Git y separación entre mediciones/propuestas. |
 
-Los registros crudos se generan localmente y no se versionan. En un checkout sin logs, la auditoría valida resúmenes y declara `summaries_only`; revalidar cada muestra requiere repetir la carga.
+Los registros crudos y los archivos detallados por corrida se generan localmente y no se versionan. En un checkout sin detalles generados, la auditoría valida el CSV y declara `published_summary`; revalidar cada muestra requiere repetir la carga.
