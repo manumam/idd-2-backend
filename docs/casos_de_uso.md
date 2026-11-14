@@ -11,19 +11,35 @@ Esta ampliación no cambia las decisiones de persistencia del MVP.
 
 ## Estado de implementación
 
-| # | Caso del MVP | Estado | Evidencia y trabajo pendiente |
-| --- | --- | --- | --- |
-| 1 | Consultar el fixture | Implementado para el listado | `GET /fixture` lee MongoDB con Redis opcional. Frontend con orden por fecha, estado y resultado. No hay simulador que avance el torneo. |
-| 2 | Consultar los partidos de una selección | Parcial | El frontend permite buscar por nombre; falta una consulta dedicada por selección. `/fixture` no acepta todavía los filtros propuestos por el modelo técnico. Abrir un plantel no resuelve este caso. |
-| 3 | Consultar el estado de los grupos | Pendiente | No existen `/grupos` ni `/grupos/{id}/posiciones`, cálculo de clasificación ni vista de grupos. |
-| 4 | Consultar los playoffs | Pendiente | Hay partidos eliminatorios en el fixture, pero faltan `/playoffs`, orígenes de plazas y propagación de ganadores. |
-| 5 | Ver el detalle de un partido | Requiere migración | `/partidos/{codigo}` sigue en Neo4j; debe leer MongoDB y agregar estado, marcador y reloj. Falta la página del partido. |
-| 6 | Consultar las alineaciones | Pendiente | No existe `/partidos/{id}/alineaciones`. Plantel de selección y alineación del partido son datos distintos. |
-| 7 | Seguir los eventos del partido | Requiere migración | La ruta existe sobre Neo4j; debe leer eventos embebidos de MongoDB, acompañar marcador e invalidar caché. Falta ingesta y actualización en vivo. |
-| 8 | Comparar estadísticas de equipos | Parcial | Hay lectura temporal de posesión, tiros y pases en Influx. Falta combinar eventos de MongoDB, consolidar estadísticas finales y mostrarlas en el frontend. |
-| 9 | Rendimiento de un jugador en el partido | Pendiente | No existe la consulta de estadísticas por partido y jugador. La ficha personal no incluye rendimiento deportivo. |
-| 10 | Mapa de calor de un jugador | Pendiente | Faltan endpoint, ocupación por celda/minuto, consulta histórica y visualización. |
-| 11 (opcional) | Seguir la pelota en vivo | Pendiente | Falta endpoint de última posición, simulación y vista de tracking. |
+El estado funcional y la alineación técnica se evalúan por separado. Usar una
+base prevista por el modelo no completa por sí solo un caso de uso. «Pendiente»
+significa que el modelo todavía no está implementado para ese caso, no que se
+haya validado su cumplimiento. Ninguno de los once casos se considera completo
+de extremo a extremo con el modelo técnico objetivo.
+
+| # | Caso del MVP | Estado funcional | Alineación con el modelo técnico | Trabajo pendiente para completarlo |
+| --- | --- | --- | --- | --- |
+| 1 | Consultar el fixture | Listado implementado; demo en vivo incompleta | Parcial: `GET /fixture` usa MongoDB y Cache-Aside en Redis, como se propone. La API no admite todavía `equipo_id`, `fecha` ni `fase`; los filtros actuales se aplican en el frontend. | Completar los filtros del contrato propuesto y sus claves de caché. Vincular ingesta, cierre y correcciones con la invalidación. El frontend muestra orden, horario, fase, estado y resultado, pero falta el simulador que avance el torneo. |
+| 2 | Consultar los partidos de una selección | Parcial: búsqueda de texto, sin recorrido específico por selección | Parcial: reutiliza el fixture de MongoDB/Redis, pero no existe el filtro de API por identificador de selección propuesto en `/fixture?equipo_id=…`. | Seleccionar un equipo desde el fixture debe abrir sus partidos próximos, en vivo y finalizados, en lugar de su plantel. Agregar filtro exacto por código y caché que lo incluya. La búsqueda por nombre no equivale al flujo completo. |
+| 3 | Consultar el estado de los grupos | Pendiente | Sin implementar: el objetivo exige grupos, reglas y resultados en MongoDB, con tabla calculada y caché Redis. Los grupos etiquetados en el fixture no constituyen una clasificación. | Implementar `/grupos` y `/grupos/{id}/posiciones`, reglas del dataset, cálculo desde resultados finalizados, desempates e invalidación ante cierre/corrección. Agregar vista de grupos y acceso a sus partidos. La ficha personal de jugador no corresponde a este caso. |
+| 4 | Consultar los playoffs | Pendiente; solo hay encuentros eliminatorios en el fixture | Sin implementar: el modelo pide cruces en MongoDB con origen de plazas, orden y ganador, y copia derivada en Redis. | Implementar `/playoffs`, carga y validación de dependencias sin ciclos, resolución idempotente de plazas y propagación de ganadores, incluidas tandas. Invalidar ante cierres/correcciones y agregar el cuadro navegable. |
+| 5 | Ver el detalle de un partido | Ruta histórica disponible; falta la página del encuentro | No alineado: `/partidos/{codigo}` sigue consultando Neo4j. El objetivo es MongoDB con caché Redis. | Migrar la lectura a MongoDB y completar sede, estado, marcador y reloj de juego, con goles de tanda separados. Implementar caché e invalidación y una página accesible desde fixture, grupos y playoffs. |
+| 6 | Consultar las alineaciones | Pendiente | Sin implementar: el modelo pide titulares y suplentes dentro del documento de partido en MongoDB, con caché Redis. | Implementar `/partidos/{id}/alineaciones`, referencias a jugadores y navegación al rendimiento individual. Cargar alineaciones por encuentro; el plantel de selección no las reemplaza. |
+| 7 | Seguir los eventos del partido | Ruta histórica disponible; sin seguimiento en vivo | No alineado: los eventos se leen de Neo4j; el objetivo es eventos embebidos en MongoDB y caché Redis. | Migrar persistencia y lectura, identificar eventos para evitar duplicados, actualizar marcador e invalidar eventos/partido/estadísticas al ingresar datos. Agregar ingesta del simulador y cronología con actualización en vivo. |
+| 8 | Comparar estadísticas de equipos | Lectura temporal parcial; falta comparación completa en el frontend | Parcial: Influx contiene posesión, tiros y pases. Falta el Aggregator con eventos de MongoDB, los resúmenes finales en MongoDB y la caché Redis. | Completar goles y tarjetas, combinar ambas fuentes en vivo, consolidar de forma idempotente e indicar estado provisional/final. Las estadísticas finales deben poder leerse con Influx caído y caché vacía; agregar comparación y actualización en el frontend. |
+| 9 | Rendimiento de un jugador en el partido | Pendiente; solo existe ficha personal | Sin implementar: faltan estadísticas deportivas desde eventos MongoDB y físicas desde Influx, resúmenes finales por partido/jugador en MongoDB y caché Redis. | Implementar `/partidos/{id}/jugadores/{jugador_id}/estadisticas` y acumulados en `/jugadores/{id}/estadisticas`, con consolidación y sin doble conteo. Mostrar goles, asistencias, tarjetas, distancia y velocidad máxima desde la alineación. |
+| 10 | Mapa de calor de un jugador | Pendiente | Sin implementar: el objetivo usa tracking crudo de Influx en vivo, ocupación por celda/minuto para histórico y caché Redis por filtros. | Implementar endpoint, grilla e intervalos efectivos, materialización antes de vencer el crudo y reproceso idempotente. Validar consultas históricas en InfluxDB Core y mostrar cancha e intervalos en el frontend. No usar promedios de coordenadas como mapa de calor. |
+| 11 (opcional) | Seguir la pelota en vivo | Pendiente | Sin implementar: el objetivo consulta la última muestra de `tracking_pelota` en Influx y la cachea en Redis con TTL corto. | Implementar `/partidos/{id}/pelota`, simulación a 1 Hz y visualización con actualización durante el partido en vivo. No prometer trayectoria histórica después de vencer el tracking crudo. |
+
+### Balance de los requisitos 1 a 3
+
+- **1:** alineado en la elección de MongoDB y Redis y en el listado visible;
+  parcialmente alineado con el modelo completo por los filtros de API y el ciclo
+  de actualización e invalidación pendientes. No equivale a tener la demo en vivo completa.
+- **2:** parcialmente alineado en las fuentes reutilizadas; el flujo de selección
+  y el filtro exacto por equipo siguen pendientes. Consultar un plantel no lo cumple.
+- **3:** pendiente de implementación; todavía no se puede afirmar que respete
+  el modelo técnico. La ficha personal del jugador es una funcionalidad adicional.
 
 ## Funcionalidades adicionales implementadas
 
