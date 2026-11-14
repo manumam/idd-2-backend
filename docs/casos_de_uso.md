@@ -24,7 +24,7 @@ Consumidor de todos los casos: la aplicación cliente del Fixture (web o móvil)
 prueba la API desde Swagger UI o Postman. Todos los datos son sintéticos. En la columna
 "Si la fuente cae", `503` distingue disponibilidad, identidad, permisos y contexto; timeout usa `504` (sección 3).
 
-Estado de seguimiento: los casos 1 y 2 están `OK`. Los demás quedan como
+Estado de seguimiento: los casos 1, 2 y 3 están `OK`. Los demás quedan como
 `PENDING revisar/codear`: requieren revisar el alcance y la implementación antes
 de confirmar su estado o completar el desarrollo.
 
@@ -32,7 +32,7 @@ de confirmar su estado o completar el desarrollo.
 | - | ----------- | ------ | ------- | ------ | ----- | ------------ | ---- |
 | 1 | Ver la ficha de un equipo | OK | `codigo` | MongoDB `equipos` | 200 con la ficha | 404 `EQUIPO_NO_ENCONTRADO` | Lectura |
 | 2 | Listar el plantel de un equipo, opcionalmente por posición | OK | `equipo` (obligatorio), `posicion`, `limit`, `skip` | MongoDB `jugadores` | 200 con una página ordenada por dorsal (puede ser vacía) | Filtro sin resultados: 200 vacío. No se valida que `equipo` exista | Lectura |
-| 3 | Ver un jugador | PENDING revisar/codear | `codigo` | MongoDB `jugadores` | 200 con el jugador | 404 `JUGADOR_NO_ENCONTRADO` | Lectura |
+| 3 | Ver un jugador | OK | `codigo` | MongoDB `jugadores` | 200 con el jugador | 404 `JUGADOR_NO_ENCONTRADO` | Lectura |
 | 4 | Ver un partido (fase, fecha, sede, equipos) | PENDING revisar/codear | `codigo` | Neo4j | 200 con el partido | 404 `PARTIDO_NO_ENCONTRADO` | Lectura |
 | 5 | Ver los eventos de un partido con sus protagonistas | PENDING revisar/codear | `codigo`, `limit` | Neo4j | 200 con los eventos | Partido inexistente: 404 `PARTIDO_NO_ENCONTRADO`. Partido sin eventos: 200 con lista vacía | Lectura |
 | 6 | Goleadores de una confederación en una sede (consulta multi-salto del Hito 5) | PENDING revisar/codear | `codigo` (sede), `confederacion`, `limit` | Neo4j | 200 con los goleadores (puede ser vacío) | Sede inexistente: 404 `SEDE_NO_ENCONTRADA` | Lectura |
@@ -178,3 +178,11 @@ con todas las selecciones de MongoDB `equipos`, ordenadas por nombre y código
 y es independiente del fixture. Vacío: 200 con `items: []`. Fallos MongoDB:
 503/504 con los códigos comunes de dependencia. No usa caché.
 El plantel se consulta con `GET /jugadores?equipo=ARG`, posición opcional y `limit`/`skip`.
+
+## Ficha de jugador en el frontend
+
+El caso 3 se consulta desde cada jugador del plantel. Abre una página HTML
+independiente (`/jugador.html?codigo=ARG-10`) que consume `GET /jugadores/{codigo}`.
+Muestra los campos del contrato y distingue carga, código inválido, jugador
+inexistente y error con reintento. Club y capitán nulos se muestran como
+“Sin información”. El regreso al plantel conserva selección, posición y página.
