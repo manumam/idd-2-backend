@@ -6,7 +6,7 @@ agrega horarios simulados UTC y estados iniciales; el escenario separado muestra
 un partido finalizado, uno en vivo y el resto próximos.
 
 El backend incluye todos los archivos necesarios para validar y cargar el fixture.
-Ejecutar `scripts/cargar_fixture.py` según `docs/fixture.md`. No hay descargas ni
+Ejecutar `scripts/cargar_fixture.py` según la [guía de carga](../../README.md#carga-de-datos). No hay descargas ni
 accesos a otros repositorios durante la carga.
 
 Procedencia: copia del dataset y seed publicados en el commit

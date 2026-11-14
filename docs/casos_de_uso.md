@@ -58,6 +58,6 @@ de extremo a extremo con el modelo técnico objetivo.
 - Validar los contratos propuestos antes de implementarlos. OpenAPI y Postman
   describen la API actual y solo deben cambiar junto con sus rutas y schemas.
 
-El [inventario de API actual](api_actual.md) conserva las rutas y comportamientos
-existentes, incluidas las operaciones pendientes de retirar. Esta revisión es de
-código y documentación; no certifica pruebas de carga ni distribución global.
+El contrato HTTP implementado se consulta en [OpenAPI](../openapi/openapi.yaml)
+y [Postman](../postman_collection.json). Esta revisión es de código y
+documentación; no certifica pruebas de carga ni distribución global.

@@ -11,13 +11,12 @@ Estos documentos definen el producto. El stack objetivo es MongoDB, Redis e
 InfluxDB; una funcionalidad histórica no se considera parte del MVP por existir.
 El frontend se incorpora por pedido posterior a los lineamientos de solo API.
 
-## Implementación actual
+## Consulta operativa
 
-- [Rutas y comportamiento actual](api_actual.md).
-- [Arquitectura y adaptadores](arquitectura_y_adaptadores.md).
-- [Contratos y errores](contratos_y_errores.md).
-- [Configuración local](conectividad_y_configuracion.md).
-- [Fixture y datos iniciales](fixture.md).
+- [Contratos y errores actuales](contratos_y_errores.md).
+- [Configuración, arranque y carga de datos](../README.md).
+- [Contrato HTTP implementado](../openapi/openapi.yaml) y
+  [colección Postman](../postman_collection.json).
 
 Planes, procedimientos de evaluación y evidencia están fuera de `docs/`, en
 [laboratorio](../laboratorio/README.md) y [hito-12](../hito-12/README.md).

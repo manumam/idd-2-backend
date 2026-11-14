@@ -26,7 +26,7 @@ de conectividad. La prueba de DELETE crea una sesión específica de test.
 
 ## Método reproducible
 
-1. Configurar y cargar los servicios según `docs/conectividad_y_configuracion.md`.
+1. Configurar y cargar los servicios según la [configuración local](../README.md#configuración-local).
 2. `python -m pytest -q --junitxml=laboratorio/evidencia/suite_local.xml`.
 3. `LIVE_MODULES=mongodb,redis python -m pytest tests/integration -v
    --junitxml=laboratorio/evidencia/integracion_local.xml` (seleccionar las fuentes disponibles).

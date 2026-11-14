@@ -29,5 +29,5 @@ Son dos lecturas locales, sin prueba de carga ni red HTTP externa: no demuestran
 un P95 ni la capacidad global del sistema.
 
 La suite emite una advertencia de deprecación existente de Starlette/TestClient
-sobre httpx; no impide las verificaciones. La guía [fixture.md](../../docs/fixture.md)
+sobre httpx; no impide las verificaciones. La guía [carga de datos](../../README.md#carga-de-datos)
 contiene los comandos para reproducirlas. No se implementó un simulador de partidos.

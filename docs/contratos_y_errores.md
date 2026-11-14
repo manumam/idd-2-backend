@@ -63,7 +63,7 @@ responder con MongoDB caído. Sin caché válida, MongoDB usa sus códigos comun
 Los encabezados de request se generan por consulta y no se cachean. TTL configurable
 `FIXTURE_CACHE_TTL_SECONDS` (5 s por defecto); clave `fixture:v1:todos`.
 El cargador usa upserts por código y preserva estado/resultado salvo reinicio
-explícito. Ver [fixture reproducible](fixture.md).
+explícito. Ver [carga de datos](../README.md#carga-de-datos).
 
 ## Catálogo para consultar planteles
 
