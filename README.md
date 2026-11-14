@@ -99,6 +99,7 @@ si la fuente cae o no devuelve los datos esperados. Ver [tests/README.md](tests/
 ## Contrato y decisiones
 
 - [Seguimiento de los casos del MVP](docs/casos_de_uso.md).
+- [Observabilidad y errores](docs/observabilidad_y_errores.md).
 - [Pruebas y evidencia disponible](laboratorio/pruebas_y_evidencia.md).
 
 Cassandra vuelve a exponer el feed de comentarios de solo lectura. IRIS recupera la vista de partidos y eventos por ID persistente (`/objetos/partidos/{id}`). Ver `tests/fixtures/README.md` para cargar sus esquemas. IRIS se levanta por separado; sus credenciales y namespace se configuran con `IRIS_*`.
