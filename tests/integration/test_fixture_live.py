@@ -1,6 +1,6 @@
 """Opt-in: MongoDB y Redis aislados; no usa ni detiene bases existentes.
 
-FIXTURE_INTEGRATION=1 FIXTURE_DATA_ROOT=/ruta/al/tp
+FIXTURE_INTEGRATION=1
 FIXTURE_TEST_MONGO_URI=mongodb://127.0.0.1:47017 FIXTURE_TEST_REDIS_PORT=46379
 """
 import importlib.util
@@ -27,7 +27,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.skipif(
 
 @pytest.fixture
 def lab(monkeypatch):
-    root = Path(os.environ['FIXTURE_DATA_ROOT']) / 'fixture2030-mongo'
+    root = Path(__file__).resolve().parents[2]
     spec = importlib.util.spec_from_file_location('fixture_seed', root / 'scripts/cargar_fixture.py')
     seed = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(seed)
@@ -39,7 +39,7 @@ def lab(monkeypatch):
                   decode_responses=True, socket_timeout=2, socket_connect_timeout=2)
     monkeypatch.setattr(mongo_adapter, 'connect', lambda: db)
     monkeypatch.setattr(redis_adapter, 'get_client', lambda: redis)
-    docs = seed.preparar(root.parent / 'fixture2030-neo4j/import', root / 'datos/fixture-calendario.json')
+    docs = seed.preparar(root / 'data/fixture/import', root / 'data/fixture/fixture-calendario.json')
     redis.delete(FIXTURE_CACHE_KEY)
     try:
         yield seed, root, db, docs, redis
@@ -58,8 +58,8 @@ def test_seed_idempotency_preservation_and_reset(lab):
     assert seed.cargar(db, docs)['insertados'] == 0
     assert db.partidos.count_documents({}) == 127
     assert db.partidos.find_one({'_id': 'P-001'})['resultado'] == score
-    demo = seed.preparar(root.parent / 'fixture2030-neo4j/import', root / 'datos/fixture-calendario.json',
-                        root / 'datos/fixture-escenario-demo.json')
+    demo = seed.preparar(root / 'data/fixture/import', root / 'data/fixture/fixture-calendario.json',
+                        root / 'data/fixture/fixture-escenario-demo.json')
     seed.cargar(db, demo, reiniciar=True)
     assert {d['estado'] for d in db.partidos.find()} == {'proximo', 'en_vivo', 'finalizado'}
 

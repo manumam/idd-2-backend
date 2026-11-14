@@ -1,67 +1,57 @@
 # Fixture reproducible del Mundial 2030
 
-La API publica `GET /fixture`, sin filtros ni paginación. Devuelve `{items: [...]}`
-con código, fecha/hora UTC, fase, grupo, equipos, estado y resultado. Ordena por
-`fecha_hora` y luego por código. La lista vacía es 200. Próximo tiene resultado
-nulo; en vivo y finalizado tienen goles de juego y tanda separada. Una plaza sin
-resolver admite equipo nulo.
+`GET /fixture` devuelve `{items: [...]}` con código, fecha/hora UTC, fase, grupo,
+equipos, estado y resultado, ordenados por fecha y código. El seed, sus CSV, el
+validador y el escenario están incluidos en este backend: no se necesita otro clon.
 
-## Cargar el seed
+## Cargar y abrir localmente
 
-El repositorio de datos debe estar disponible localmente. Desde el backend, con su
-entorno instalado y MongoDB/Redis levantados, definir las rutas y conexiones:
+Desde la raíz del backend, con el entorno `.venv` instalado:
 
 ```bash
-# Ajustar a la ubicación de tu clon de idd-2-tp (en este workspace se llama tp).
-export FIXTURE_DATA_ROOT=/ruta/al/tp
-export MONGO_URI=mongodb://localhost:27017
-export MONGO_DATABASE=fixture2030
-export REDIS_HOST=localhost
-export REDIS_PORT=6380
-export REDIS_DB=0
-# Exportar MONGO_URI/REDIS_PASSWORD de tu entorno si requieren credenciales.
+# Usar el MongoDB y Redis de desarrollo configurados en .env.
+# No iniciar el laboratorio Hito 11 para abrir la aplicación.
 
-# Validar sin acceder a las bases.
-.venv/bin/python "$FIXTURE_DATA_ROOT/fixture2030-mongo/scripts/cargar_fixture.py" --solo-validar
-# Crear colección, validadores, índice y cargar los 127 partidos.
-.venv/bin/python "$FIXTURE_DATA_ROOT/fixture2030-mongo/scripts/cargar_fixture.py"
+# Validar los 127 partidos sin acceder a las bases.
+.venv/bin/python scripts/cargar_fixture.py --solo-validar
+
+# Solo cuando se solicite cargar datos: conserva estados y marcadores existentes.
+.venv/bin/python scripts/cargar_fixture.py
+
+# Arranque normal: usa .env, sin ejecutar seeds ni tests.
+bash scripts/iniciar_api.sh
 ```
 
-El cargador lee variables exportadas, **no lee automáticamente `.env`**. La API sí
-usa `.env`; ambos procesos deben apuntar a las mismas bases. La colección usa los
-nombres embebidos de los CSV y puede cargarse independientemente del seed de planteles.
+El cargador usa `.env` por defecto, admite `--env-file` y mantiene la prioridad de
+las variables exportadas sobre el archivo, igual que la configuración del backend.
+Usar el mismo archivo para el seed y para la API. Comprobar que los puertos configurados correspondan a las bases de este proyecto;
+no usar el MongoDB de otra aplicación ni sustituirlo por el laboratorio de evaluación.
 
-La carga combina `partidos.csv`, `participaciones.csv`, `equipos.csv` y `sedes.csv`
-de `fixture2030-neo4j/import/` con `fixture2030-mongo/datos/fixture-calendario.json`.
-Todos los horarios son simulados, explícitos en ese JSON. No es el calendario
-oficial. La carga normal preserva estados y marcadores existentes; no duplica
-partidos, borra colecciones ni necesita un servidor Neo4j.
+El dataset de `data/fixture/` incluye los CSV de partidos, participaciones, equipos
+y sedes, más `fixture-calendario.json`, `fixture-escenario-demo.json` y
+`partidos-validator.json`. Los horarios son simulados, explícitos en UTC; no es el
+calendario oficial. No necesita un servidor Neo4j para cargar el listado.
 
-## Reiniciar la demo
+Para restaurar todos los partidos al estado próximo:
 
 ```bash
-# P-001 finalizado 2–1, P-002 en vivo 1–0 y el resto próximos.
-.venv/bin/python "$FIXTURE_DATA_ROOT/fixture2030-mongo/scripts/cargar_fixture.py" \
-  --reiniciar-escenario \
-  --escenario "$FIXTURE_DATA_ROOT/fixture2030-mongo/datos/fixture-escenario-demo.json"
-
-# Restaurar todos los partidos al estado próximo.
-.venv/bin/python "$FIXTURE_DATA_ROOT/fixture2030-mongo/scripts/cargar_fixture.py" --reiniciar-escenario
-
-curl http://localhost:8000/fixture
+.venv/bin/python scripts/cargar_fixture.py --reiniciar-escenario
 ```
 
-Esto reproduce el fixture y una instantánea de estados. El simulador que hace
-avanzar los partidos y resuelve el Mundial se implementará en otro incremento.
+La carga valida el lote antes de escribir, hace upserts por código sin borrar
+colecciones e informa insertados y actualizados. La carga normal preserva los
+marcadores; `--reiniciar-escenario` los reemplaza explícitamente. Esto reproduce una
+instantánea del fixture, no un simulador que hace avanzar el Mundial. La ficha
+histórica `/partidos/{codigo}` sigue usando Neo4j.
 
 ## Caché y disponibilidad
 
-Clave `fixture:v1:todos`; TTL configurable de 5 segundos por defecto (1–3600).
+Clave `fixture:v1:todos`; `FIXTURE_CACHE_TTL_SECONDS=5` por defecto (1–3600).
 Cache-Aside: un miss consulta MongoDB y guarda el cuerpo validado. Redis caído o
-payload inválido permite reconstruir desde MongoDB. Una escritura de caché fallida
-no invalida una lectura exitosa. La carga intenta borrar la clave incluso ante
-escrituras parciales; un fallo de invalidación se informa por stderr y se resuelve
-al vencer el TTL. No hay transacción distribuida ni garantía de lectura monótona.
+payload inválido permite reconstruir desde MongoDB. Un fallo al guardar caché no
+invalida una lectura exitosa. El cargador intenta invalidar incluso ante escritura
+parcial y advierte por stderr si Redis falla; el TTL limita la antigüedad. No hay
+transacción distribuida ni garantía de lectura monótona.
 
 La futura ingesta debe llamar a `app.services.fixture_service.invalidar_fixture`
 después de confirmar cambios. MongoDB caído con caché válida puede responder 200;
@@ -70,25 +60,47 @@ Identidad, permisos y errores de consulta conservan la clasificación común.
 
 ## Verificación
 
+Los tests habituales no levantan motores. Los comandos de integración siguientes
+requieren un pedido explícito y usan contenedores temporales dedicados, separados
+de la app y del laboratorio Hito 11.
+
 ```bash
 .venv/bin/python -m pytest tests/unit -q
-python3 -m unittest discover -s "$FIXTURE_DATA_ROOT/fixture2030-mongo/tests" -v
 
-# Crear contenedores temporales aislados; no se usan las bases existentes.
+# Contenedores temporales independientes del laboratorio de la demo.
 docker run --rm -d --name fixture-r1-mongo -p 127.0.0.1:47017:27017 --tmpfs /data/db mongo:7.0
 docker run --rm -d --name fixture-r1-redis -p 127.0.0.1:46379:6379 redis:7.4-alpine
 # Esperar a que MongoDB acepte conexiones.
-FIXTURE_INTEGRATION=1 FIXTURE_DATA_ROOT="$FIXTURE_DATA_ROOT" \
-FIXTURE_TEST_MONGO_URI=mongodb://127.0.0.1:47017 FIXTURE_TEST_REDIS_PORT=46379 \
+FIXTURE_INTEGRATION=1 FIXTURE_TEST_MONGO_URI=mongodb://127.0.0.1:47017 \
+FIXTURE_TEST_REDIS_PORT=46379 \
   .venv/bin/python -m pytest tests/integration/test_fixture_live.py -q
 docker stop fixture-r1-mongo fixture-r1-redis
 ```
 
 La integración crea y elimina una base con nombre aleatorio y usa la clave fija del
 fixture en el Redis indicado: usar siempre un Redis aislado. Comprueba carga doble,
-preservación/reinicio de marcadores, validadores reales, índice de orden, HTTP,
-expiración e invalidación. También comprueba Redis inaccesible y MongoDB inaccesible
-con y sin caché mediante conexiones TCP reales a puertos reservados sin listener,
-sin detener otros servicios. Los tests de servicio cubren caché inválida.
+preservación/reinicio, validadores reales, índice, HTTP, expiración, invalidación y
+conexiones reales inaccesibles sin detener otros servicios. La suite unitaria
+incluye la validación del seed y los contratos OpenAPI/Postman.
 
-Evidencia de esta implementación: [validación del requerimiento 1](evidencia/fixture-requerimiento-1.md).
+Evidencia inicial: [validación del requerimiento 1](evidencia/fixture-requerimiento-1.md).
+
+## Inicio sin partidos disputados (64 selecciones)
+
+```bash
+.venv/bin/python scripts/cargar_jugadores.py --solo-validar
+.venv/bin/python scripts/cargar_jugadores.py
+.venv/bin/python scripts/cargar_inicio_mundial.py --solo-validar
+.venv/bin/python scripts/cargar_inicio_mundial.py
+```
+
+Usar esta inicialización, y no el escenario histórico de ejemplo, para preparar
+el torneo antes de comenzar: 64 equipos, 16 grupos de 4, 96 partidos de grupos,
+16 de dieciseisavos, 8 de octavos, 4 de cuartos, 2 semifinales y una final.
+No hay partido por el tercer puesto en este dataset. Los cruces de grupos, fechas
+y sedes son los sintéticos existentes. Las plazas eliminatorias quedan nulas.
+El script exige que no existan partidos; no borra ni reinicia datos. Equipos nuevos
+se insertan sin ranking ni técnico conocido; se preservan fichas existentes.
+Los 1.248 jugadores provienen de 2026; 16 selecciones todavía no tienen plantel.
+Los nombres embebidos de equipo se alinean al catálogo simulado.
+Todavía no hay cálculo de posiciones ni avance automático de clasificados.

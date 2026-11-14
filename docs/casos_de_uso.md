@@ -24,21 +24,25 @@ Consumidor de todos los casos: la aplicación cliente del Fixture (web o móvil)
 prueba la API desde Swagger UI o Postman. Todos los datos son sintéticos. En la columna
 "Si la fuente cae", `503` distingue disponibilidad, identidad, permisos y contexto; timeout usa `504` (sección 3).
 
-| # | Caso de uso | Entrada | Fuente | Éxito | Si no existe | Tipo |
-| - | ----------- | ------- | ------ | ----- | ------------ | ---- |
-| 1 | Ver la ficha de un equipo | `codigo` | MongoDB `equipos` | 200 con la ficha | 404 `EQUIPO_NO_ENCONTRADO` | Lectura |
-| 2 | Listar el plantel de un equipo, opcionalmente por posición | `equipo` (obligatorio), `posicion`, `limit`, `skip` | MongoDB `jugadores` | 200 con una página ordenada por dorsal (puede ser vacía) | Filtro sin resultados: 200 vacío. No se valida que `equipo` exista | Lectura |
-| 3 | Ver un jugador | `codigo` | MongoDB `jugadores` | 200 con el jugador | 404 `JUGADOR_NO_ENCONTRADO` | Lectura |
-| 4 | Ver un partido (fase, fecha, sede, equipos) | `codigo` | Neo4j | 200 con el partido | 404 `PARTIDO_NO_ENCONTRADO` | Lectura |
-| 5 | Ver los eventos de un partido con sus protagonistas | `codigo`, `limit` | Neo4j | 200 con los eventos | Partido inexistente: 404 `PARTIDO_NO_ENCONTRADO`. Partido sin eventos: 200 con lista vacía | Lectura |
-| 6 | Goleadores de una confederación en una sede (consulta multi-salto del Hito 5) | `codigo` (sede), `confederacion`, `limit` | Neo4j | 200 con los goleadores (puede ser vacío) | Sede inexistente: 404 `SEDE_NO_ENCONTRADA` | Lectura |
-| 7 | Leer comentarios de un partido en una ventana de 5 minutos | `codigo`, `bloque`, `limit`, `cursor` | Cassandra `comentarios_feed` | 200 con la página y `siguienteCursor` | Ventana sin comentarios o partido que no existe: 200 vacío | Lectura |
-| 8 | Publicar un comentario | — | Cassandra | Fuera de alcance (sección 4) | — | No implementada |
-| 9 | Consultar una sesión | `sesionId` | Redis | 200 con los datos de la sesión y su TTL restante | 404 `SESION_NO_VIGENTE` (ausente o expirada) | Lectura |
-| 10 | Cerrar una sesión | `sesionId` | Redis | 204 | 204 (ya estaba cerrada) | Invalidación |
-| 11 | Ver estadísticas de un partido en un intervalo | `codigo`, `desde`, `hasta`, `equipo`, `ventana` | InfluxDB `estadisticas_partido` | 200 con los puntos | Intervalo sin puntos o partido que no existe: 200 vacío | Lectura |
-| 13 | Consultar un árbol de objetos persistentes | `id`, `limit`, `skip` | IRIS `Fixture.Partido` y `Fixture.Evento` | 200 con partido y página de eventos | 404 `OBJETO_NO_ENCONTRADO` | Lectura |
-| 12 | Ver el estado de las dependencias | — | Todas | 200 con el estado de cada fuente (`up` o `down`) | — | Lectura |
+Estado de seguimiento: los casos 1 y 2 están `OK`. Los demás quedan como
+`PENDING revisar/codear`: requieren revisar el alcance y la implementación antes
+de confirmar su estado o completar el desarrollo.
+
+| # | Caso de uso | Estado | Entrada | Fuente | Éxito | Si no existe | Tipo |
+| - | ----------- | ------ | ------- | ------ | ----- | ------------ | ---- |
+| 1 | Ver la ficha de un equipo | OK | `codigo` | MongoDB `equipos` | 200 con la ficha | 404 `EQUIPO_NO_ENCONTRADO` | Lectura |
+| 2 | Listar el plantel de un equipo, opcionalmente por posición | OK | `equipo` (obligatorio), `posicion`, `limit`, `skip` | MongoDB `jugadores` | 200 con una página ordenada por dorsal (puede ser vacía) | Filtro sin resultados: 200 vacío. No se valida que `equipo` exista | Lectura |
+| 3 | Ver un jugador | PENDING revisar/codear | `codigo` | MongoDB `jugadores` | 200 con el jugador | 404 `JUGADOR_NO_ENCONTRADO` | Lectura |
+| 4 | Ver un partido (fase, fecha, sede, equipos) | PENDING revisar/codear | `codigo` | Neo4j | 200 con el partido | 404 `PARTIDO_NO_ENCONTRADO` | Lectura |
+| 5 | Ver los eventos de un partido con sus protagonistas | PENDING revisar/codear | `codigo`, `limit` | Neo4j | 200 con los eventos | Partido inexistente: 404 `PARTIDO_NO_ENCONTRADO`. Partido sin eventos: 200 con lista vacía | Lectura |
+| 6 | Goleadores de una confederación en una sede (consulta multi-salto del Hito 5) | PENDING revisar/codear | `codigo` (sede), `confederacion`, `limit` | Neo4j | 200 con los goleadores (puede ser vacío) | Sede inexistente: 404 `SEDE_NO_ENCONTRADA` | Lectura |
+| 7 | Leer comentarios de un partido en una ventana de 5 minutos | PENDING revisar/codear | `codigo`, `bloque`, `limit`, `cursor` | Cassandra `comentarios_feed` | 200 con la página y `siguienteCursor` | Ventana sin comentarios o partido que no existe: 200 vacío | Lectura |
+| 8 | Publicar un comentario | PENDING revisar/codear | — | Cassandra | Fuera de alcance (sección 4) | — | No implementada |
+| 9 | Consultar una sesión | PENDING revisar/codear | `sesionId` | Redis | 200 con los datos de la sesión y su TTL restante | 404 `SESION_NO_VIGENTE` (ausente o expirada) | Lectura |
+| 10 | Cerrar una sesión | PENDING revisar/codear | `sesionId` | Redis | 204 | 204 (ya estaba cerrada) | Invalidación |
+| 11 | Ver estadísticas de un partido en un intervalo | PENDING revisar/codear | `codigo`, `desde`, `hasta`, `equipo`, `ventana` | InfluxDB `estadisticas_partido` | 200 con los puntos | Intervalo sin puntos o partido que no existe: 200 vacío | Lectura |
+| 13 | Consultar un árbol de objetos persistentes | PENDING revisar/codear | `id`, `limit`, `skip` | IRIS `Fixture.Partido` y `Fixture.Evento` | 200 con partido y página de eventos | 404 `OBJETO_NO_ENCONTRADO` | Lectura |
+| 12 | Ver el estado de las dependencias | PENDING revisar/codear | — | Todas | 200 con el estado de cada fuente (`up` o `down`) | — | Lectura |
 
 Decisión sobre los casos 7 y 11: no se consulta Neo4j para comprobar que el partido
 existe. Cada fuente responde por sus propios datos y el hito no exige que una request
@@ -56,6 +60,7 @@ por identidad persistente para cubrir RF8, sin reemplazar las fuentes operativas
 
 | Método | Ruta | Fuente | Caso |
 | ------ | ---- | ------ | ---- |
+| GET | `/equipos` | MongoDB | Catálogo para el caso 2 |
 | GET | `/equipos/{codigo}` | MongoDB | 1 |
 | GET | `/jugadores` | MongoDB | 2 |
 | GET | `/jugadores/{codigo}` | MongoDB | 3 |
@@ -133,7 +138,7 @@ El caso 8 no se implementa: RF5 permite lectura; no se ofrece un POST parcial.
 
 | Caso | Campos |
 | ---- | ------ |
-| 1 | `codigo`, `nombre`, `confederacion`, `grupo`, `rankingFifa`, `directorTecnico` (puede ser `null`), `anfitrion` |
+| 1 | `codigo`, `nombre`, `confederacion`, `grupo`, `rankingFifa` (puede ser `null` si no se dispone del ranking), `directorTecnico` (puede ser `null`), `anfitrion` |
 | 2 | `items[]` con `codigo`, `nombre`, `apellido`, `dorsal`, `posicion`, `equipo` (`codigo`, `nombre`); `limit`, `skip` |
 | 3 | los de `items[]` del caso 2, más `fechaNacimiento`, `club` y `capitan` (estos dos pueden ser `null`) |
 | 4 | `codigo`, `fase`, `grupo` (`null` fuera de la fase de grupos), `fecha`, `sede` (`codigo`, `nombre`, `ciudad`), `local`, `visitante` (`codigo`, `nombre`) |
@@ -164,3 +169,12 @@ Cada item tiene `codigo`, `fecha_hora`, `fase`, `grupo`, `local`, `visitante`,
 resultado previo al juego son nulos. La tanda se separa de los goles de juego.
 No hay filtros ni paginación en este incremento. Ver [seed y guía](fixture.md).
 La ficha anterior continúa en Neo4j; el fixture nuevo se persiste en MongoDB.
+
+## Catálogo para consultar planteles
+
+`GET /equipos` complementa el caso 2: devuelve `{items: [{codigo, nombre}]}`
+con todas las selecciones de MongoDB `equipos`, ordenadas por nombre y código
+(según la colación predeterminada de MongoDB). No recibe filtros ni paginación
+y es independiente del fixture. Vacío: 200 con `items: []`. Fallos MongoDB:
+503/504 con los códigos comunes de dependencia. No usa caché.
+El plantel se consulta con `GET /jugadores?equipo=ARG`, posición opcional y `limit`/`skip`.

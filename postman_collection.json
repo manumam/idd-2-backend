@@ -72,6 +72,162 @@
       "name": "Equipos y jugadores",
       "item": [
         {
+          "name": "Catálogo de equipos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/equipos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "equipos"
+              ],
+              "query": []
+            },
+            "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+          },
+          "response": [
+            {
+              "name": "Catálogo de equipos",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"items\": [\n    {\n      \"codigo\": \"ARG\",\n      \"nombre\": \"Argentina\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "MONGODB_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/equipos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "equipos"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_AUTHENTICATION_FAILED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/equipos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "equipos"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_ACCESS_DENIED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/equipos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "equipos"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_CONTEXT_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/equipos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "equipos"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
+        },
+        {
           "name": "Ficha de un equipo",
           "request": {
             "method": "GET",
@@ -87,9 +243,37 @@
               ],
               "query": []
             },
-            "description": "Ficha de un equipo\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+            "description": "Ficha de un equipo\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver.\nrankingFifa puede ser null si el ranking es desconocido."
           },
           "response": [
+            {
+              "name": "Equipo sin ranking conocido",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/equipos/{{codigoEquipo}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "equipos",
+                    "{{codigoEquipo}}"
+                  ],
+                  "query": []
+                },
+                "description": "Ficha de un equipo\nErrores de dependencia: 504 MONGODB_TIMEOUT; 503 MONGODB_UNAVAILABLE, MONGODB_AUTHENTICATION_FAILED, MONGODB_ACCESS_DENIED o MONGODB_CONTEXT_UNAVAILABLE; 500 MONGODB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver.\nrankingFifa puede ser null si el ranking es desconocido."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"codigo\": \"ARG\",\n  \"nombre\": \"Argentina\",\n  \"confederacion\": \"CONMEBOL\",\n  \"grupo\": \"J\",\n  \"rankingFifa\": null,\n  \"directorTecnico\": null,\n  \"anfitrion\": true\n}"
+            },
             {
               "name": "MONGODB_TIMEOUT",
               "originalRequest": {

@@ -7,10 +7,16 @@ from app.core.exceptions import ResourceNotFoundError
 from app.schemas.equipos import (
     EquipoRef,
     EquipoResponse,
+    EquiposResponse,
     JugadorDetalle,
     JugadoresPagina,
     JugadorResumen,
 )
+
+
+def listar_equipos() -> EquiposResponse:
+    docs = mongo_adapter.list_equipos()
+    return EquiposResponse(items=[EquipoRef(codigo=d["_id"], nombre=d["nombre"]) for d in docs])
 
 
 def _resumen(doc: Dict[str, Any]) -> Dict[str, Any]:

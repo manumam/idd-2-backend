@@ -1,5 +1,9 @@
 # Hito 11: laboratorio de conectividad
 
+> Evaluación independiente, solo por pedido explícito. No usar para abrir el frontend,
+> iniciar la API de desarrollo ni ejecutar los tests habituales. La app usa `.env`;
+> la suite habitual solo recolecta `tests/unit`.
+
 Alcance actual: MongoDB, Neo4j, Cassandra, Redis, InfluxDB 3 e IRIS. La evidencia guardada del Hito 11 corresponde a los cuatro motores que se probaron originalmente; no certifica la restauración de Cassandra e IRIS.
 
 Antes de ejecutar `cerrar_hito11.py`, iniciar Cassandra e IRIS por separado, configurar `CASSANDRA_*` e `IRIS_*` en el entorno e importar `tests/fixtures/cassandra.cql` y las clases de `tests/fixtures/iris`. El Compose aislado sigue aprovisionando los cuatro motores originales. El cierre carga datos de los seis motores, imprime el nuevo `IRIS_TEST_ID` y comprueba readiness de todos.

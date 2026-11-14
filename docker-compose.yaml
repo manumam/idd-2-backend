@@ -9,11 +9,9 @@ services:
     container_name: fixture2030-mongo
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "127.0.0.1:${MONGO_PORT:-27018}:27017"
     volumes:
       - fixture2030_data:/data/db
-      - ../idd-2-tp/fixture2030-mongo/mongo:/scripts:ro
-      - ../idd-2-tp/fixture2030-mongo/datos:/datos:ro
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s

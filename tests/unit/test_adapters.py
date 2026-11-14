@@ -108,3 +108,14 @@ def test_adapter_logs_without_driver_message(monkeypatch, caplog):
     assert "dependency=MongoDB" in caplog.text
     assert "duration_ms=" in caplog.text
     assert "secret-token" not in caplog.text
+
+
+def test_catalogo_equipos_lee_mongo_sin_depender_del_fixture():
+    adapter = MongoAdapter()
+    adapter._client = Mock()
+    adapter._db = MagicMock()
+    cursor = adapter._db['equipos'].find.return_value
+    cursor.sort.return_value = [{'_id': 'ARG', 'nombre': 'Argentina'}]
+    assert adapter.list_equipos() == [{'_id': 'ARG', 'nombre': 'Argentina'}]
+    adapter._db['equipos'].find.assert_called_once_with({}, {'_id': 1, 'nombre': 1})
+    cursor.sort.assert_called_once_with([('nombre', 1), ('_id', 1)])

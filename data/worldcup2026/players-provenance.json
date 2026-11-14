@@ -1,0 +1,9 @@
+{
+  "repository": "https://github.com/matyuschenko/fifa-wc2026-players",
+  "commit": "f15404eb4687a7eb6d525a6c47e4ec808d258577",
+  "url": "https://raw.githubusercontent.com/matyuschenko/fifa-wc2026-players/f15404eb4687a7eb6d525a6c47e4ec808d258577/data/players.tsv",
+  "sha256": "051323831e489e6fa85f72368360efc70895b2543047f6e113534cba6dded212",
+  "license": "CC-BY-4.0",
+  "attribution": "matyuschenko/fifa-wc2026-players; source declared by publisher: FIFA",
+  "readme": "https://github.com/matyuschenko/fifa-wc2026-players/blob/f15404eb4687a7eb6d525a6c47e4ec808d258577/README.md"
+}

@@ -60,3 +60,23 @@ Los encabezados de request se generan por consulta y no se cachean. TTL configur
 `FIXTURE_CACHE_TTL_SECONDS` (5 s por defecto); clave `fixture:v1:todos`.
 El cargador usa upserts por código y preserva estado/resultado salvo reinicio
 explícito. Ver [fixture reproducible](fixture.md).
+
+## Catálogo para consultar planteles
+
+`GET /equipos` complementa el caso 2: devuelve `{items: [{codigo, nombre}]}`
+con todas las selecciones de MongoDB `equipos`, ordenadas por nombre y código
+(según la colación predeterminada de MongoDB). No recibe filtros ni paginación
+y es independiente del fixture. Vacío: 200 con `items: []`. Fallos MongoDB:
+503/504 con los códigos comunes de dependencia. No usa caché.
+El plantel se consulta con `GET /jugadores?equipo=ARG`, posición opcional y `limit`/`skip`.
+
+## Inicialización del Mundial simulado de 64 selecciones
+
+`scripts/cargar_jugadores.py` carga explícitamente 1.248 jugadores de 2026 (48 planteles),
+sin importar resultados. `scripts/cargar_inicio_mundial.py` inicializa el catálogo
+de 64 selecciones y los 127 partidos sintéticos 2030: 96 cruces de grupos definidos
+y 31 eliminatorias con equipos por definir. Todos quedan próximos y sin marcador.
+Los otros 16 equipos quedan sin jugadores. No se inventan rankings: `rankingFifa`
+en la ficha de equipo admite `null` cuando no hay información. La carga inicial
+rechaza bases con partidos existentes; nunca reinicia un torneo en curso.
+Las cargas se ejecutan por pedido explícito y no forman parte del arranque ni los tests.

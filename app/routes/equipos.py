@@ -2,12 +2,23 @@ from typing import Optional
 
 from fastapi import APIRouter
 
-from app.schemas.equipos import EquipoResponse, JugadorDetalle, JugadoresPagina
+from app.schemas.equipos import EquipoResponse, EquiposResponse, JugadorDetalle, JugadoresPagina
 from app.schemas.errors import RESPUESTAS_FICHA, RESPUESTAS_LISTA
 from app.schemas.params import CodigoEquipo, CodigoJugador, EquipoQuery, Limit, Posicion, Skip
 from app.services import equipos_service
 
 router = APIRouter(tags=["Equipos y jugadores"])
+
+
+@router.get(
+    "/equipos",
+    response_model=EquiposResponse,
+    summary="Catálogo de equipos",
+    responses=RESPUESTAS_LISTA,
+    description="Todos los equipos de MongoDB, ordenados por nombre y código. Sin filtros ni paginación; vacío permitido.",
+)
+def listar_equipos() -> EquiposResponse:
+    return equipos_service.listar_equipos()
 
 
 @router.get(

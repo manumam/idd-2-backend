@@ -9,12 +9,16 @@ class EquipoRef(BaseModel):
     nombre: str
 
 
+class EquiposResponse(BaseModel):
+    items: List[EquipoRef]
+
+
 class EquipoResponse(BaseModel):
     codigo: str
     nombre: str
     confederacion: str
     grupo: str
-    rankingFifa: int
+    rankingFifa: Optional[int]
     directorTecnico: Optional[str] = None
     anfitrion: bool
 
