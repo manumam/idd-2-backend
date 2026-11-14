@@ -53,7 +53,7 @@ set +a
 En otra terminal, volver a cargar las variables del ejemplo y ejecutar:
 
 ```bash
-.venv/bin/python scripts/evaluar_conectividad.py --salida docs/hito_11/evidencia/completo.json
+.venv/bin/python scripts/evaluar_conectividad.py --salida laboratorio/hito-11/evidencia/completo.json
 .venv/bin/python scripts/evaluar_conectividad.py --modo tcp --producto redis
 LIVE_MODULES=mongodb,neo4j,redis,influxdb .venv/bin/python -m pytest tests/integration -q
 ```
@@ -94,4 +94,4 @@ En ASGI se inyectan excepciones de driver para verificar timeout (504), autentic
 
 Resultados: `evidencia/api_negativos.json`; logs de simulaciones: `api_negativos.log`; logs del servidor HTTP real: `api_cierre.log`. Los request IDs relacionan cada respuesta con los logs. El caso API inaccesible no tiene request ID de servidor porque ningún servidor recibió la solicitud. Los tiempos de las simulaciones prueban la traducción de la excepción, no la duración real de un timeout de motor. El script sale con código 1 si un caso no coincide con lo esperado.
 
-El contrato público mantiene `code`, `message` y `requestId`; agrega códigos de error diferenciados y 504. OpenAPI y Postman incluyen las respuestas vigentes. Ver `../contratos_y_errores.md` para los criterios y límites de clasificación.
+El contrato público mantiene `code`, `message` y `requestId`; agrega códigos de error diferenciados y 504. OpenAPI y Postman incluyen las respuestas vigentes. Los contratos HTTP implementados se consultan en OpenAPI y Postman.

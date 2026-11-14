@@ -16,7 +16,7 @@ from dotenv import dotenv_values
 import requests
 
 ROOT = Path(__file__).resolve().parents[1]
-EVIDENCE = ROOT / 'docs/hito_11/evidencia'
+EVIDENCE = ROOT / 'laboratorio/hito-11/evidencia'
 COMPOSE = ['docker', 'compose', '-f', str(ROOT / 'docker-compose.hito11.yaml')]
 
 

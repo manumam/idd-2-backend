@@ -43,7 +43,7 @@ respuestas, códigos de estado o comportamiento observable, actualizá en el mis
 
 - `openapi/openapi.yaml`, regenerándolo con `python scripts/exportar_openapi.py` cuando corresponda.
 - `postman_collection.json`, para que incluya las operaciones y parámetros vigentes, con ejemplos válidos.
-- La documentación afectada, como `docs/casos_de_uso.md`, `docs/contratos_y_errores.md` y `README.md`.
+- La documentación afectada, como `docs/casos_de_uso.md` y `README.md`.
 
 Tomá las rutas y schemas de `app/routes/` y `app/schemas/` como fuente de implementación.
 No dejes cambios de API documentados solo en el código ni actualices un contrato sin

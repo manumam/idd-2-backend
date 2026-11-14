@@ -30,10 +30,10 @@ Ver `tests/fixtures/README.md` para los esquemas.
 La integración del fixture usa `FIXTURE_INTEGRATION=1`,
 `FIXTURE_TEST_MONGO_URI` y `FIXTURE_TEST_REDIS_PORT`; crea y borra una base MongoDB
 con nombre aleatorio y usa la clave de caché del fixture en el Redis indicado.
-Usar motores dedicados. Ver `docs/fixture.md` para el procedimiento manual.
+Usar motores dedicados. Ver [verificación del fixture](../laboratorio/verificacion-fixture.md) para el procedimiento manual.
 
 ## Evaluación histórica del Hito 11
 
-`docs/hito_11/README.md` documenta una evaluación independiente que inicia motores,
+`laboratorio/hito-11/README.md` documenta una evaluación independiente que inicia motores,
 carga datos y genera evidencia. No es requisito para arrancar la app ni ejecutar
 la suite habitual. No ejecutarla salvo pedido explícito de esa evaluación.
