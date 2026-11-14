@@ -34,6 +34,6 @@ Usar motores dedicados. Ver `docs/fixture.md` para el procedimiento manual.
 
 ## Evaluación histórica del Hito 11
 
-`docs/hito_11/README.md` documenta una evaluación independiente que inicia motores,
+`laboratorio/hito-11/README.md` documenta una evaluación independiente que inicia motores,
 carga datos y genera evidencia. No es requisito para arrancar la app ni ejecutar
 la suite habitual. No ejecutarla salvo pedido explícito de esa evaluación.

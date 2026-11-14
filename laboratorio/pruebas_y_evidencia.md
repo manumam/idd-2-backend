@@ -1,6 +1,6 @@
 # Pruebas y evidencia vigente
 
-El Hito 11 está documentado en [procedimiento](hito_11/README.md) y [matriz](hito_11/matriz_de_conectividad.md). Incluye contratos, diagnóstico de cuatro motores, HTTP real, errores simulados identificados y detención/recuperación real de Redis. El comando de cierre es `.venv/bin/python scripts/cerrar_hito11.py`.
+El Hito 11 está documentado en [procedimiento](hito-11/README.md) y [matriz](hito-11/matriz_de_conectividad.md). Incluye contratos, diagnóstico de cuatro motores, HTTP real, errores simulados identificados y detención/recuperación real de Redis. El comando de cierre es `.venv/bin/python scripts/cerrar_hito11.py`.
 
 ## Archivo histórico del Hito 10
 
@@ -17,7 +17,7 @@ Incluye una operación válida por módulo, entrada inválida antes de consultar
 ausencia, sesión expirada, dependencia inaccesible, lista vacía, límites,
 paginación Cassandra, agregación temporal, DELETE repetido y OpenAPI compatible.
 La suite de adaptadores controla parámetros, timeouts y traducción de errores.
-La salida JUnit se conserva en `docs/evidencia/suite.xml`.
+La salida JUnit se conserva en `laboratorio/evidencia/suite.xml`.
 
 Los XML `integracion_*.xml` corresponden a requests ASGI que ejecutan drivers reales
 contra contenedores locales de laboratorio. Cada test habilitado exige 200 con datos
@@ -26,10 +26,10 @@ de conectividad. La prueba de DELETE crea una sesión específica de test.
 
 ## Método reproducible
 
-1. Configurar y cargar los servicios según `conectividad_y_configuracion.md`.
-2. `python -m pytest -q --junitxml=docs/evidencia/suite_local.xml`.
+1. Configurar y cargar los servicios según `docs/conectividad_y_configuracion.md`.
+2. `python -m pytest -q --junitxml=laboratorio/evidencia/suite_local.xml`.
 3. `LIVE_MODULES=mongodb,redis python -m pytest tests/integration -v
-   --junitxml=docs/evidencia/integracion_local.xml` (seleccionar las fuentes disponibles).
+   --junitxml=laboratorio/evidencia/integracion_local.xml` (seleccionar las fuentes disponibles).
 4. Iniciar la API y ejecutar `bash scripts/ejemplos_curl.sh` para el camino HTTP TCP.
 5. Para comprobar un 503 real, detener una fuente en el laboratorio, pedir un recurso
    de ese módulo y registrar HTTP, código seguro y request ID. Restaurar la fuente.
@@ -52,7 +52,7 @@ multirregional. No hay benchmark productivo ni cifras de latencia presentadas co
 Se intentó levantar los seis motores simultáneamente; el almacenamiento de las
 imágenes agotó el disco. Se limpiaron exclusivamente contenedores/imágenes del
 laboratorio y se continuó en grupos. Los fallos de infraestructura no se cuentan
-como operaciones exitosas. La tabla de resultados está en `docs/evidencia/validacion.md`.
+como operaciones exitosas. La tabla de resultados está en `laboratorio/evidencia/validacion.md`.
 
 Resultado final: 66 pruebas generales aprobadas; 12 casos de integración aprobados
 por tandas contra los cinco motores (8 Mongo/Redis/Neo4j, 2 Cassandra, 2 Influx).

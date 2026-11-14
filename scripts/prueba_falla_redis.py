@@ -18,7 +18,7 @@ COMMAND = ['docker', 'compose', '-f', str(ROOT / 'docker-compose.hito11.yaml')]
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--base-url', default='http://127.0.0.1:18000')
-    parser.add_argument('--salida', type=Path, default=ROOT / 'docs/hito_11/evidencia/falla_redis.json')
+    parser.add_argument('--salida', type=Path, default=ROOT / 'laboratorio/hito-11/evidencia/falla_redis.json')
     args = parser.parse_args()
     rows = []
     def check(stage, path, expected):

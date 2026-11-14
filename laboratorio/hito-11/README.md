@@ -53,7 +53,7 @@ set +a
 En otra terminal, volver a cargar las variables del ejemplo y ejecutar:
 
 ```bash
-.venv/bin/python scripts/evaluar_conectividad.py --salida docs/hito_11/evidencia/completo.json
+.venv/bin/python scripts/evaluar_conectividad.py --salida laboratorio/hito-11/evidencia/completo.json
 .venv/bin/python scripts/evaluar_conectividad.py --modo tcp --producto redis
 LIVE_MODULES=mongodb,neo4j,redis,influxdb .venv/bin/python -m pytest tests/integration -q
 ```

@@ -1,6 +1,10 @@
 # Conectividad y configuración
 
-Para el laboratorio aislado y la entrega Hito 11 usar `docs/hito_11/README.md`. Este documento describe la conexión a las bases previas del equipo.
+> Describe la implementación actual. El objetivo del MVP está en el
+> [modelo técnico](modelo-tecnico-demo.md); las diferencias se registran en el
+> [seguimiento](casos_de_uso.md).
+
+La configuración siguiente corresponde a la API actual; varias dependencias históricas están pendientes de retirar.
 
 La API se ejecuta localmente, fuera de Docker, con `.env`. Para fixture y
 planteles basta iniciar `docker compose up -d mongo redis` y luego

@@ -1,7 +1,13 @@
-# Fixture 2030 — Backend e Hito 11
+# Fixture 2030 — Backend
 
-FastAPI con capas HTTP → servicios → adaptadores para MongoDB, Neo4j,
-Cassandra, Redis, InfluxDB 3 e InterSystems IRIS.
+API del Mundial 2030. El MVP usa MongoDB para partidos y eventos, Redis para
+caché e InfluxDB para series temporales. Los [lineamientos](docs/lineamientos-entrega-demo.md),
+[casos de uso](docs/casos-de-uso-fixture.md) y [modelo técnico](docs/modelo-tecnico-demo.md)
+definen el alcance; el [seguimiento](docs/casos_de_uso.md) registra lo implementado y pendiente.
+
+La API actual todavía conserva adaptadores y rutas de Neo4j, Cassandra, sesiones
+e IRIS que deben migrarse o retirarse. Su existencia no modifica el alcance del MVP.
+Consultar el [índice de documentación](docs/README.md).
 
 El arranque de la aplicación, los tests habituales y las evaluaciones de hitos son
 procedimientos separados. Las instrucciones para agentes están en [AGENTS.md](AGENTS.md).
@@ -68,10 +74,11 @@ si la fuente cae o no devuelve los datos esperados. Ver [tests/README.md](tests/
 
 ## Contrato y decisiones
 
-- [Casos de uso, rutas e identificadores](docs/casos_de_uso.md).
+- [Seguimiento de los casos del MVP](docs/casos_de_uso.md).
+- [Rutas e identificadores de la API actual](docs/api_actual.md).
 - [Arquitectura y adaptadores](docs/arquitectura_y_adaptadores.md).
 - [Validación, errores e idempotencia](docs/contratos_y_errores.md).
-- [Pruebas y evidencia disponible](docs/pruebas_y_evidencia.md).
+- [Pruebas y evidencia disponible](laboratorio/pruebas_y_evidencia.md).
 
 Cassandra vuelve a exponer el feed de comentarios de solo lectura. IRIS recupera la vista de partidos y eventos por ID persistente (`/objetos/partidos/{id}`). Ver `tests/fixtures/README.md` para cargar sus esquemas. IRIS se levanta por separado; sus credenciales y namespace se configuran con `IRIS_*`.
 La única mutación HTTP es invalidar una sesión (DELETE idempotente).
@@ -91,7 +98,7 @@ Las pruebas con dobles verifican contratos y errores, pero no prueban conectivid
 La evidencia separa esas pruebas de las ejecutadas contra motores reales. No se
 presentan cifras de capacidad productiva ni se afirma validación de fuentes no ejecutadas.
 
-Casos HTTP negativos del Hito 11: `.venv/bin/python scripts/prueba_api_negativos.py` con la API del laboratorio iniciada. Los casos de driver simulados y los casos HTTP reales se identifican en la evidencia.
+La práctica de laboratorio y su evidencia están en [laboratorio/](laboratorio/README.md).
 
 ## Fixture Mundial 2030 (requerimiento 1)
 
@@ -106,20 +113,18 @@ en este backend: [guía del fixture](docs/fixture.md). El detalle
 
 ## Catálogo para consultar planteles
 
-`GET /equipos` complementa el caso 2: devuelve `{items: [{codigo, nombre}]}`
+`GET /equipos` complementa la consulta de planteles: devuelve `{items: [{codigo, nombre}]}`
 con todas las selecciones de MongoDB `equipos`, ordenadas por nombre y código
 (según la colación predeterminada de MongoDB). No recibe filtros ni paginación
 y es independiente del fixture. Vacío: 200 con `items: []`. Fallos MongoDB:
 503/504 con los códigos comunes de dependencia. No usa caché.
 El plantel se consulta con `GET /jugadores?equipo=ARG`, posición opcional y `limit`/`skip`.
 
-## Evaluaciones de hitos (solo por pedido explícito)
+## Laboratorio
 
-El [laboratorio del Hito 11](docs/hito_11/README.md), su Compose,
-`config/hito11.env.example`, `scripts/preparar_lab.py` y `scripts/cerrar_hito11.py`
-son exclusivamente para reproducir esa evaluación. El entorno de `hito-12/` también
-es independiente. No son el arranque de la app ni parte de los tests habituales.
-No ejecutarlos para resolver falta de datos o de conexión del frontend.
+Procedimientos, planes y evidencia se conservan fuera de `docs/`, en
+[laboratorio/](laboratorio/README.md) y [hito-12/](hito-12/README.md).
+Solo se ejecutan por pedido explícito; no forman parte del arranque ni de los tests habituales.
 
 ## Inicialización del Mundial simulado de 64 selecciones
 

@@ -1,5 +1,9 @@
 # Arquitectura y adaptadores
 
+> Describe la implementación actual. El objetivo del MVP está en el
+> [modelo técnico](modelo-tecnico-demo.md); las diferencias se registran en el
+> [seguimiento](casos_de_uso.md).
+
 Cada router valida ruta/query con FastAPI y delega al servicio. El servicio aplica
 reglas (ventanas, cursores, ausencia) y construye schemas Pydantic. El adaptador
 conoce el driver, contexto, consultas fijas, límites y transformación de errores.
@@ -36,7 +40,7 @@ El middleware registra método, ruta, status y duración HTTP. No se registran q
 parámetros, cuerpos, URIs ni mensajes del driver. Errores inesperados registran solo
 su tipo. `/health` evalúa fuentes en paralelo y los recursos se cierran al detener la API.
 
-`/live` no accede a drivers; `/ready` y `/health` consultan pings en paralelo bajo demanda. Las lecturas profundas de contexto están en el CLI, no en cada request de negocio. Ver `hito_11/health_readiness.md`.
+`/live` no accede a drivers; `/ready` y `/health` consultan pings en paralelo bajo demanda. Las lecturas profundas de contexto están en el CLI, no en cada request de negocio.
 
 ## Fixture (incremento demo)
 

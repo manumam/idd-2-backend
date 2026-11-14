@@ -1,7 +1,7 @@
 # Plan de trabajo: Hito 11 - Evaluación de conectividad
 
 Fecha: 2026-10-23. Alcance: trabajar en este backend, extendiendo el Hito 10.
-Este documento conserva el plan inicial. El cierre ejecutado, resultados actuales y limitaciones están en `docs/hito_11/README.md` y `docs/hito_11/matriz_de_conectividad.md`.
+Este documento conserva el plan inicial. El cierre ejecutado, resultados actuales y limitaciones están en `laboratorio/hito-11/README.md` y `laboratorio/hito-11/matriz_de_conectividad.md`.
 
 ## Punto de partida
 
@@ -15,7 +15,7 @@ Este documento conserva el plan inicial. El cierre ejecutado, resultados actuale
 
 ## 1. Inventario y preparación
 
-- Crear `docs/hito_11/` con índice, mapa de dependencias, topología, matriz, fallas, health/readiness, limitaciones y `evidencia/`.
+- Crear `laboratorio/hito-11/` con índice, mapa de dependencias, topología, matriz, fallas, health/readiness, limitaciones y `evidencia/`.
 - Registrar por motor: módulo, origen de conexión, host, puertos publicados/internos, protocolo, contexto, mecanismo de identidad, driver, lectura y rutas relacionadas.
 - Verificar requisitos locales, versiones instaladas, disponibilidad de Docker y datos representativos sin imprimir `.env` ni secretos.
 - Revisar ejemplos y Compose: externalizar la contraseña Neo4j que hoy está escrita en el YAML; evitar valores secretos en resultados y documentación.

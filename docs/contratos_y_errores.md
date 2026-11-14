@@ -1,9 +1,13 @@
 # Contratos, errores e idempotencia
 
-La fuente del contrato es `app.main.app.openapi()`. `scripts/exportar_openapi.py`
+> Describe la implementación actual. El objetivo del MVP está en el
+> [modelo técnico](modelo-tecnico-demo.md); las diferencias se registran en el
+> [seguimiento](casos_de_uso.md).
+
+El contrato HTTP implementado se obtiene de `app.main.app.openapi()`. `scripts/exportar_openapi.py`
 genera YAML sin conectarse a las bases; un test compara el archivo con `/openapi.json`.
 Swagger incluye schemas, ejemplos de parámetros, respuestas y `X-Request-Id`.
-No hay autenticación HTTP en este laboratorio; las credenciales pertenecen a las conexiones.
+No hay autenticación HTTP en la API actual; las credenciales pertenecen a las conexiones.
 
 Cada error tiene exclusivamente `code`, `message`, `requestId`. Se admite un
 `X-Request-Id` de 1 a 64 letras, números o guiones; si falta o es inválido se genera
@@ -37,7 +41,7 @@ dos equipos por partido y un punto cada cinco segundos (2880 puntos en dos horas
 El tope 5000 es protección; datos que violen esa cardinalidad pueden truncarse y
 requieren revisar el contrato antes de usarlos como estadísticas completas.
 
-## Diagnóstico de dependencias (Hito 11)
+## Diagnóstico de dependencias
 
 La clasificación usa tipos y códigos estructurados del driver, sin analizar ni publicar sus mensajes. Los fallos de autenticación y permisos son errores de configuración entre API y motor: responden 503 al consumidor, no 401/403 de autenticación HTTP del usuario. Un timeout responde 504 y tiene código propio; una conexión rechazada sigue siendo 503 UNAVAILABLE. Los logs registran además category y tipo seguro.
 
@@ -45,7 +49,7 @@ Mongo reconoce OperationFailure 18 (identidad), 13 (permisos), 26 (namespace aus
 
 No todas las excepciones permiten identificar una capa: las desconocidas mantienen UNAVAILABLE o ERROR_INTERNO según dónde se originen. La selección de servidor Mongo agotada se clasifica como timeout sin afirmar si la causa raíz fue red, DNS o rechazo. `/health` mantiene 200 y marca down ante cualquiera de estas fallas de dependencia.
 
-Los endpoints de sistema tienen sus propios schemas: `/live` devuelve `{estado: alive}` sin consultar motores; `/ready` devuelve `{listo, estado}` con 200/503 según los pings. Su 503 no utiliza el schema de error de negocio, porque incluye el estado individual de las dependencias. `/health` conserva 200 aun con fuentes down. Ver `hito_11/health_readiness.md`.
+Los endpoints de sistema tienen sus propios schemas: `/live` devuelve `{estado: alive}` sin consultar motores; `/ready` devuelve `{listo, estado}` con 200/503 según los pings. Su 503 no utiliza el schema de error de negocio, porque incluye el estado individual de las dependencias. `/health` conserva 200 aun con fuentes down.
 
 Cassandra valida una partición completa y bloques UTC alineados a cinco minutos; el cursor debe ser un UUID v1. IRIS valida un ID persistente entero positivo y pagina eventos con `limit` y `skip`. Sus fallas pasan por el mismo formato de error de dependencias.
 
@@ -63,7 +67,7 @@ explícito. Ver [fixture reproducible](fixture.md).
 
 ## Catálogo para consultar planteles
 
-`GET /equipos` complementa el caso 2: devuelve `{items: [{codigo, nombre}]}`
+`GET /equipos` complementa la consulta de planteles: devuelve `{items: [{codigo, nombre}]}`
 con todas las selecciones de MongoDB `equipos`, ordenadas por nombre y código
 (según la colación predeterminada de MongoDB). No recibe filtros ni paginación
 y es independiente del fixture. Vacío: 200 con `items: []`. Fallos MongoDB:
