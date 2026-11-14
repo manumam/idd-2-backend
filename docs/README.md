@@ -13,7 +13,6 @@ El frontend se incorpora por pedido posterior a los lineamientos de solo API.
 
 ## Consulta operativa
 
-- [Contratos y errores actuales](contratos_y_errores.md).
 - [Configuración, arranque y carga de datos](../README.md).
 - [Contrato HTTP implementado](../openapi/openapi.yaml) y
   [colección Postman](../postman_collection.json).
