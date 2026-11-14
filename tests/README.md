@@ -1,7 +1,39 @@
 # Pruebas
 
-Ejecutar `.venv/bin/python -m pytest -q` para contratos y dobles de drivers.
-Las pruebas reales se habilitan con `LIVE_MODULES=mongodb,neo4j,redis,influxdb`.
-Preparar los datos según `docs/hito_11/README.md`; las pruebas de integración exigen datos no vacíos.
-El test de DELETE escribe y elimina únicamente `sesion:SES-HITO10TEST`.
-Cassandra e IRIS están restaurados. Sus pruebas reales se habilitan con `LIVE_MODULES=cassandra,iris` y `IRIS_TEST_ID=1` (ajustar al ID cargado). Ver `tests/fixtures/README.md`.
+## Suite habitual, sin motores
+
+```bash
+bash scripts/ejecutar_pruebas.sh -q
+# Equivalente:
+.venv/bin/python -m pytest -q
+```
+
+`pytest.ini` limita la recolección predeterminada a `tests/unit`. Incluye contratos
+HTTP ASGI, OpenAPI/Postman y dobles de drivers. No inicia Docker, no carga seeds
+y no ejecuta el laboratorio, aunque existan variables de integración exportadas.
+
+## Integración, solo por pedido explícito
+
+Seleccionar `tests/integration` explícitamente y configurar bases de prueba
+dedicadas. No usar las bases de desarrollo: hay pruebas con escrituras y borrados.
+Estas pruebas no inician contenedores automáticamente.
+
+```bash
+LIVE_MODULES=mongodb,neo4j .venv/bin/python -m pytest tests/integration/test_live.py -q
+```
+
+`LIVE_MODULES` selecciona fuentes reales ya configuradas y cargadas; exige resultados
+no vacíos. Redis crea y elimina `sesion:SES-HITO10TEST`. Cassandra requiere dos
+comentarios en la ventana de prueba. IRIS requiere `IRIS_TEST_ID` del objeto cargado.
+Ver `tests/fixtures/README.md` para los esquemas.
+
+La integración del fixture usa `FIXTURE_INTEGRATION=1`,
+`FIXTURE_TEST_MONGO_URI` y `FIXTURE_TEST_REDIS_PORT`; crea y borra una base MongoDB
+con nombre aleatorio y usa la clave de caché del fixture en el Redis indicado.
+Usar motores dedicados. Ver `docs/fixture.md` para el procedimiento manual.
+
+## Evaluación histórica del Hito 11
+
+`docs/hito_11/README.md` documenta una evaluación independiente que inicia motores,
+carga datos y genera evidencia. No es requisito para arrancar la app ni ejecutar
+la suite habitual. No ejecutarla salvo pedido explícito de esa evaluación.

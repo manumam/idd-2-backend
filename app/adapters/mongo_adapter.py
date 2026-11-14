@@ -61,6 +61,13 @@ class MongoAdapter(BaseAdapter):
             raise DatabaseUnavailableError("MongoDB", e) from e
 
     @observe("MongoDB")
+    def list_equipos(self) -> List[Dict[str, Any]]:
+        """Catálogo de selecciones, independiente de los partidos del fixture."""
+        return self._execute(lambda: list(
+            self.db["equipos"].find({}, {"_id": 1, "nombre": 1}).sort([("nombre", 1), ("_id", 1)])
+        ))
+
+    @observe("MongoDB")
     def find_equipo(self, codigo: str) -> Optional[Dict[str, Any]]:
         """Busca un equipo por _id (código FIFA) con los campos del contrato."""
         proyeccion = {

@@ -2,25 +2,23 @@
 
 Para el laboratorio aislado y la entrega Hito 11 usar `docs/hito_11/README.md`. Este documento describe la conexión a las bases previas del equipo.
 
-La API se ejecuta en la notebook, fuera de Docker. El Compose unificado está en la raíz
-de este repositorio y monta los scripts del repositorio de los hitos anteriores, que debe
-estar clonado al mismo nivel con el nombre `idd-2-tp`.
+La API se ejecuta localmente, fuera de Docker, con `.env`. Para fixture y
+planteles basta iniciar `docker compose up -d mongo redis` y luego
+`bash scripts/iniciar_api.sh`. No se inicia el laboratorio ni se cargan datos.
+MongoDB conserva su volumen normal y publica `MONGO_PORT` (27018 por defecto)
+solo en loopback; `MONGO_URI` debe coincidir. Redis usa 6380 por defecto.
 
-1. Clonar `https://github.com/mateolewinzon/idd-2-tp` junto a este repositorio.
-2. Desde la raíz del backend, ejecutar `docker compose up -d` y esperar a que estén
-   disponibles los cinco servicios. El Compose conserva los volúmenes nombrados y
-   monta los scripts y archivos locales del repo vecino.
-3. Ejecutar los scripts de esquema y datos indicados por el README de cada módulo.
-   No ejecutar cargas masivas para probar esta API; alcanza el conjunto sintético
-   representativo.
-4. Iniciar IRIS por separado, importar/compilar `tests/fixtures/iris/Fixture.*.cls` en el namespace configurado y cargar datos con `python scripts/preparar_lab.py --laboratorio-descartable --sources iris`. Usar el `IRIS_TEST_ID` informado para las pruebas. Para Cassandra, cargar primero `tests/fixtures/cassandra.cql` con cqlsh y luego `python scripts/preparar_lab.py --laboratorio-descartable --sources cassandra`.
-5. Configurar `.env` con los valores reales locales y ejecutar
-   `python scripts/verificar_conectividad.py`. Salida no cero si alguna fuente falla.
-6. Iniciar Uvicorn y ejecutar los ejemplos HTTP y tests según el README.
+Para importar archivos MongoDB, agregar explícitamente
+`-f docker-compose.yaml -f docker-compose.imports.yaml` al comando Compose.
+El override monta los directorios del repositorio `idd-2-tp`, cuya raíz se
+configura con `TP_DATA_DIR` (por defecto `../idd-2-tp`). No ejecuta imports.
+Los demás motores del Compose normal aún requieren los montajes de ese repositorio.
+IRIS se inicia aparte. Las conexiones y credenciales se configuran en `.env`;
+no usar las del laboratorio para abrir la app.
 
 | Variables principales | Valor local sugerido |
 | --- | --- |
-| `MONGO_URI`, `MONGO_DATABASE` | `mongodb://localhost:27017`, `fixture2030` |
+| `MONGO_URI`, `MONGO_DATABASE` | `mongodb://127.0.0.1:27018`, `fixture2030` |
 | `NEO4J_URI`, `NEO4J_DATABASE` | `bolt://localhost:7687`, `neo4j` |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB` | `localhost`, `6380`, `0` |
 | `INFLUX_URL`, `INFLUX_DATABASE` | `http://127.0.0.1:8181`, `fixture2030_resumen` |

@@ -1,0 +1,7 @@
+# Optional MongoDB import mounts; not needed to serve existing data.
+# docker compose -f docker-compose.yaml -f docker-compose.imports.yaml up -d mongo
+services:
+  mongo:
+    volumes:
+      - ${TP_DATA_DIR:-../idd-2-tp}/fixture2030-mongo/mongo:/scripts:ro
+      - ${TP_DATA_DIR:-../idd-2-tp}/fixture2030-mongo/datos:/datos:ro

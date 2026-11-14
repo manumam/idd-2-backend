@@ -1,0 +1,31 @@
+{
+  "teams": 48,
+  "squads": 48,
+  "players": 1248,
+  "matches": 104,
+  "groups": {
+    "A": 4,
+    "B": 4,
+    "C": 4,
+    "D": 4,
+    "E": 4,
+    "F": 4,
+    "G": 4,
+    "H": 4,
+    "I": 4,
+    "J": 4,
+    "K": 4,
+    "L": 4
+  },
+  "checks": [
+    "unique FIFA team codes",
+    "same teams in catalog and squads",
+    "12 groups with 4 teams each",
+    "26 players per squad",
+    "unique valid shirt numbers per squad",
+    "known positions",
+    "nonempty player names",
+    "valid birth dates"
+  ],
+  "scope": "Structural validation of the downloaded community dataset; not independent verification against official match reports or squad lists."
+}

@@ -163,6 +163,71 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
+  /equipos:
+    get:
+      tags:
+      - Equipos y jugadores
+      summary: Catálogo de equipos
+      description: Todos los equipos de MongoDB, ordenados por nombre y código. Sin
+        filtros ni paginación; vacío permitido.
+      operationId: listar_equipos_equipos_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquiposResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '400':
+          description: Parámetro inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '503':
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
   /equipos/{codigo}:
     get:
       tags:
@@ -1325,7 +1390,9 @@ components:
           type: string
           title: Grupo
         rankingFifa:
-          type: integer
+          anyOf:
+          - type: integer
+          - type: 'null'
           title: Rankingfifa
         directorTecnico:
           anyOf:
@@ -1344,6 +1411,17 @@ components:
       - rankingFifa
       - anfitrion
       title: EquipoResponse
+    EquiposResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/EquipoRef'
+          type: array
+          title: Items
+      type: object
+      required:
+      - items
+      title: EquiposResponse
     ErrorResponse:
       properties:
         code:

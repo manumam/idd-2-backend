@@ -1,0 +1,38 @@
+{
+  "repository": "https://github.com/openfootball/worldcup.json",
+  "commit": "516d3825c3bd23fdc298c4014e84bde78f2d4965",
+  "retrieved_at": "2026-11-14T22:07:28.067693+00:00",
+  "license": "CC0-1.0",
+  "files": [
+    {
+      "file": "worldcup.json",
+      "url": "https://raw.githubusercontent.com/openfootball/worldcup.json/516d3825c3bd23fdc298c4014e84bde78f2d4965/2026/worldcup.json",
+      "sha256": "0ae2c18109b5aa86bc11928b43586ca430c234804d5bbf808d2c3bf2051ecfca"
+    },
+    {
+      "file": "worldcup.teams.json",
+      "url": "https://raw.githubusercontent.com/openfootball/worldcup.json/516d3825c3bd23fdc298c4014e84bde78f2d4965/2026/worldcup.teams.json",
+      "sha256": "c9ee09dc3c71ed46ec7b885b659922603f1818e560f86e195a6f6526f4648389"
+    },
+    {
+      "file": "worldcup.squads.json",
+      "url": "https://raw.githubusercontent.com/openfootball/worldcup.json/516d3825c3bd23fdc298c4014e84bde78f2d4965/2026/worldcup.squads.json",
+      "sha256": "32bfc35eab01e167f650c44892aebb921b083a0db350dbf48aa9cd2602ac590e"
+    },
+    {
+      "file": "worldcup.groups.json",
+      "url": "https://raw.githubusercontent.com/openfootball/worldcup.json/516d3825c3bd23fdc298c4014e84bde78f2d4965/2026/worldcup.groups.json",
+      "sha256": "a62450893eda33b13755970c0a5320fa66455a9550752339dadd95a17ec7a749"
+    },
+    {
+      "file": "worldcup.stadiums.json",
+      "url": "https://raw.githubusercontent.com/openfootball/worldcup.json/516d3825c3bd23fdc298c4014e84bde78f2d4965/2026/worldcup.stadiums.json",
+      "sha256": "9b38fbe926d22a5198ec58446670f370d281cc72ecd200a942b734357918c3b5"
+    },
+    {
+      "file": "LICENSE.md",
+      "url": "https://raw.githubusercontent.com/openfootball/worldcup.json/516d3825c3bd23fdc298c4014e84bde78f2d4965/LICENSE.md",
+      "sha256": "36ffd9dc085d529a7e60e1276d73ae5a030b020313e6c5408593a6ae2af39673"
+    }
+  ]
+}

@@ -3,18 +3,8 @@
 FastAPI con capas HTTP → servicios → adaptadores para MongoDB, Neo4j,
 Cassandra, Redis, InfluxDB 3 e InterSystems IRIS.
 
-Entrega actual: [Hito 11: procedimiento y evidencia](docs/hito_11/README.md).
-
-Para reproducir la entrega en un laboratorio aislado (Python 3.12 y Docker Compose):
-
-```bash
-python3.12 -m venv .venv
-.venv/bin/python -m pip install -r requirements.lock
-# Iniciar y cargar también Cassandra e IRIS (ver docs/hito_11/README.md)
-.venv/bin/python scripts/cerrar_hito11.py
-```
-
-El procedimiento conserva volúmenes, no usa datos de los hitos anteriores y guarda la evidencia en `docs/hito_11/evidencia/`. La configuración manual que sigue sirve para conectar la API a los motores existentes.
+El arranque de la aplicación, los tests habituales y las evaluaciones de hitos son
+procedimientos separados. Las instrucciones para agentes están en [AGENTS.md](AGENTS.md).
 
 ## Instalar e iniciar
 
@@ -22,7 +12,7 @@ Requisitos: Python 3.12, acceso a los motores de los hitos 4 a 9 y Docker Compos
 si se ejecutan esas bases en contenedores. La API no crea ni borra bases al iniciar.
 
 ```bash
-python -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.lock  # versiones verificadas; requirements.txt define mínimos
 cp .env.example .env
@@ -39,11 +29,22 @@ La colección de Postman está en [postman_collection.json](postman_collection.j
 Importala desde **Import → File**; la variable `baseUrl` apunta por defecto a
 `http://localhost:8000`.
 
-Cloná el [repositorio de los hitos anteriores](https://github.com/mateolewinzon/idd-2-tp)
-al mismo nivel que este repositorio. Desde el directorio del backend, levantá las
-bases con `docker compose up -d`; el archivo `docker-compose.yaml` usa los scripts y
-datos del repositorio vecino. Ver [conectividad y configuración](docs/conectividad_y_configuracion.md)
-para el orden de carga, puertos, hosts en Docker y datos necesarios.
+Para fixture y planteles, iniciar las bases normales del proyecto:
+
+```bash
+docker compose up -d mongo redis
+bash scripts/iniciar_api.sh
+```
+
+MongoDB se publica solo en loopback en `MONGO_PORT` (27018 por defecto);
+`MONGO_URI` en `.env` debe usar el mismo puerto. Se conserva el volumen
+`fixture2030_fixture2030_data`. Redis usa `REDIS_PORT` (6380 por defecto).
+Estas dos bases no requieren otro clon ni ejecutan cargas de datos al iniciar.
+
+Los montajes para importar MongoDB son opcionales, mediante
+`docker-compose.imports.yaml` y `TP_DATA_DIR` (por defecto `../idd-2-tp`).
+Los otros motores todavía usan scripts y datos del repositorio de hitos anteriores.
+Ver [conectividad y configuración](docs/conectividad_y_configuracion.md).
 
 ## Probar y reproducir
 
@@ -53,8 +54,9 @@ bash scripts/ejemplos_curl.sh          # requests HTTP reales contra la API inic
 python scripts/exportar_openapi.py    # regenerar contrato después de cambiar rutas/schemas
 ```
 
-La suite normal incluye tests de integración desactivados explícitamente. Para
-probar las fuentes reales cargadas con datos representativos:
+La suite normal solo recolecta `tests/unit` y no inicia motores ni cargas. Para
+probar fuentes reales, seleccionar explícitamente `tests/integration` y usar bases
+dedicadas para pruebas, con datos representativos:
 
 ```bash
 LIVE_MODULES=mongodb,neo4j,cassandra,redis,influxdb,iris IRIS_TEST_ID=1 \
@@ -98,6 +100,34 @@ estado y resultado. Usa MongoDB `partidos` y Redis opcional, con
 `FIXTURE_CACHE_TTL_SECONDS=5`. No requiere que Neo4j o Influx estén disponibles.
 `/ready` continúa comprobando las seis fuentes del Hito 11.
 
-El seed reproducible de 127 partidos y el escenario de tres estados se cargan desde
-el repositorio de datos: [guía del fixture](docs/fixture.md). El detalle
+El seed reproducible de 127 partidos y el escenario de tres estados están incluidos
+en este backend: [guía del fixture](docs/fixture.md). El detalle
 `/partidos/{codigo}` sigue usando Neo4j y todavía no incorpora los estados del listado.
+
+## Catálogo para consultar planteles
+
+`GET /equipos` complementa el caso 2: devuelve `{items: [{codigo, nombre}]}`
+con todas las selecciones de MongoDB `equipos`, ordenadas por nombre y código
+(según la colación predeterminada de MongoDB). No recibe filtros ni paginación
+y es independiente del fixture. Vacío: 200 con `items: []`. Fallos MongoDB:
+503/504 con los códigos comunes de dependencia. No usa caché.
+El plantel se consulta con `GET /jugadores?equipo=ARG`, posición opcional y `limit`/`skip`.
+
+## Evaluaciones de hitos (solo por pedido explícito)
+
+El [laboratorio del Hito 11](docs/hito_11/README.md), su Compose,
+`config/hito11.env.example`, `scripts/preparar_lab.py` y `scripts/cerrar_hito11.py`
+son exclusivamente para reproducir esa evaluación. El entorno de `hito-12/` también
+es independiente. No son el arranque de la app ni parte de los tests habituales.
+No ejecutarlos para resolver falta de datos o de conexión del frontend.
+
+## Inicialización del Mundial simulado de 64 selecciones
+
+`scripts/cargar_jugadores.py` carga explícitamente 1.248 jugadores de 2026 (48 planteles),
+sin importar resultados. `scripts/cargar_inicio_mundial.py` inicializa el catálogo
+de 64 selecciones y los 127 partidos sintéticos 2030: 96 cruces de grupos definidos
+y 31 eliminatorias con equipos por definir. Todos quedan próximos y sin marcador.
+Los otros 16 equipos quedan sin jugadores. No se inventan rankings: `rankingFifa`
+en la ficha de equipo admite `null` cuando no hay información. La carga inicial
+rechaza bases con partidos existentes; nunca reinicia un torneo en curso.
+Las cargas se ejecutan por pedido explícito y no forman parte del arranque ni los tests.

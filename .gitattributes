@@ -1,0 +1,2 @@
+# Preserve downloaded snapshots byte-for-byte so provenance hashes remain valid.
+data/worldcup2026/source/* -text -whitespace

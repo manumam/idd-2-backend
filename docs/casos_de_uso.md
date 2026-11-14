@@ -56,6 +56,7 @@ por identidad persistente para cubrir RF8, sin reemplazar las fuentes operativas
 
 | Método | Ruta | Fuente | Caso |
 | ------ | ---- | ------ | ---- |
+| GET | `/equipos` | MongoDB | Catálogo para el caso 2 |
 | GET | `/equipos/{codigo}` | MongoDB | 1 |
 | GET | `/jugadores` | MongoDB | 2 |
 | GET | `/jugadores/{codigo}` | MongoDB | 3 |
@@ -133,7 +134,7 @@ El caso 8 no se implementa: RF5 permite lectura; no se ofrece un POST parcial.
 
 | Caso | Campos |
 | ---- | ------ |
-| 1 | `codigo`, `nombre`, `confederacion`, `grupo`, `rankingFifa`, `directorTecnico` (puede ser `null`), `anfitrion` |
+| 1 | `codigo`, `nombre`, `confederacion`, `grupo`, `rankingFifa` (puede ser `null` si no se dispone del ranking), `directorTecnico` (puede ser `null`), `anfitrion` |
 | 2 | `items[]` con `codigo`, `nombre`, `apellido`, `dorsal`, `posicion`, `equipo` (`codigo`, `nombre`); `limit`, `skip` |
 | 3 | los de `items[]` del caso 2, más `fechaNacimiento`, `club` y `capitan` (estos dos pueden ser `null`) |
 | 4 | `codigo`, `fase`, `grupo` (`null` fuera de la fase de grupos), `fecha`, `sede` (`codigo`, `nombre`, `ciudad`), `local`, `visitante` (`codigo`, `nombre`) |
@@ -164,3 +165,12 @@ Cada item tiene `codigo`, `fecha_hora`, `fase`, `grupo`, `local`, `visitante`,
 resultado previo al juego son nulos. La tanda se separa de los goles de juego.
 No hay filtros ni paginación en este incremento. Ver [seed y guía](fixture.md).
 La ficha anterior continúa en Neo4j; el fixture nuevo se persiste en MongoDB.
+
+## Catálogo para consultar planteles
+
+`GET /equipos` complementa el caso 2: devuelve `{items: [{codigo, nombre}]}`
+con todas las selecciones de MongoDB `equipos`, ordenadas por nombre y código
+(según la colación predeterminada de MongoDB). No recibe filtros ni paginación
+y es independiente del fixture. Vacío: 200 con `items: []`. Fallos MongoDB:
+503/504 con los códigos comunes de dependencia. No usa caché.
+El plantel se consulta con `GET /jugadores?equipo=ARG`, posición opcional y `limit`/`skip`.

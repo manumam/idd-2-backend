@@ -25,6 +25,7 @@ OBJETO = dict(id="1", codigo="P-001", estado="Finalizado",
 STATS = "/partidos/P-001/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z"
 COMMENTS = "/partidos/ARG-ESP-20300624/comentarios?bloque=2030-06-24T20:05:00Z"
 CASES = [
+    ("/equipos", mongo_adapter, "list_equipos", [EQUIPO]),
     ("/equipos/ARG", mongo_adapter, "find_equipo", EQUIPO),
     ("/jugadores/ARG-10", mongo_adapter, "find_jugador", JUGADOR),
     ("/jugadores?equipo=ARG", mongo_adapter, "list_jugadores", [JUGADOR]),
@@ -104,6 +105,7 @@ def test_invalid_before_database(client, monkeypatch, url):
 
 
 @pytest.mark.parametrize("url,adapter,method", [
+    ("/equipos", mongo_adapter, "list_equipos"),
     ("/jugadores?equipo=ARG", mongo_adapter, "list_jugadores"),
     (COMMENTS, cassandra_adapter, "list_comentarios"), (STATS, influx_adapter, "find_estadisticas"),
 ])
@@ -209,3 +211,15 @@ def test_postman_operations_and_parameters_match_openapi():
         if path not in ('/health', '/live', '/ready'):
             assert 504 in {response['code'] for response in item['response']}
             assert '504' in schema['paths'][path][method]['responses']
+
+
+def test_catalogo_proyecta_solo_codigo_y_nombre(client, monkeypatch):
+    monkeypatch.setattr(mongo_adapter, "list_equipos", Mock(return_value=[EQUIPO]))
+    assert client.get('/equipos').json() == {'items': [{'codigo': 'ARG', 'nombre': 'Argentina'}]}
+
+
+def test_ficha_equipo_sin_ranking_no_inventa_posicion(client, monkeypatch):
+    monkeypatch.setattr(mongo_adapter, 'find_equipo', Mock(return_value={**EQUIPO, 'ranking_fifa': None}))
+    response = client.get('/equipos/ARG')
+    assert response.status_code == 200
+    assert response.json()['rankingFifa'] is None
