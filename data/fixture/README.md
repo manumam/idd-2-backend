@@ -13,3 +13,8 @@ Procedencia: copia del dataset y seed publicados en el commit
 `6ec3169f4b069ada12b53c59aeb50e7eb67b2cf6` de `mateolewinzon/idd-2-tp`.
 Los datos se mantienen a partir de aquí dentro del backend; los horarios y
 resultados de ejemplo no representan un calendario ni un torneo oficiales.
+
+`grupos.json` define participantes y reglas de la demo (3/1/0 y desempate
+explícito después de puntos, DG y GF). Carga aditiva independiente:
+`.venv/bin/python scripts/cargar_grupos.py`; `--solo-validar` valida sin motores.
+No se ejecuta durante el arranque ni modifica resultados.

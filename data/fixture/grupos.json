@@ -1,0 +1,324 @@
+{
+  "grupos": [
+    {
+      "_id": "A",
+      "equipos": [
+        "MEX",
+        "KOR",
+        "RSA",
+        "CZE"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "MEX",
+          "KOR",
+          "RSA",
+          "CZE"
+        ]
+      }
+    },
+    {
+      "_id": "B",
+      "equipos": [
+        "SUI",
+        "CAN",
+        "QAT",
+        "BIH"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "SUI",
+          "CAN",
+          "QAT",
+          "BIH"
+        ]
+      }
+    },
+    {
+      "_id": "C",
+      "equipos": [
+        "BRA",
+        "MAR",
+        "SCO",
+        "HAI"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "BRA",
+          "MAR",
+          "SCO",
+          "HAI"
+        ]
+      }
+    },
+    {
+      "_id": "D",
+      "equipos": [
+        "USA",
+        "TUR",
+        "AUS",
+        "PAR"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "USA",
+          "TUR",
+          "AUS",
+          "PAR"
+        ]
+      }
+    },
+    {
+      "_id": "E",
+      "equipos": [
+        "GER",
+        "ECU",
+        "CIV",
+        "CUW"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "GER",
+          "ECU",
+          "CIV",
+          "CUW"
+        ]
+      }
+    },
+    {
+      "_id": "F",
+      "equipos": [
+        "NED",
+        "JPN",
+        "SWE",
+        "TUN"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "NED",
+          "JPN",
+          "SWE",
+          "TUN"
+        ]
+      }
+    },
+    {
+      "_id": "G",
+      "equipos": [
+        "BEL",
+        "IRN",
+        "EGY",
+        "NZL"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "BEL",
+          "IRN",
+          "EGY",
+          "NZL"
+        ]
+      }
+    },
+    {
+      "_id": "H",
+      "equipos": [
+        "ESP",
+        "URU",
+        "KSA",
+        "CPV"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "ESP",
+          "URU",
+          "KSA",
+          "CPV"
+        ]
+      }
+    },
+    {
+      "_id": "I",
+      "equipos": [
+        "FRA",
+        "SEN",
+        "NOR",
+        "IRQ"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "FRA",
+          "SEN",
+          "NOR",
+          "IRQ"
+        ]
+      }
+    },
+    {
+      "_id": "J",
+      "equipos": [
+        "ARG",
+        "AUT",
+        "ALG",
+        "JOR"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "ARG",
+          "AUT",
+          "ALG",
+          "JOR"
+        ]
+      }
+    },
+    {
+      "_id": "K",
+      "equipos": [
+        "POR",
+        "COL",
+        "UZB",
+        "COD"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "POR",
+          "COL",
+          "UZB",
+          "COD"
+        ]
+      }
+    },
+    {
+      "_id": "L",
+      "equipos": [
+        "ENG",
+        "CRO",
+        "PAN",
+        "GHA"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "ENG",
+          "CRO",
+          "PAN",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "_id": "M",
+      "equipos": [
+        "ITA",
+        "CHI",
+        "NGA",
+        "CHN"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "ITA",
+          "CHI",
+          "NGA",
+          "CHN"
+        ]
+      }
+    },
+    {
+      "_id": "N",
+      "equipos": [
+        "DEN",
+        "WAL",
+        "PER",
+        "CMR"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "DEN",
+          "WAL",
+          "PER",
+          "CMR"
+        ]
+      }
+    },
+    {
+      "_id": "O",
+      "equipos": [
+        "POL",
+        "VEN",
+        "CRC",
+        "MLI"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "POL",
+          "VEN",
+          "CRC",
+          "MLI"
+        ]
+      }
+    },
+    {
+      "_id": "P",
+      "equipos": [
+        "UKR",
+        "SRB",
+        "OMA",
+        "NCL"
+      ],
+      "reglas": {
+        "victoria": 3,
+        "empate": 1,
+        "derrota": 0,
+        "orden_desempate": [
+          "UKR",
+          "SRB",
+          "OMA",
+          "NCL"
+        ]
+      }
+    }
+  ]
+}

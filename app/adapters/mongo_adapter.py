@@ -117,6 +117,23 @@ class MongoAdapter(BaseAdapter):
         ))
 
     @observe("MongoDB")
+    def list_grupos(self):
+        return self._execute(lambda: list(self.db["grupos"].find(
+            {}, {"_id": 1, "equipos": 1, "reglas": 1}).sort("_id", 1)))
+
+    @observe("MongoDB")
+    def find_grupo(self, codigo: str):
+        return self._execute(lambda: self.db["grupos"].find_one(
+            {"_id": codigo}, {"_id": 1, "equipos": 1, "reglas": 1}))
+
+    @observe("MongoDB")
+    def list_partidos_grupo(self, codigo: str):
+        projection = {field: 1 for field in (
+            "_id", "fecha_hora", "fase", "grupo", "local", "visitante", "estado", "resultado")}
+        return self._execute(lambda: list(self.db["partidos"].find(
+            {"grupo": codigo, "fase": "Grupos"}, projection).sort([("fecha_hora", 1), ("_id", 1)])))
+
+    @observe("MongoDB")
     def ping(self) -> bool:
         """Verifica la conectividad activa contra MongoDB."""
         try:

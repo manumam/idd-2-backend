@@ -163,6 +163,157 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
+  /grupos:
+    get:
+      tags:
+      - Grupos
+      summary: Consultar los grupos
+      description: 'Participantes y reglas de la demo desde MongoDB. Sin datos: items
+        vacío.'
+      operationId: obtener_grupos_grupos_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GruposResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '400':
+          description: Parámetro inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '503':
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+  /grupos/{id}/posiciones:
+    get:
+      tags:
+      - Grupos
+      summary: Consultar posiciones y partidos de un grupo
+      description: 'Solo cuentan resultados finalizados, sin goles de tanda. Orden:
+        puntos, diferencia de gol, goles a favor y orden del dataset. Redis opcional,
+        versionado por reglas y partidos para reflejar cierres y correcciones. completa
+        indica que terminaron todos los cruces esperados.'
+      operationId: obtener_posiciones_grupos__id__posiciones_get
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-P]$
+          title: Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PosicionesResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '400':
+          description: Parámetro inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '503':
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
   /equipos:
     get:
       tags:
@@ -1582,6 +1733,38 @@ components:
       - confederacion
       - items
       title: GoleadoresResponse
+    Grupo:
+      properties:
+        codigo:
+          type: string
+          pattern: ^[A-P]$
+          title: Codigo
+        equipos:
+          items:
+            $ref: '#/components/schemas/EquipoRef'
+          type: array
+          minItems: 2
+          title: Equipos
+        reglas:
+          $ref: '#/components/schemas/ReglasGrupo'
+      additionalProperties: false
+      type: object
+      required:
+      - codigo
+      - equipos
+      - reglas
+      title: Grupo
+    GruposResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/Grupo'
+          type: array
+          title: Items
+      type: object
+      required:
+      - items
+      title: GruposResponse
     HealthResponse:
       properties:
         estado:
@@ -1840,6 +2023,74 @@ components:
       - fase
       - fecha
       title: PartidoResponse
+    PosicionGrupo:
+      properties:
+        posicion:
+          type: integer
+          title: Posicion
+        equipo:
+          $ref: '#/components/schemas/EquipoRef'
+        jugados:
+          type: integer
+          title: Jugados
+          default: 0
+        ganados:
+          type: integer
+          title: Ganados
+          default: 0
+        empatados:
+          type: integer
+          title: Empatados
+          default: 0
+        perdidos:
+          type: integer
+          title: Perdidos
+          default: 0
+        goles_favor:
+          type: integer
+          title: Goles Favor
+          default: 0
+        goles_contra:
+          type: integer
+          title: Goles Contra
+          default: 0
+        diferencia_gol:
+          type: integer
+          title: Diferencia Gol
+          default: 0
+        puntos:
+          type: integer
+          title: Puntos
+          default: 0
+      type: object
+      required:
+      - posicion
+      - equipo
+      title: PosicionGrupo
+    PosicionesResponse:
+      properties:
+        grupo:
+          $ref: '#/components/schemas/Grupo'
+        completa:
+          type: boolean
+          title: Completa
+        items:
+          items:
+            $ref: '#/components/schemas/PosicionGrupo'
+          type: array
+          title: Items
+        partidos:
+          items:
+            $ref: '#/components/schemas/PartidoFixture'
+          type: array
+          title: Partidos
+      type: object
+      required:
+      - grupo
+      - completa
+      - items
+      - partidos
+      title: PosicionesResponse
     Protagonista:
       properties:
         jugador:
@@ -1895,6 +2146,34 @@ components:
       - estado
       - listo
       title: ReadinessResponse
+    ReglasGrupo:
+      properties:
+        victoria:
+          type: integer
+          minimum: 0.0
+          title: Victoria
+        empate:
+          type: integer
+          minimum: 0.0
+          title: Empate
+        derrota:
+          type: integer
+          minimum: 0.0
+          title: Derrota
+        orden_desempate:
+          items:
+            type: string
+          type: array
+          minItems: 2
+          title: Orden Desempate
+      additionalProperties: false
+      type: object
+      required:
+      - victoria
+      - empate
+      - derrota
+      - orden_desempate
+      title: ReglasGrupo
     ResultadoFixture:
       properties:
         goles_local:
