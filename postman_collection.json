@@ -2514,6 +2514,431 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Grupos",
+      "item": [
+        {
+          "name": "Consultar grupos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/grupos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "grupos"
+              ],
+              "query": []
+            },
+            "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+          },
+          "response": [
+            {
+              "name": "Consultar grupos",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"items\": [\n    {\n      \"codigo\": \"A\",\n      \"equipos\": [\n        {\n          \"codigo\": \"MEX\",\n          \"nombre\": \"Mexico\"\n        },\n        {\n          \"codigo\": \"KOR\",\n          \"nombre\": \"Corea del Sur\"\n        },\n        {\n          \"codigo\": \"RSA\",\n          \"nombre\": \"Sudafrica\"\n        },\n        {\n          \"codigo\": \"CZE\",\n          \"nombre\": \"Chequia\"\n        }\n      ],\n      \"reglas\": {\n        \"victoria\": 3,\n        \"empate\": 1,\n        \"derrota\": 0,\n        \"orden_desempate\": [\n          \"MEX\",\n          \"KOR\",\n          \"RSA\",\n          \"CZE\"\n        ]\n      }\n    }\n  ]\n}",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/grupos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "grupos"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              }
+            },
+            {
+              "name": "MONGODB_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/grupos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "grupos"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_AUTHENTICATION_FAILED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/grupos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "grupos"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_ACCESS_DENIED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/grupos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "grupos"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_CONTEXT_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/grupos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "grupos"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
+        },
+        {
+          "name": "Posiciones de un grupo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/grupos/{{grupoId}}/posiciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "grupos",
+                "{{grupoId}}",
+                "posiciones"
+              ],
+              "query": []
+            },
+            "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+          },
+          "response": [
+            {
+              "name": "Posiciones de un grupo",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"grupo\": {\n    \"codigo\": \"A\",\n    \"equipos\": [\n      {\n        \"codigo\": \"MEX\",\n        \"nombre\": \"Mexico\"\n      },\n      {\n        \"codigo\": \"KOR\",\n        \"nombre\": \"Corea del Sur\"\n      },\n      {\n        \"codigo\": \"RSA\",\n        \"nombre\": \"Sudafrica\"\n      },\n      {\n        \"codigo\": \"CZE\",\n        \"nombre\": \"Chequia\"\n      }\n    ],\n    \"reglas\": {\n      \"victoria\": 3,\n      \"empate\": 1,\n      \"derrota\": 0,\n      \"orden_desempate\": [\n        \"MEX\",\n        \"KOR\",\n        \"RSA\",\n        \"CZE\"\n      ]\n    }\n  },\n  \"completa\": false,\n  \"items\": [\n    {\n      \"posicion\": 1,\n      \"equipo\": {\n        \"codigo\": \"MEX\",\n        \"nombre\": \"Mexico\"\n      },\n      \"jugados\": 0,\n      \"ganados\": 0,\n      \"empatados\": 0,\n      \"perdidos\": 0,\n      \"goles_favor\": 0,\n      \"goles_contra\": 0,\n      \"diferencia_gol\": 0,\n      \"puntos\": 0\n    },\n    {\n      \"posicion\": 2,\n      \"equipo\": {\n        \"codigo\": \"KOR\",\n        \"nombre\": \"Corea del Sur\"\n      },\n      \"jugados\": 0,\n      \"ganados\": 0,\n      \"empatados\": 0,\n      \"perdidos\": 0,\n      \"goles_favor\": 0,\n      \"goles_contra\": 0,\n      \"diferencia_gol\": 0,\n      \"puntos\": 0\n    },\n    {\n      \"posicion\": 3,\n      \"equipo\": {\n        \"codigo\": \"RSA\",\n        \"nombre\": \"Sudafrica\"\n      },\n      \"jugados\": 0,\n      \"ganados\": 0,\n      \"empatados\": 0,\n      \"perdidos\": 0,\n      \"goles_favor\": 0,\n      \"goles_contra\": 0,\n      \"diferencia_gol\": 0,\n      \"puntos\": 0\n    },\n    {\n      \"posicion\": 4,\n      \"equipo\": {\n        \"codigo\": \"CZE\",\n        \"nombre\": \"Chequia\"\n      },\n      \"jugados\": 0,\n      \"ganados\": 0,\n      \"empatados\": 0,\n      \"perdidos\": 0,\n      \"goles_favor\": 0,\n      \"goles_contra\": 0,\n      \"diferencia_gol\": 0,\n      \"puntos\": 0\n    }\n  ],\n  \"partidos\": []\n}",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/grupos/{{grupoId}}/posiciones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "grupos",
+                    "{{grupoId}}",
+                    "posiciones"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              }
+            },
+            {
+              "name": "MONGODB_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/grupos/{{grupoId}}/posiciones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "grupos",
+                    "{{grupoId}}",
+                    "posiciones"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_AUTHENTICATION_FAILED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/grupos/{{grupoId}}/posiciones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "grupos",
+                    "{{grupoId}}",
+                    "posiciones"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_ACCESS_DENIED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/grupos/{{grupoId}}/posiciones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "grupos",
+                    "{{grupoId}}",
+                    "posiciones"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_CONTEXT_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/grupos/{{grupoId}}/posiciones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "grupos",
+                    "{{grupoId}}",
+                    "posiciones"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "VALIDACION_INVALIDA",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/grupos/{{grupoId}}/posiciones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "grupos",
+                    "{{grupoId}}",
+                    "posiciones"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"VALIDACION_INVALIDA\", \"message\": \"Par\\u00e1metro inv\\u00e1lido.\", \"requestId\": \"ejemplo-request-id\"}"
+            },
+            {
+              "name": "GRUPO_NO_ENCONTRADO",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/grupos/{{grupoId}}/posiciones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "grupos",
+                    "{{grupoId}}",
+                    "posiciones"
+                  ],
+                  "query": []
+                },
+                "description": "Catálogo completo desde MongoDB ordenado por nombre y código. Sin filtros ni paginación. Vacío permitido. Errores MongoDB 503/504."
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"GRUPO_NO_ENCONTRADO\", \"message\": \"No existe el grupo solicitado.\", \"requestId\": \"ejemplo-request-id\"}"
+            }
+          ]
+        }
+      ]
     }
   ],
   "variable": [
@@ -2560,6 +2985,11 @@
     {
       "key": "objetoId",
       "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "grupoId",
+      "value": "A",
       "type": "string"
     }
   ]

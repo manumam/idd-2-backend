@@ -225,3 +225,36 @@ Solo ante un pedido de reinicio, `--reiniciar-escenario` permite reemplazarlos:
 ```
 
 Estas operaciones reemplazan marcadores existentes. La carga normal no lo hace.
+
+## Grupos y posiciones (requerimiento 3)
+
+`GET /grupos` lista los grupos y sus reglas. `GET /grupos/A/posiciones` devuelve
+PJ, PG, PE, PP, GF, GC, DG, puntos, orden y partidos del grupo. Solo cuentan
+resultados finalizados; los goles de tanda se excluyen. Desempates de la demo:
+puntos, diferencia de gol, goles a favor y orden explícito del dataset.
+`completa` requiere todos los cruces entre participantes finalizados.
+Redis es opcional; la clave versionada por contenido evita reutilizar tablas
+anteriores después de cierres, correcciones o cambios de reglas.
+
+La sección **Grupos** del frontend permite seleccionar un grupo y desplegar sus
+partidos, con actualización cada 15 segundos y estados de carga, vacío y error.
+La ficha central del encuentro sigue perteneciendo al requisito 5.
+
+Preparación explícita (fuera del arranque; no ejecutada como parte de este cambio):
+
+```bash
+.venv/bin/python scripts/cargar_grupos.py --solo-validar
+.venv/bin/python scripts/cargar_grupos.py
+```
+
+La carga valida que el catálogo MongoDB coincida con el dataset versionado de
+64 selecciones/16 grupos. Inserta únicamente grupos ausentes y crea un índice
+por grupo/fase/fecha/código; conserva grupos existentes, equipos y resultados.
+Requiere la configuración normal `.env` o variables exportadas. Comprobar que
+`MONGO_URI` apunte al MongoDB **del proyecto** (puerto habitual 27018), nunca a
+una base de otro proyecto. Reiniciar la API con `bash scripts/iniciar_api.sh`
+para incorporar las rutas nuevas; el script no usa recarga automática.
+
+Verificación local: tests unitarios de clasificación, contrato HTTP y fallos de
+fuentes, validación del dataset, tests del frontend y compilación TypeScript/Vite.
+Estos controles no sustituyen la comprobación con MongoDB/Redis reales.

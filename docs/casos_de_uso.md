@@ -6,7 +6,7 @@ La implementación se contrasta con esos requisitos; la existencia de una ruta
 histórica no demuestra cumplimiento. Stack objetivo: MongoDB, Redis e InfluxDB.
 
 Los lineamientos originales limitaban la entrega a la API. El trabajo posterior
-solicitado incorpora el frontend del fixture, los planteles y la ficha de jugador.
+solicitado incorpora el frontend del fixture, los grupos, los planteles y la ficha de jugador.
 Esta ampliación no cambia las decisiones de persistencia del MVP.
 
 ## Estado de implementación
@@ -14,14 +14,15 @@ Esta ampliación no cambia las decisiones de persistencia del MVP.
 El estado funcional y la alineación técnica se evalúan por separado. Usar una
 base prevista por el modelo no completa por sí solo un caso de uso. «Pendiente»
 significa que el modelo todavía no está implementado para ese caso, no que se
-haya validado su cumplimiento. Ninguno de los once casos se considera completo
-de extremo a extremo con el modelo técnico objetivo.
+haya validado su cumplimiento. El caso 3 está implementado en ambos repositorios; su comprobación con motores
+reales requiere la configuración local y la carga explícita de grupos. Los demás
+casos conservan las brechas detalladas abajo.
 
 | # | Caso del MVP | Estado funcional | Alineación con el modelo técnico | Trabajo pendiente para completarlo |
 | --- | --- | --- | --- | --- |
 | 1 | Consultar el fixture | Listado implementado; demo en vivo incompleta | Parcial: `GET /fixture` usa MongoDB y Cache-Aside en Redis, como se propone. La API no admite todavía `equipo_id`, `fecha` ni `fase`; los filtros actuales se aplican en el frontend. | Completar los filtros del contrato propuesto y sus claves de caché. Vincular ingesta, cierre y correcciones con la invalidación. El frontend muestra orden, horario, fase, estado y resultado, pero falta el simulador que avance el torneo. |
 | 2 | Consultar los partidos de una selección | Parcial: búsqueda de texto, sin recorrido específico por selección | Parcial: reutiliza el fixture de MongoDB/Redis, pero no existe el filtro de API por identificador de selección propuesto en `/fixture?equipo_id=…`. | Seleccionar un equipo desde el fixture debe abrir sus partidos próximos, en vivo y finalizados, en lugar de su plantel. Agregar filtro exacto por código y caché que lo incluya. La búsqueda por nombre no equivale al flujo completo. |
-| 3 | Consultar el estado de los grupos | Pendiente | Sin implementar: el objetivo exige grupos, reglas y resultados en MongoDB, con tabla calculada y caché Redis. Los grupos etiquetados en el fixture no constituyen una clasificación. | Implementar `/grupos` y `/grupos/{id}/posiciones`, reglas del dataset, cálculo desde resultados finalizados, desempates e invalidación ante cierre/corrección. Agregar vista de grupos y acceso a sus partidos. La ficha personal de jugador no corresponde a este caso. |
+| 3 | Consultar el estado de los grupos | Implementado en backend y frontend; verificación real pendiente | Grupos, participantes y reglas explícitas en MongoDB; cálculo desde resultados finalizados, sin tandas. Orden por puntos, DG, GF y desempate del dataset. Caché Redis opcional versionada por todas las entradas. | Cargar grupos de forma explícita con `scripts/cargar_grupos.py` y verificar con MongoDB del proyecto. La vista permite elegir grupo, consultar PJ/PG/PE/PP/GF/GC/DG/puntos y abrir sus partidos. La página central de detalle corresponde al caso 5. |
 | 4 | Consultar los playoffs | Pendiente; solo hay encuentros eliminatorios en el fixture | Sin implementar: el modelo pide cruces en MongoDB con origen de plazas, orden y ganador, y copia derivada en Redis. | Implementar `/playoffs`, carga y validación de dependencias sin ciclos, resolución idempotente de plazas y propagación de ganadores, incluidas tandas. Invalidar ante cierres/correcciones y agregar el cuadro navegable. |
 | 5 | Ver el detalle de un partido | Ruta histórica disponible; falta la página del encuentro | No alineado: `/partidos/{codigo}` sigue consultando Neo4j. El objetivo es MongoDB con caché Redis. | Migrar la lectura a MongoDB y completar sede, estado, marcador y reloj de juego, con goles de tanda separados. Implementar caché e invalidación y una página accesible desde fixture, grupos y playoffs. |
 | 6 | Consultar las alineaciones | Pendiente | Sin implementar: el modelo pide titulares y suplentes dentro del documento de partido en MongoDB, con caché Redis. | Implementar `/partidos/{id}/alineaciones`, referencias a jugadores y navegación al rendimiento individual. Cargar alineaciones por encuentro; el plantel de selección no las reemplaza. |
@@ -38,8 +39,10 @@ de extremo a extremo con el modelo técnico objetivo.
   de actualización e invalidación pendientes. No equivale a tener la demo en vivo completa.
 - **2:** parcialmente alineado en las fuentes reutilizadas; el flujo de selección
   y el filtro exacto por equipo siguen pendientes. Consultar un plantel no lo cumple.
-- **3:** pendiente de implementación; todavía no se puede afirmar que respete
-  el modelo técnico. La ficha personal del jugador es una funcionalidad adicional.
+- **3:** implementado con MongoDB y Redis, reglas versionadas, clasificación
+  recalculable y vista de grupos. Los tests locales cubren cálculos, desempates,
+  cierres, correcciones y fallos; no certifican un recorrido con motores reales.
+  La ficha personal del jugador es una funcionalidad adicional.
 
 ## Funcionalidades adicionales implementadas
 

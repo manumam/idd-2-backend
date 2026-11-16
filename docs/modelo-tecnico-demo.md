@@ -65,6 +65,21 @@ Para el volumen del torneo no se agrega todavía una colección de totales por j
 
 ## Grupos y clasificación
 
+Implementado para el caso 3: `/grupos` devuelve participantes y reglas;
+`/grupos/{id}/posiciones` agrega la tabla, `completa` y los partidos del grupo.
+Los documentos usan `grupo` y referencias `local.codigo`/`visitante.codigo`,
+compatibles con el fixture existente. `data/fixture/grupos.json` fija el orden
+explícito de desempate de la demo. `scripts/cargar_grupos.py` valida los equipos
+persistidos e inserta solo grupos ausentes, sin modificar resultados.
+
+La agregación se ejecuta en el servicio desde documentos MongoDB. La caché de
+Redis incluye un hash del grupo, sus reglas y todos sus partidos: cierres y
+correcciones dejan de referenciar la versión anterior de inmediato. Las claves
+anteriores vencen con `FIXTURE_CACHE_TTL_SECONDS`. Esta decisión requiere leer
+MongoDB en cada consulta, incluso con caché disponible; evita servir una tabla
+anterior ante escrituras externas sin protocolo de invalidación. Redis es opcional.
+La resolución y propagación de plazas de playoffs siguen en el caso 4.
+
 - Cada grupo referencia las selecciones participantes y sus partidos.
 - La tabla se calcula en MongoDB desde los resultados de partidos finalizados: jugados, ganados, empatados, perdidos, goles a favor, goles en contra, diferencia y puntos.
 - Para la demo se propone victoria = 3 puntos, empate = 1 y derrota = 0. Orden: puntos, diferencia de gol y goles a favor; si persiste la igualdad, usar el orden de desempate cargado explícitamente en el dataset. Son reglas de la demo, no una afirmación del reglamento oficial de 2030.
