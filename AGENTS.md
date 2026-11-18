@@ -18,7 +18,11 @@
 - Si falta el repositorio de datos, una conexión o hay otro proyecto ocupando el
   puerto, informar el bloqueo. No conectar la app a bases de otro proyecto ni
   cambiar al laboratorio como alternativa. No detener contenedores ajenos.
-- No cargar seeds, reiniciar escenarios ni reemplazar datos como parte del arranque.
+- Cuando el usuario pida levantar o iniciar el proyecto, preguntarle si quiere
+  ejecutar el seed antes de cargar datos. Explicar qué carga y si conserva o
+  reemplaza resultados existentes. Esperar su respuesta para ejecutar el seed;
+  el pedido de arranque por sí solo no autoriza esa carga.
+- Sin autorización explícita, no cargar seeds, reiniciar escenarios ni reemplazar datos como parte del arranque.
   Usar `GET /live` para comprobar el proceso y las rutas de la funcionalidad para
   verificar los datos; `/ready` requiere las seis fuentes y puede estar degradado.
 

@@ -12,6 +12,7 @@ from app.core.handlers import register_handlers
 from app.core.request_context import request_context_middleware
 from app.routes import comentarios, equipos, estadisticas, fixture, grupos, health, objetos, partidos, sesiones
 from app.schemas.errors import ErrorResponse
+from app.routes import playoffs
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
@@ -41,6 +42,7 @@ register_handlers(app)
 app.include_router(health.router)
 app.include_router(fixture.router)
 app.include_router(grupos.router)
+app.include_router(playoffs.router)
 app.include_router(equipos.router)
 app.include_router(sesiones.router)
 app.include_router(partidos.router)

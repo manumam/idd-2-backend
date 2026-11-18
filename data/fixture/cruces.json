@@ -1,0 +1,440 @@
+{
+  "descripcion": "Reglas de la demo: dos primeros por grupo; A1-B2, B1-A2, C1-D2, D1-C2, etc. Ganadores consecutivos avanzan juntos. Sin mejores terceros.",
+  "cruces": [
+    {
+      "_id": "P-097",
+      "fase": "Dieciseisavos",
+      "orden": 1,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "A",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "B",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-098",
+      "fase": "Dieciseisavos",
+      "orden": 2,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "B",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "A",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-099",
+      "fase": "Dieciseisavos",
+      "orden": 3,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "C",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "D",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-100",
+      "fase": "Dieciseisavos",
+      "orden": 4,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "D",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "C",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-101",
+      "fase": "Dieciseisavos",
+      "orden": 5,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "E",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "F",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-102",
+      "fase": "Dieciseisavos",
+      "orden": 6,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "F",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "E",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-103",
+      "fase": "Dieciseisavos",
+      "orden": 7,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "G",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "H",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-104",
+      "fase": "Dieciseisavos",
+      "orden": 8,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "H",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "G",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-105",
+      "fase": "Dieciseisavos",
+      "orden": 9,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "I",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "J",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-106",
+      "fase": "Dieciseisavos",
+      "orden": 10,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "J",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "I",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-107",
+      "fase": "Dieciseisavos",
+      "orden": 11,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "K",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "L",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-108",
+      "fase": "Dieciseisavos",
+      "orden": 12,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "L",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "K",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-109",
+      "fase": "Dieciseisavos",
+      "orden": 13,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "M",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "N",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-110",
+      "fase": "Dieciseisavos",
+      "orden": 14,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "N",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "M",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-111",
+      "fase": "Dieciseisavos",
+      "orden": 15,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "O",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "P",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-112",
+      "fase": "Dieciseisavos",
+      "orden": 16,
+      "local": {
+        "tipo": "grupo",
+        "grupo": "P",
+        "posicion": 1
+      },
+      "visitante": {
+        "tipo": "grupo",
+        "grupo": "O",
+        "posicion": 2
+      }
+    },
+    {
+      "_id": "P-113",
+      "fase": "Octavos",
+      "orden": 1,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-097"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-098"
+      }
+    },
+    {
+      "_id": "P-114",
+      "fase": "Octavos",
+      "orden": 2,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-099"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-100"
+      }
+    },
+    {
+      "_id": "P-115",
+      "fase": "Octavos",
+      "orden": 3,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-101"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-102"
+      }
+    },
+    {
+      "_id": "P-116",
+      "fase": "Octavos",
+      "orden": 4,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-103"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-104"
+      }
+    },
+    {
+      "_id": "P-117",
+      "fase": "Octavos",
+      "orden": 5,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-105"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-106"
+      }
+    },
+    {
+      "_id": "P-118",
+      "fase": "Octavos",
+      "orden": 6,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-107"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-108"
+      }
+    },
+    {
+      "_id": "P-119",
+      "fase": "Octavos",
+      "orden": 7,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-109"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-110"
+      }
+    },
+    {
+      "_id": "P-120",
+      "fase": "Octavos",
+      "orden": 8,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-111"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-112"
+      }
+    },
+    {
+      "_id": "P-121",
+      "fase": "Cuartos",
+      "orden": 1,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-113"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-114"
+      }
+    },
+    {
+      "_id": "P-122",
+      "fase": "Cuartos",
+      "orden": 2,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-115"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-116"
+      }
+    },
+    {
+      "_id": "P-123",
+      "fase": "Cuartos",
+      "orden": 3,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-117"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-118"
+      }
+    },
+    {
+      "_id": "P-124",
+      "fase": "Cuartos",
+      "orden": 4,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-119"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-120"
+      }
+    },
+    {
+      "_id": "P-125",
+      "fase": "Semifinal",
+      "orden": 1,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-121"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-122"
+      }
+    },
+    {
+      "_id": "P-126",
+      "fase": "Semifinal",
+      "orden": 2,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-123"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-124"
+      }
+    },
+    {
+      "_id": "P-127",
+      "fase": "Final",
+      "orden": 1,
+      "local": {
+        "tipo": "ganador",
+        "cruce": "P-125"
+      },
+      "visitante": {
+        "tipo": "ganador",
+        "cruce": "P-126"
+      }
+    }
+  ]
+}

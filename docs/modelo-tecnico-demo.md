@@ -23,7 +23,7 @@ Los nombres son contratos propuestos, no colecciones ya implementadas.
 | `equipos` y `jugadores` | Identificadores, nombre, selección; dorsal y posición en la alineación del partido. | Identificadores únicos. |
 | `grupos` | Código, equipos participantes y orden de desempate del dataset cuando sea necesario. | Código único. |
 | `partidos` | Fase, grupo o cruce, fecha, sede, local, visitante, estado, reloj de juego, resultado, alineaciones, eventos, estadísticas finales y estado de consolidación. | Índices por `fecha`, `grupo_id`, `(local_id, fecha)`, `(visitante_id, fecha)` y sobre `eventos.jugador_id`. |
-| `cruces` | Fase, orden visual, partido, origen de cada plaza, equipo resuelto y ganador. | Único `(fase, orden)` e índice por partido. |
+| `cruces` | Fase, orden visual y origen de cada plaza. `_id` referencia el partido. Equipos y ganador derivados al consultar. | Único `(fase, orden)` y `_id` por partido. |
 | `estadisticas_jugador_partido` | Partido, jugador, equipo, goles, asistencias, tarjetas, distancia total, velocidad máxima y fecha de actualización. | Único `(partido_id, jugador_id)`; índice por `jugador_id`. |
 
 Cada evento incluye `evento_id`, tipo, tiempo de juego, equipo y jugadores involucrados. Su identificador evita que reenviar un evento duplique un gol. Los eventos conservan el detalle que permite reconstruir las estadísticas deportivas.
@@ -78,7 +78,7 @@ correcciones dejan de referenciar la versión anterior de inmediato. Las claves
 anteriores vencen con `FIXTURE_CACHE_TTL_SECONDS`. Esta decisión requiere leer
 MongoDB en cada consulta, incluso con caché disponible; evita servir una tabla
 anterior ante escrituras externas sin protocolo de invalidación. Redis es opcional.
-La resolución y propagación de plazas de playoffs siguen en el caso 4.
+La resolución y propagación de plazas se implementan en el caso 4 mediante `/playoffs`.
 
 - Cada grupo referencia las selecciones participantes y sus partidos.
 - La tabla se calcula en MongoDB desde los resultados de partidos finalizados: jugados, ganados, empatados, perdidos, goles a favor, goles en contra, diferencia y puntos.
@@ -90,6 +90,37 @@ La resolución y propagación de plazas de playoffs siguen en el caso 4.
 No se necesita otra base para esta funcionalidad: resultados y reglas están en MongoDB; Redis conserva la tabla calculada.
 
 ## Playoffs
+
+Implementado: `GET /playoffs`, `scripts/cargar_playoffs.py` y
+`data/fixture/cruces.json`. Las reglas de esta demo clasifican a los dos primeros
+de los 16 grupos; A1–B2, B1–A2, C1–D2, D1–C2, etc. Los ganadores de pares
+consecutivos se enfrentan en la ronda siguiente, hasta P-127. No hay mejores
+terceros ni partido por tercer puesto en este dataset.
+
+La colección `cruces` conserva `_id` (el código del partido), fase, orden y los
+orígenes local/visitante. El ganador y los equipos resueltos son derivados en la
+respuesta, sin modificar documentos durante GET. El loader valida todas las
+referencias, fases consecutivas, unicidad de plazas, cobertura y convergencia en
+una final; solo inserta ausentes y rechaza diferencias con el cuadro existente.
+No modifica resultados ni participantes del fixture.
+
+La resolución recorre las rondas en orden. Espera que termine cada grupo para
+asignar sus puestos. Solo usa un marcador si los equipos registrados en el
+partido coinciden con las plazas actuales. Un resultado de otros participantes
+se oculta en la respuesta derivada y marca `requiere_revision`; permanece intacto
+en MongoDB para revisión. Un empate final sin tanda decisiva, o una tanda con
+marcador regular desigual, también bloquea la propagación. El escritor de
+resultados debe registrar los participantes junto al marcador; una corrección
+que cambia participantes exige revisar los encuentros posteriores.
+
+Redis es opcional y usa un hash de cruces, grupos, reglas y todos los partidos,
+igual que posiciones. Cada consulta lee MongoDB para detectar también escrituras
+externas: cierres y correcciones dejan de referenciar las versiones anteriores,
+que vencen por TTL. Redis caído o corrupto no impide calcular el cuadro.
+
+El frontend ofrece `/playoffs.html`, rondas, enlaces entre cruces y una vista
+resumida de cada encuentro mediante `?partido=P-097`. Esta vista no reemplaza
+el detalle completo del caso 5 (sede, reloj y navegación a sus funcionalidades).
 
 Cada plaza de un cruce conserva su origen aunque el equipo aún no esté definido:
 

@@ -258,3 +258,31 @@ para incorporar las rutas nuevas; el script no usa recarga automática.
 Verificación local: tests unitarios de clasificación, contrato HTTP y fallos de
 fuentes, validación del dataset, tests del frontend y compilación TypeScript/Vite.
 Estos controles no sustituyen la comprobación con MongoDB/Redis reales.
+
+### Cuadro de playoffs (caso 4)
+
+`GET /playoffs` devuelve las cinco rondas y 31 cruces, con origen de plazas,
+participantes resueltos, resultados, ganador, siguiente encuentro y
+`requiere_revision`. Sin cuadro cargado responde `{"items": []}`.
+
+La carga es explícita y aditiva; no se ejecuta al arrancar ni modifica partidos:
+
+```bash
+.venv/bin/python scripts/cargar_playoffs.py --solo-validar
+# Con MongoDB del proyecto correctamente configurado y fixture/grupos cargados:
+.venv/bin/python scripts/cargar_playoffs.py
+```
+
+Las reglas de `data/fixture/cruces.json` clasifican los dos primeros de cada grupo,
+con cruces A1–B2, B1–A2, etc.; no representan un reglamento oficial de 2030.
+El cuadro se recalcula desde MongoDB y se cachea por versión de todas sus entradas
+en Redis opcional. Los grupos incompletos conservan la descripción de sus plazas.
+Los resultados con participantes obsoletos o sin desempate válido requieren revisión
+y no propagan ganador. El escritor de resultados debe registrar ambos equipos;
+GET no sobrescribe resultados ni asigna participantes en el fixture persistido.
+
+En el frontend: `/playoffs.html`; cada cruce abre un resumen navegable del encuentro.
+El detalle completo del caso 5 sigue pendiente. Tests locales: resolución completa,
+penales, cierres, correcciones en cascada, dependencias inválidas y fallos de caché.
+La validación con motores reales requiere `.env` apuntando al MongoDB del proyecto
+(27018 por defecto); no conectar al MongoDB de otro proyecto en 27017.
