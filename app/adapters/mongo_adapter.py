@@ -117,6 +117,11 @@ class MongoAdapter(BaseAdapter):
         ))
 
     @observe("MongoDB")
+    def list_cruces(self):
+        return self._execute(lambda: list(self.db['cruces'].find(
+            {}, {'_id': 1, 'fase': 1, 'orden': 1, 'local': 1, 'visitante': 1}).sort('_id', 1)))
+
+    @observe("MongoDB")
     def list_grupos(self):
         return self._execute(lambda: list(self.db["grupos"].find(
             {}, {"_id": 1, "equipos": 1, "reglas": 1}).sort("_id", 1)))

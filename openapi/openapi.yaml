@@ -314,6 +314,76 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
+  /playoffs:
+    get:
+      tags:
+      - Playoffs
+      summary: Consultar el cuadro de eliminatorias
+      description: 'Cruces ordenados por ronda y orden visual desde MongoDB. Plazas
+        por equipo, puesto de grupo completo o ganador anterior. Incluye partido,
+        origen, ganador y siguiente cruce. Redis opcional versionado por todas las
+        entradas: cierres y correcciones recalculan sin escrituras. Un resultado con
+        participantes obsoletos o sin desempate válido requiere_revision y no propaga
+        ganador. Sin cuadro cargado devuelve items vacío. Reglas explícitas de la
+        demo: dos clasificados por grupo, sin mejores terceros.'
+      operationId: obtener_playoffs_playoffs_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayoffsResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '400':
+          description: Parámetro inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '503':
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
   /equipos:
     get:
       tags:
@@ -1513,6 +1583,48 @@ components:
       - items
       - siguienteCursor
       title: ComentariosPagina
+    CruceResuelto:
+      properties:
+        codigo:
+          type: string
+          title: Codigo
+        fase:
+          type: string
+          title: Fase
+        orden:
+          type: integer
+          title: Orden
+        local:
+          $ref: '#/components/schemas/Plaza'
+        visitante:
+          $ref: '#/components/schemas/Plaza'
+        partido:
+          $ref: '#/components/schemas/PartidoFixture'
+        ganador:
+          anyOf:
+          - $ref: '#/components/schemas/EquipoRef'
+          - type: 'null'
+        siguiente:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Siguiente
+        requiere_revision:
+          type: boolean
+          title: Requiere Revision
+      additionalProperties: false
+      type: object
+      required:
+      - codigo
+      - fase
+      - orden
+      - local
+      - visitante
+      - partido
+      - ganador
+      - siguiente
+      - requiere_revision
+      title: CruceResuelto
     EquipoRef:
       properties:
         codigo:
@@ -1907,6 +2019,58 @@ components:
       - goles_local
       - goles_visitante
       title: Marcador
+    OrigenEquipo:
+      properties:
+        tipo:
+          type: string
+          const: equipo
+          title: Tipo
+        equipo:
+          $ref: '#/components/schemas/EquipoRef'
+      additionalProperties: false
+      type: object
+      required:
+      - tipo
+      - equipo
+      title: OrigenEquipo
+    OrigenGanador:
+      properties:
+        tipo:
+          type: string
+          const: ganador
+          title: Tipo
+        cruce:
+          type: string
+          pattern: ^P-[0-9]{3}$
+          title: Cruce
+      additionalProperties: false
+      type: object
+      required:
+      - tipo
+      - cruce
+      title: OrigenGanador
+    OrigenGrupo:
+      properties:
+        tipo:
+          type: string
+          const: grupo
+          title: Tipo
+        grupo:
+          type: string
+          pattern: ^[A-P]$
+          title: Grupo
+        posicion:
+          type: integer
+          maximum: 2.0
+          minimum: 1.0
+          title: Posicion
+      additionalProperties: false
+      type: object
+      required:
+      - tipo
+      - grupo
+      - posicion
+      title: OrigenGrupo
     PartidoFixture:
       properties:
         codigo:
@@ -2023,6 +2187,46 @@ components:
       - fase
       - fecha
       title: PartidoResponse
+    PlayoffsResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/CruceResuelto'
+          type: array
+          title: Items
+      additionalProperties: false
+      type: object
+      required:
+      - items
+      title: PlayoffsResponse
+    Plaza:
+      properties:
+        origen:
+          oneOf:
+          - $ref: '#/components/schemas/OrigenGrupo'
+          - $ref: '#/components/schemas/OrigenGanador'
+          - $ref: '#/components/schemas/OrigenEquipo'
+          title: Origen
+          discriminator:
+            propertyName: tipo
+            mapping:
+              equipo: '#/components/schemas/OrigenEquipo'
+              ganador: '#/components/schemas/OrigenGanador'
+              grupo: '#/components/schemas/OrigenGrupo'
+        descripcion:
+          type: string
+          title: Descripcion
+        equipo:
+          anyOf:
+          - $ref: '#/components/schemas/EquipoRef'
+          - type: 'null'
+      additionalProperties: false
+      type: object
+      required:
+      - origen
+      - descripcion
+      - equipo
+      title: Plaza
     PosicionGrupo:
       properties:
         posicion:

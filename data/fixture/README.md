@@ -18,3 +18,15 @@ resultados de ejemplo no representan un calendario ni un torneo oficiales.
 explícito después de puntos, DG y GF). Carga aditiva independiente:
 `.venv/bin/python scripts/cargar_grupos.py`; `--solo-validar` valida sin motores.
 No se ejecuta durante el arranque ni modifica resultados.
+
+## Cruces de playoffs
+
+`cruces.json` define 31 partidos: dieciseisavos, octavos, cuartos, semifinales y
+final. Clasifican los dos primeros de A–P; se cruzan A1–B2, B1–A2, etc., y los
+ganadores consecutivos se enfrentan en la ronda siguiente. No hay mejores terceros.
+Son reglas de la demo, no un reglamento oficial.
+
+Validar sin bases: `.venv/bin/python scripts/cargar_playoffs.py --solo-validar`.
+Cargar de forma explícita, con fixture y grupos existentes en el MongoDB del
+proyecto: `.venv/bin/python scripts/cargar_playoffs.py`. Solo inserta ausentes;
+rechaza divergencias y no modifica partidos, marcadores ni planteles.

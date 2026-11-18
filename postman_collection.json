@@ -2939,6 +2939,182 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Playoffs",
+      "item": [
+        {
+          "name": "Consultar playoffs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/playoffs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "playoffs"
+              ],
+              "query": []
+            },
+            "description": "Cuadro de 31 cruces de la demo. Dos primeros por grupo, emparejados A–B, C–D, etc. Orígenes, participantes resueltos, partido, ganador, siguiente y requiere_revision. Recalcula cierres y correcciones; Redis opcional. Sin carga: items vacío. GET no escribe en MongoDB."
+          },
+          "response": [
+            {
+              "name": "Cuadro pendiente de clasificación",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"items\": [\n    {\n      \"codigo\": \"P-097\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 1,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"A\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo A\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"B\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo B\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-097\",\n        \"fecha_hora\": \"2030-06-27T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-113\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-098\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 2,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"B\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo B\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"A\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo A\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-098\",\n        \"fecha_hora\": \"2030-06-27T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-113\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-099\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 3,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"C\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo C\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"D\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo D\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-099\",\n        \"fecha_hora\": \"2030-06-27T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-114\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-100\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 4,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"D\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo D\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"C\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo C\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-100\",\n        \"fecha_hora\": \"2030-06-27T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-114\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-101\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 5,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"E\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo E\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"F\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo F\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-101\",\n        \"fecha_hora\": \"2030-06-28T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-115\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-102\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 6,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"F\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo F\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"E\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo E\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-102\",\n        \"fecha_hora\": \"2030-06-28T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-115\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-103\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 7,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"G\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo G\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"H\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo H\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-103\",\n        \"fecha_hora\": \"2030-06-28T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-116\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-104\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 8,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"H\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo H\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"G\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo G\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-104\",\n        \"fecha_hora\": \"2030-06-28T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-116\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-105\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 9,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"I\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo I\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"J\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo J\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-105\",\n        \"fecha_hora\": \"2030-06-29T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-117\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-106\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 10,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"J\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo J\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"I\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo I\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-106\",\n        \"fecha_hora\": \"2030-06-29T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-117\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-107\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 11,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"K\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo K\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"L\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo L\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-107\",\n        \"fecha_hora\": \"2030-06-29T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-118\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-108\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 12,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"L\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo L\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"K\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo K\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-108\",\n        \"fecha_hora\": \"2030-06-29T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-118\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-109\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 13,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"M\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo M\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"N\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo N\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-109\",\n        \"fecha_hora\": \"2030-06-30T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-119\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-110\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 14,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"N\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo N\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"M\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo M\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-110\",\n        \"fecha_hora\": \"2030-06-30T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-119\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-111\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 15,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"O\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo O\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"P\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo P\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-111\",\n        \"fecha_hora\": \"2030-06-30T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-120\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-112\",\n      \"fase\": \"Dieciseisavos\",\n      \"orden\": 16,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"P\",\n          \"posicion\": 1\n        },\n        \"descripcion\": \"1.º del grupo P\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"grupo\",\n          \"grupo\": \"O\",\n          \"posicion\": 2\n        },\n        \"descripcion\": \"2.º del grupo O\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-112\",\n        \"fecha_hora\": \"2030-06-30T18:00:00Z\",\n        \"fase\": \"Dieciseisavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-120\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-113\",\n      \"fase\": \"Octavos\",\n      \"orden\": 1,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-097\"\n        },\n        \"descripcion\": \"Ganador del partido P-097\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-098\"\n        },\n        \"descripcion\": \"Ganador del partido P-098\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-113\",\n        \"fecha_hora\": \"2030-07-03T18:00:00Z\",\n        \"fase\": \"Octavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-121\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-114\",\n      \"fase\": \"Octavos\",\n      \"orden\": 2,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-099\"\n        },\n        \"descripcion\": \"Ganador del partido P-099\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-100\"\n        },\n        \"descripcion\": \"Ganador del partido P-100\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-114\",\n        \"fecha_hora\": \"2030-07-03T18:00:00Z\",\n        \"fase\": \"Octavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-121\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-115\",\n      \"fase\": \"Octavos\",\n      \"orden\": 3,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-101\"\n        },\n        \"descripcion\": \"Ganador del partido P-101\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-102\"\n        },\n        \"descripcion\": \"Ganador del partido P-102\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-115\",\n        \"fecha_hora\": \"2030-07-04T18:00:00Z\",\n        \"fase\": \"Octavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-122\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-116\",\n      \"fase\": \"Octavos\",\n      \"orden\": 4,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-103\"\n        },\n        \"descripcion\": \"Ganador del partido P-103\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-104\"\n        },\n        \"descripcion\": \"Ganador del partido P-104\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-116\",\n        \"fecha_hora\": \"2030-07-04T18:00:00Z\",\n        \"fase\": \"Octavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-122\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-117\",\n      \"fase\": \"Octavos\",\n      \"orden\": 5,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-105\"\n        },\n        \"descripcion\": \"Ganador del partido P-105\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-106\"\n        },\n        \"descripcion\": \"Ganador del partido P-106\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-117\",\n        \"fecha_hora\": \"2030-07-05T18:00:00Z\",\n        \"fase\": \"Octavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-123\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-118\",\n      \"fase\": \"Octavos\",\n      \"orden\": 6,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-107\"\n        },\n        \"descripcion\": \"Ganador del partido P-107\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-108\"\n        },\n        \"descripcion\": \"Ganador del partido P-108\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-118\",\n        \"fecha_hora\": \"2030-07-05T18:00:00Z\",\n        \"fase\": \"Octavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-123\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-119\",\n      \"fase\": \"Octavos\",\n      \"orden\": 7,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-109\"\n        },\n        \"descripcion\": \"Ganador del partido P-109\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-110\"\n        },\n        \"descripcion\": \"Ganador del partido P-110\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-119\",\n        \"fecha_hora\": \"2030-07-06T18:00:00Z\",\n        \"fase\": \"Octavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-124\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-120\",\n      \"fase\": \"Octavos\",\n      \"orden\": 8,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-111\"\n        },\n        \"descripcion\": \"Ganador del partido P-111\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-112\"\n        },\n        \"descripcion\": \"Ganador del partido P-112\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-120\",\n        \"fecha_hora\": \"2030-07-06T18:00:00Z\",\n        \"fase\": \"Octavos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-124\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-121\",\n      \"fase\": \"Cuartos\",\n      \"orden\": 1,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-113\"\n        },\n        \"descripcion\": \"Ganador del partido P-113\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-114\"\n        },\n        \"descripcion\": \"Ganador del partido P-114\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-121\",\n        \"fecha_hora\": \"2030-07-09T18:00:00Z\",\n        \"fase\": \"Cuartos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-125\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-122\",\n      \"fase\": \"Cuartos\",\n      \"orden\": 2,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-115\"\n        },\n        \"descripcion\": \"Ganador del partido P-115\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-116\"\n        },\n        \"descripcion\": \"Ganador del partido P-116\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-122\",\n        \"fecha_hora\": \"2030-07-09T18:00:00Z\",\n        \"fase\": \"Cuartos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-125\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-123\",\n      \"fase\": \"Cuartos\",\n      \"orden\": 3,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-117\"\n        },\n        \"descripcion\": \"Ganador del partido P-117\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-118\"\n        },\n        \"descripcion\": \"Ganador del partido P-118\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-123\",\n        \"fecha_hora\": \"2030-07-10T18:00:00Z\",\n        \"fase\": \"Cuartos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-126\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-124\",\n      \"fase\": \"Cuartos\",\n      \"orden\": 4,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-119\"\n        },\n        \"descripcion\": \"Ganador del partido P-119\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-120\"\n        },\n        \"descripcion\": \"Ganador del partido P-120\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-124\",\n        \"fecha_hora\": \"2030-07-10T18:00:00Z\",\n        \"fase\": \"Cuartos\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-126\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-125\",\n      \"fase\": \"Semifinal\",\n      \"orden\": 1,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-121\"\n        },\n        \"descripcion\": \"Ganador del partido P-121\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-122\"\n        },\n        \"descripcion\": \"Ganador del partido P-122\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-125\",\n        \"fecha_hora\": \"2030-07-13T18:00:00Z\",\n        \"fase\": \"Semifinal\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-127\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-126\",\n      \"fase\": \"Semifinal\",\n      \"orden\": 2,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-123\"\n        },\n        \"descripcion\": \"Ganador del partido P-123\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-124\"\n        },\n        \"descripcion\": \"Ganador del partido P-124\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-126\",\n        \"fecha_hora\": \"2030-07-14T18:00:00Z\",\n        \"fase\": \"Semifinal\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": \"P-127\",\n      \"requiere_revision\": false\n    },\n    {\n      \"codigo\": \"P-127\",\n      \"fase\": \"Final\",\n      \"orden\": 1,\n      \"local\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-125\"\n        },\n        \"descripcion\": \"Ganador del partido P-125\",\n        \"equipo\": null\n      },\n      \"visitante\": {\n        \"origen\": {\n          \"tipo\": \"ganador\",\n          \"cruce\": \"P-126\"\n        },\n        \"descripcion\": \"Ganador del partido P-126\",\n        \"equipo\": null\n      },\n      \"partido\": {\n        \"codigo\": \"P-127\",\n        \"fecha_hora\": \"2030-07-21T18:00:00Z\",\n        \"fase\": \"Final\",\n        \"grupo\": null,\n        \"local\": null,\n        \"visitante\": null,\n        \"estado\": \"proximo\",\n        \"resultado\": null\n      },\n      \"ganador\": null,\n      \"siguiente\": null,\n      \"requiere_revision\": false\n    }\n  ]\n}",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/playoffs",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "playoffs"
+                  ],
+                  "query": []
+                },
+                "description": "Cuadro de 31 cruces de la demo. Dos primeros por grupo, emparejados A–B, C–D, etc. Orígenes, participantes resueltos, partido, ganador, siguiente y requiere_revision. Recalcula cierres y correcciones; Redis opcional. Sin carga: items vacío. GET no escribe en MongoDB."
+              }
+            },
+            {
+              "name": "MONGODB_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/playoffs",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "playoffs"
+                  ],
+                  "query": []
+                },
+                "description": "Cuadro de 31 cruces de la demo. Dos primeros por grupo, emparejados A–B, C–D, etc. Orígenes, participantes resueltos, partido, ganador, siguiente y requiere_revision. Recalcula cierres y correcciones; Redis opcional. Sin carga: items vacío. GET no escribe en MongoDB."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_AUTHENTICATION_FAILED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/playoffs",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "playoffs"
+                  ],
+                  "query": []
+                },
+                "description": "Cuadro de 31 cruces de la demo. Dos primeros por grupo, emparejados A–B, C–D, etc. Orígenes, participantes resueltos, partido, ganador, siguiente y requiere_revision. Recalcula cierres y correcciones; Redis opcional. Sin carga: items vacío. GET no escribe en MongoDB."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_ACCESS_DENIED",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/playoffs",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "playoffs"
+                  ],
+                  "query": []
+                },
+                "description": "Cuadro de 31 cruces de la demo. Dos primeros por grupo, emparejados A–B, C–D, etc. Orígenes, participantes resueltos, partido, ganador, siguiente y requiere_revision. Recalcula cierres y correcciones; Redis opcional. Sin carga: items vacío. GET no escribe en MongoDB."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_CONTEXT_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/playoffs",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "playoffs"
+                  ],
+                  "query": []
+                },
+                "description": "Cuadro de 31 cruces de la demo. Dos primeros por grupo, emparejados A–B, C–D, etc. Orígenes, participantes resueltos, partido, ganador, siguiente y requiere_revision. Recalcula cierres y correcciones; Redis opcional. Sin carga: items vacío. GET no escribe en MongoDB."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
+        }
+      ]
     }
   ],
   "variable": [
