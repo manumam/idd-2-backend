@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 Modelo = TypeVar("Modelo", bound=BaseModel)
 
 PLAYOFFS_CACHE_KEY = "playoffs:v2:todos"
-PATRONES_DERIVADOS = ("partido:v2:*", "eventos:v2:*", "alineaciones:v2:*", "grupos:v2:*", PLAYOFFS_CACHE_KEY)
+PATRONES_DERIVADOS = ("partido:v2:*", "eventos:v2:*", "alineaciones:v2:*", "grupos:v2:*", PLAYOFFS_CACHE_KEY,
+                      "mapa_calor:v2:*")
 FUNCIONALIDAD_POR_NAMESPACE = {
     "partido": "partido", "eventos": "eventos", "alineaciones": "alineaciones",
     "grupos": "posiciones", "playoffs": "playoffs", "mapa_calor": "mapa_calor",

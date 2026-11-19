@@ -162,7 +162,7 @@ Los filtros son opcionales salvo donde se indica. Todos los endpoints leen Redis
 | Estadísticas de equipos | `GET /partidos/{id}/estadisticas` | En vivo: MongoDB + InfluxDB. Finales: MongoDB. |
 | Jugador en un partido | `GET /partidos/{id}/jugadores/{jugador_id}/estadisticas` | En vivo: MongoDB + InfluxDB. Finales: MongoDB. |
 | Totales de jugador | `GET /jugadores/{id}/estadisticas` | MongoDB; acumulado del jugador en el Mundial 2030. |
-| Mapa de calor | `GET /partidos/{id}/mapa-calor?jugador_id=…&desde_minuto=…&hasta_minuto=…` | Implementado por jugador: MongoDB (estado, selecciones e inicio del tracking) + InfluxDB: `tracking_jugador` en vivo y `ocupacion_jugador_minuto` en finalizados (crudo como respaldo si falta materializar); sin rango, todo el partido transcurrido. Pendiente: filtro por equipo y caché. |
+| Mapa de calor | `GET /partidos/{id}/mapa-calor?jugador_id=…&desde_minuto=…&hasta_minuto=…` | Implementado por jugador: MongoDB (estado, selecciones e inicio del tracking) + InfluxDB: `tracking_jugador` en vivo y `ocupacion_jugador_minuto` en finalizados (crudo como respaldo si falta materializar); sin rango, todo el partido transcurrido. Caché Redis: 5 s en vivo, 1 h histórico; próximo sin caché. Pendiente: filtro por equipo. |
 | Pelota (opcional) | `GET /partidos/{id}/pelota` | Última muestra de InfluxDB durante el partido en vivo. |
 
 Las claves de caché incluyen todos los filtros que cambian la respuesta. Evento nuevo: invalidar eventos, marcador y estadísticas deportivas afectadas. Nuevas muestras: TTL corto en tracking y estadísticas físicas. Cierre/corrección: invalidar también fixture, posiciones, cruces y acumulados de jugadores. Los TTL concretos quedan por configurar y medir.

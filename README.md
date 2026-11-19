@@ -375,4 +375,8 @@ y cuenta: no se promedian coordenadas.
   todavía no se materializó, usa el crudo mientras exista (`fuente: en_vivo`).
   Partido próximo: 200 con celdas vacías, sin consultar InfluxDB.
 - Partido inexistente o jugador ajeno a las dos selecciones: 404. InfluxDB caído: 503;
-  timeout: 504. Todavía sin caché Redis.
+  timeout: 504.
+- Cache-Aside en Redis con clave `mapa_calor:v2:{partido}:{jugador}:{desde}:{hasta}`
+  (`todo` si falta un límite): TTL 5 s si `fuente: en_vivo` (el polling del front) y
+  1 h si `historico`. El partido próximo no se cachea. Redis caído o contenido
+  inválido: se calcula igual. La materialización borra `mapa_calor:v2:{partido}:*`.

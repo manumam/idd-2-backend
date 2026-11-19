@@ -7,12 +7,16 @@ from app.core.exceptions import InvalidRequestError, ResourceNotFoundError
 from app.schemas.mapa_calor import CeldaMapa, GrillaCancha, IntervaloMinutos, MapaCalorResponse
 from app.schemas.partidos import PartidoResponse
 from app.services import partidos_service
+from app.services.cache_partidos import clave_mapa_calor, guardar_cache, leer_cache
 from app.services.grilla_cancha import (
     COLUMNAS, FILAS, Celda, celda_desde_id, celdas_con_intensidad, parametros_grilla)
 
 # Tiempo reglamentario más prórroga; coincide con el máximo del reloj del partido.
 MINUTO_MAXIMO = 120
 FORMATO_HORA = "%Y-%m-%dT%H:%M:%SZ"
+# En vivo el mapa crece con cada muestra: 5 s es el intervalo de polling del front.
+# El histórico de un partido finalizado no cambia, y la materialización invalida sus claves al escribir.
+TTL_MAPA_POR_FUENTE = {"en_vivo": 5, "historico": 3600}
 
 
 def _grilla() -> GrillaCancha:
@@ -81,6 +85,12 @@ def _leer_mapa(detalle: PartidoResponse, jugador: str, desde: int, hasta: int) -
     return "en_vivo", leer_mapa_crudo(detalle.codigo, jugador, inicio, desde, hasta)
 
 
+def _clave(partido: str, jugador: str, desde_minuto: Optional[int], hasta_minuto: Optional[int]) -> str:
+    desde = None if desde_minuto is None else str(desde_minuto)
+    hasta = None if hasta_minuto is None else str(hasta_minuto)
+    return clave_mapa_calor(partido, jugador, desde, hasta)
+
+
 def obtener_mapa_calor(
     partido: str, jugador: str, desde_minuto: Optional[int], hasta_minuto: Optional[int]
 ) -> MapaCalorResponse:
@@ -92,12 +102,18 @@ def obtener_mapa_calor(
         return MapaCalorResponse(partido=partido, jugador=jugador, fuente=None, grilla=_grilla(),
                                  intervalo=None, celdas=[])
 
+    clave = _clave(partido, jugador, desde_minuto, hasta_minuto)
+    cached = leer_cache(clave, MapaCalorResponse)
+    if cached is not None:
+        return cached
     desde = desde_minuto if desde_minuto is not None else 0
     hasta = hasta_minuto if hasta_minuto is not None else _minuto_transcurrido(detalle)
     _validar_rango(desde, hasta)
     fuente, muestras = _leer_mapa(detalle, jugador, desde, hasta)
-    return MapaCalorResponse(
+    respuesta = MapaCalorResponse(
         partido=partido, jugador=jugador, fuente=fuente, grilla=_grilla(),
         intervalo=IntervaloMinutos(desde_minuto=desde, hasta_minuto=hasta),
         celdas=[CeldaMapa(**c) for c in celdas_con_intensidad(muestras)],
     )
+    guardar_cache(clave, respuesta, ttl_segundos=TTL_MAPA_POR_FUENTE[fuente])
+    return respuesta

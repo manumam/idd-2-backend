@@ -4,8 +4,9 @@ from unittest.mock import Mock
 
 import pytest
 import requests
+from prometheus_client import REGISTRY
 
-from app.adapters import influx_adapter, mongo_adapter
+from app.adapters import influx_adapter, mongo_adapter, redis_adapter
 from app.adapters.influx_adapter import SQL_MUESTRAS_POR_CELDA, SQL_OCUPACION_POR_CELDA
 from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
@@ -203,3 +204,69 @@ def test_error_de_consulta_del_historico_no_cae_al_crudo(client, partido, influx
     response = client.get('/partidos/P-002/mapa-calor', params={'jugador_id': 'ARG-10'})
     assert response.status_code == 500
     assert response.json()['code'] == 'INFLUXDB_QUERY_FAILED'
+
+
+def lecturas_cache(resultado):
+    return REGISTRY.get_sample_value(
+        'api_cache_total', {'funcionalidad': 'mapa_calor', 'resultado': resultado}) or 0.0
+
+
+@pytest.mark.parametrize('estado,ocupacion,fuente,ttl', [
+    ('en_vivo', MATERIALIZADO, 'en_vivo', 5),
+    ('finalizado', MATERIALIZADO, 'historico', 3600),
+    ('finalizado', [], 'en_vivo', 5),
+])
+def test_miss_consulta_influx_y_guarda_con_ttl_segun_fuente(client, partido, influx, cache_redis, estado,
+                                                            ocupacion, fuente, ttl):
+    partido['estado'] = estado
+    influx.ocupacion = ocupacion
+    misses = lecturas_cache('miss')
+    data = client.get(URL, params={'jugador_id': 'ARG-10', 'desde_minuto': 0, 'hasta_minuto': 45}).json()
+    assert data['fuente'] == fuente
+    assert lecturas_cache('miss') == misses + 1
+    guardados = [(c.args[0], c.args[2]) for c in redis_adapter.set_cache.call_args_list
+                 if c.args[0].startswith('mapa_calor:')]
+    assert guardados == [('mapa_calor:v2:P-002:ARG-10:0:45', ttl)]
+
+
+def test_hit_no_consulta_influx(client, partido, influx, cache_redis):
+    primera = client.get(URL, params={'jugador_id': 'ARG-10'}).json()
+    consultas = len(influx.consultas)
+    hits = lecturas_cache('hit')
+    assert client.get(URL, params={'jugador_id': 'ARG-10'}).json() == primera
+    assert len(influx.consultas) == consultas
+    assert lecturas_cache('hit') == hits + 1
+    assert 'mapa_calor:v2:P-002:ARG-10:todo:todo' in cache_redis
+
+
+def test_la_clave_distingue_jugador_y_rango(client, partido, influx, cache_redis):
+    for params in ({}, {'desde_minuto': 0}, {'hasta_minuto': 31}, {'desde_minuto': 0, 'hasta_minuto': 31}):
+        client.get(URL, params={'jugador_id': 'ARG-10', **params})
+    assert len(influx.consultas) == 4
+    assert {k for k in cache_redis if k.startswith('mapa_calor:')} == {
+        'mapa_calor:v2:P-002:ARG-10:todo:todo', 'mapa_calor:v2:P-002:ARG-10:0:todo',
+        'mapa_calor:v2:P-002:ARG-10:todo:31', 'mapa_calor:v2:P-002:ARG-10:0:31'}
+
+
+def test_proximo_no_se_cachea(client, partido, influx, cache_redis):
+    partido.update(estado='proximo', resultado=None, reloj=None)
+    client.get(URL, params={'jugador_id': 'ARG-10'})
+    assert not any(k.startswith('mapa_calor:') for k in cache_redis)
+
+
+def test_cache_invalida_recalcula(client, partido, influx, cache_redis):
+    cache_redis['mapa_calor:v2:P-002:ARG-10:todo:todo'] = '{invalido'
+    errores = lecturas_cache('error')
+    response = client.get(URL, params={'jugador_id': 'ARG-10'})
+    assert response.status_code == 200 and len(response.json()['celdas']) == 2
+    assert lecturas_cache('error') == errores + 1
+    assert len(influx.consultas) == 1
+
+
+def test_redis_caido_no_falla_el_pedido(client, partido, influx, monkeypatch):
+    caido = Mock(side_effect=DatabaseUnavailableError('Redis', ConnectionRefusedError()))
+    for operacion in ('get_cache', 'set_cache'):
+        monkeypatch.setattr(redis_adapter, operacion, caido)
+    response = client.get(URL, params={'jugador_id': 'ARG-10'})
+    assert response.status_code == 200 and len(response.json()['celdas']) == 2
+    assert len(influx.consultas) == 1
