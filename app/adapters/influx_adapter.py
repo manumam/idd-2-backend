@@ -15,6 +15,34 @@ from app.core.exceptions import DatabaseUnavailableError
 
 logger = logging.getLogger(__name__)
 
+# encontrado en documentación de InfluxDB (SQL: floor, least)
+# Misma celda que la materialización: LEAST lleva el borde lejano (x = 105, y = 68) a la última celda.
+SQL_MUESTRAS_POR_CELDA = (
+    "SELECT LEAST(FLOOR(x_m / $lado_m), $ultima_columna) AS columna, "
+    "LEAST(FLOOR(y_m / $lado_m), $ultima_fila) AS fila, "
+    "COUNT(*) AS muestras "
+    "FROM tracking_jugador "
+    "WHERE partido_id = $partido AND jugador_id = $jugador AND time >= $desde AND time < $hasta "
+    "AND x_m BETWEEN 0 AND $largo_m AND y_m BETWEEN 0 AND $ancho_m "
+    "GROUP BY columna, fila"
+)
+
+# El tiempo de cada punto es el comienzo de su ventana de un minuto.
+SQL_OCUPACION_POR_CELDA = (
+    "SELECT celda, SUM(muestras) AS muestras "
+    "FROM ocupacion_jugador_minuto "
+    "WHERE partido_id = $partido AND jugador_id = $jugador AND time >= $desde AND time < $hasta "
+    "GROUP BY celda"
+)
+
+
+def _tabla_inexistente(error: DatabaseUnavailableError) -> bool:
+    response = getattr(error.original_error, "response", None)
+    if response is None or response.status_code != 400:
+        return False
+    texto = response.text or ""
+    return "table" in texto and "not found" in texto
+
 
 class InfluxAdapter(BaseAdapter):
     """Encapsula llamadas HTTP/SQL a InfluxDB 3 Core."""
@@ -78,6 +106,24 @@ class InfluxAdapter(BaseAdapter):
         return self.query_sql(sql, params)
 
     @observe("InfluxDB")
+    def contar_muestras_por_celda(
+        self, partido_id: str, jugador_id: str, desde: str, hasta: str, grilla: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Muestras crudas de un jugador por celda en [desde, hasta), desde la base en vivo."""
+        params = dict(grilla, partido=partido_id, jugador=jugador_id, desde=desde, hasta=hasta)
+        return self.query_sql(SQL_MUESTRAS_POR_CELDA, params, settings.influx_database_en_vivo)
+
+    @observe("InfluxDB")
+    def sumar_ocupacion_por_celda(self, partido_id: str, jugador_id: str, desde: str, hasta: str) -> List[Dict[str, Any]]:
+        """Muestras materializadas de un jugador por celda, de las ventanas que empiezan en [desde, hasta)."""
+        params = {"partido": partido_id, "jugador": jugador_id, "desde": desde, "hasta": hasta}
+        try:
+            return self.query_sql(SQL_OCUPACION_POR_CELDA, params, settings.influx_database)
+        except DatabaseUnavailableError as error:
+            # Antes de la primera materialización la tabla no existe: no hay histórico, no es una falla.
+            if _tabla_inexistente(error):
+                return []
+            raise
     def find_muestras(self, partido: str, desde: str, hasta: str):
         tablas = self.query_sql("SELECT table_name FROM information_schema.tables WHERE table_name = 'estadisticas_partido'")
         if not tablas:
@@ -126,12 +172,20 @@ class InfluxAdapter(BaseAdapter):
             logger.warning("Fallo en ping InfluxDB: %s", e.__class__.__name__)
             raise DatabaseUnavailableError("InfluxDB", e)
 
-    def query_sql(self, query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-        """Ejecuta una consulta SQL parametrizada contra la base temporal configurada.
+    def query_sql(
+        self, query: str, params: Optional[Dict[str, Any]] = None, database: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """Ejecuta una consulta SQL parametrizada contra una base temporal configurada.
+
+        `database` debe ser una de las bases de settings; por defecto, INFLUX_DATABASE.
 
         Solo los fallos de disponibilidad (conexión, timeout, 5xx, credenciales) dan
         'fuente no disponible'; una consulta rechazada (4xx) es un error de la aplicación.
         """
+        database = database or settings.influx_database
+        if database not in (settings.influx_database, settings.influx_database_en_vivo):
+            raise ValueError("Base de InfluxDB no configurada")
+
         token = self._resolve_token()
         headers = {
             "Accept": "application/json",
@@ -142,7 +196,7 @@ class InfluxAdapter(BaseAdapter):
 
         url = f"{settings.influx_url.rstrip('/')}/api/v3/query_sql"
         payload = {
-            "db": settings.influx_database,
+            "db": database,
             "q": query,
             "params": params or {},
         }

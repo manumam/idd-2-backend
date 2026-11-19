@@ -143,7 +143,7 @@ class ClienteMemoria:
 def test_carga_masiva_borra_namespaces_derivados_con_scan(fuentes):
     _, cache = fuentes
     cache.update({k: '{}' for k in ('partido:v2:P-001', 'eventos:v2:P-001:50:0', 'alineaciones:v2:P-001',
-                                    'grupos:v2:A', 'playoffs:v2:todos', 'ajena:abc', 'fixture:v1:todos')})
+                                    'grupos:v2:A', 'playoffs:v2:todos', 'mapa_calor:v2:P-001:ARG-10:todo:todo', 'ajena:abc', 'fixture:v1:todos')})
     borrar_cache_derivada(ClienteMemoria(cache))
     assert set(cache) == {'ajena:abc', 'fixture:v1:todos'}
 

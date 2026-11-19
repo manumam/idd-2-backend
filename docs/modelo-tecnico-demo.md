@@ -140,6 +140,7 @@ El cuadro devuelve fase, orden, partido, plazas y ganador. Hasta resolver una pl
 - Para un jugador histórico, sumar celdas de las ventanas del intervalo solicitado. Para un equipo, sumar las de sus jugadores.
 - La API permite todo el partido o rangos con precisión de minuto, usando inicio inclusivo y fin exclusivo. El frontend debe ofrecer esa misma precisión; no se promete precisión de segundos después de expirar el crudo.
 - Retornar celda, cantidad de muestras, intensidad normalizada, grilla e intervalo efectivo. Una celda sin ocupación representa cero.
+- Los minutos se cuentan desde `inicio_tracking` del partido en MongoDB (lo registra la simulación) o, si falta, desde `fecha_hora`. Un único ancla evita mezclar muestras simuladas y precargadas; se redondea al minuto para coincidir con las ventanas materializadas.
 
 No usar `AVG(x_m)` y `AVG(y_m)` como mapa de calor: una posición promedio no representa la distribución de posiciones. El script actual `fixture2030-influxdb/scripts/agregaciones.sh` agrega velocidad y distancia, pero todavía no genera ocupación espacial.
 
@@ -161,7 +162,7 @@ Los filtros son opcionales salvo donde se indica. Todos los endpoints leen Redis
 | Estadísticas de equipos | `GET /partidos/{id}/estadisticas` | En vivo: MongoDB + InfluxDB. Finales: MongoDB. |
 | Jugador en un partido | `GET /partidos/{id}/jugadores/{jugador_id}/estadisticas` | En vivo: MongoDB + InfluxDB. Finales: MongoDB. |
 | Totales de jugador | `GET /jugadores/{id}/estadisticas` | MongoDB; acumulado del jugador en el Mundial 2030. |
-| Mapa de calor | `GET /partidos/{id}/mapa-calor?jugador_id=…&desde_minuto=…&hasta_minuto=…` | InfluxDB. Se puede filtrar por equipo en lugar de jugador; sin rango, todo el partido transcurrido. |
+| Mapa de calor | `GET /partidos/{id}/mapa-calor?jugador_id=…&desde_minuto=…&hasta_minuto=…` | Implementado por jugador: MongoDB (estado, selecciones e inicio del tracking) + InfluxDB: `tracking_jugador` en vivo y `ocupacion_jugador_minuto` en finalizados (crudo como respaldo si falta materializar); sin rango, todo el partido transcurrido. Caché Redis: 5 s en vivo, 1 h histórico; próximo sin caché. Pendiente: filtro por equipo. |
 | Pelota (opcional) | `GET /partidos/{id}/pelota` | Última muestra de InfluxDB durante el partido en vivo. |
 
 Las claves de caché incluyen todos los filtros que cambian la respuesta. Evento nuevo: invalidar eventos, marcador y estadísticas deportivas afectadas. Nuevas muestras: TTL corto en tracking y estadísticas físicas. Cierre/corrección: invalidar también fixture, posiciones, cruces y acumulados de jugadores. Los TTL concretos quedan por configurar y medir.

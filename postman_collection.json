@@ -1818,6 +1818,416 @@
       ]
     },
     {
+      "name": "Mapa de calor",
+      "item": [
+        {
+          "name": "Mapa de calor de un jugador en un partido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/mapa-calor?jugador_id={{codigoJugador}}&desde_minuto=0&hasta_minuto=45",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "partidos",
+                "{{codigoPartido}}",
+                "mapa-calor"
+              ],
+              "query": [
+                {
+                  "key": "jugador_id",
+                  "value": "{{codigoJugador}}",
+                  "description": "`<equipo>-<dorsal>`",
+                  "disabled": false
+                },
+                {
+                  "key": "desde_minuto",
+                  "value": "0",
+                  "description": null,
+                  "disabled": false
+                },
+                {
+                  "key": "hasta_minuto",
+                  "value": "45",
+                  "description": null,
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Muestras de posición por celda de 5 × 5 m (cancha de 105 × 68 m, 21 × 14 celdas), contadas en InfluxDB, con intensidad relativa a la celda más ocupada; las celdas sin muestras se omiten. Los minutos se cuentan desde el inicio del tracking del partido, con inicio inclusivo y fin exclusivo, entre 0 y 120. Sin `desde_minuto` empieza en 0; sin `hasta_minuto`, llega al minuto transcurrido del reloj (120 si no hay reloj). En vivo lee el tracking crudo (`fuente: en_vivo`); finalizado, la ocupación materializada por minuto (`fuente: historico`), o el crudo si todavía no se materializó. Partido próximo: 200 con `celdas` vacía, `fuente` e `intervalo` null. Partido inexistente o jugador ajeno a sus selecciones: 404.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT o MONGODB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE o MONGODB_UNAVAILABLE. Nunca se devuelven credenciales ni mensajes del driver."
+          },
+          "response": [
+            {
+              "name": "En vivo desde el tracking crudo",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/mapa-calor?jugador_id={{codigoJugador}}&desde_minuto=0&hasta_minuto=45",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "mapa-calor"
+                  ],
+                  "query": [
+                    {
+                      "key": "jugador_id",
+                      "value": "{{codigoJugador}}",
+                      "description": "`<equipo>-<dorsal>`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "desde_minuto",
+                      "value": "0",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "hasta_minuto",
+                      "value": "45",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Muestras de posición por celda de 5 × 5 m (cancha de 105 × 68 m, 21 × 14 celdas), contadas en InfluxDB, con intensidad relativa a la celda más ocupada; las celdas sin muestras se omiten. Los minutos se cuentan desde el inicio del tracking del partido, con inicio inclusivo y fin exclusivo, entre 0 y 120. Sin `desde_minuto` empieza en 0; sin `hasta_minuto`, llega al minuto transcurrido del reloj (120 si no hay reloj). En vivo lee el tracking crudo (`fuente: en_vivo`); finalizado, la ocupación materializada por minuto (`fuente: historico`), o el crudo si todavía no se materializó. Partido próximo: 200 con `celdas` vacía, `fuente` e `intervalo` null. Partido inexistente o jugador ajeno a sus selecciones: 404.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT o MONGODB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE o MONGODB_UNAVAILABLE. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"partido\": \"P-002\", \"jugador\": \"ARG-10\", \"fuente\": \"en_vivo\", \"grilla\": {\"largo_m\": 105.0, \"ancho_m\": 68.0, \"lado_m\": 5.0, \"columnas\": 21, \"filas\": 14}, \"intervalo\": {\"desde_minuto\": 0, \"hasta_minuto\": 45}, \"celdas\": [{\"columna\": 11, \"fila\": 3, \"muestras\": 30, \"intensidad\": 0.5}, {\"columna\": 12, \"fila\": 4, \"muestras\": 60, \"intensidad\": 1.0}]}"
+            },
+            {
+              "name": "Finalizado desde la ocupación materializada",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/mapa-calor?jugador_id={{codigoJugador}}&desde_minuto=0&hasta_minuto=45",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "mapa-calor"
+                  ],
+                  "query": [
+                    {
+                      "key": "jugador_id",
+                      "value": "{{codigoJugador}}",
+                      "description": "`<equipo>-<dorsal>`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "desde_minuto",
+                      "value": "0",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "hasta_minuto",
+                      "value": "45",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Muestras de posición por celda de 5 × 5 m (cancha de 105 × 68 m, 21 × 14 celdas), contadas en InfluxDB, con intensidad relativa a la celda más ocupada; las celdas sin muestras se omiten. Los minutos se cuentan desde el inicio del tracking del partido, con inicio inclusivo y fin exclusivo, entre 0 y 120. Sin `desde_minuto` empieza en 0; sin `hasta_minuto`, llega al minuto transcurrido del reloj (120 si no hay reloj). En vivo lee el tracking crudo (`fuente: en_vivo`); finalizado, la ocupación materializada por minuto (`fuente: historico`), o el crudo si todavía no se materializó. Partido próximo: 200 con `celdas` vacía, `fuente` e `intervalo` null. Partido inexistente o jugador ajeno a sus selecciones: 404.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT o MONGODB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE o MONGODB_UNAVAILABLE. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"partido\": \"P-002\", \"jugador\": \"ARG-10\", \"fuente\": \"historico\", \"grilla\": {\"largo_m\": 105.0, \"ancho_m\": 68.0, \"lado_m\": 5.0, \"columnas\": 21, \"filas\": 14}, \"intervalo\": {\"desde_minuto\": 0, \"hasta_minuto\": 45}, \"celdas\": [{\"columna\": 11, \"fila\": 3, \"muestras\": 30, \"intensidad\": 0.5}, {\"columna\": 12, \"fila\": 4, \"muestras\": 60, \"intensidad\": 1.0}]}"
+            },
+            {
+              "name": "Partido próximo",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/mapa-calor?jugador_id={{codigoJugador}}&desde_minuto=0&hasta_minuto=45",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "mapa-calor"
+                  ],
+                  "query": [
+                    {
+                      "key": "jugador_id",
+                      "value": "{{codigoJugador}}",
+                      "description": "`<equipo>-<dorsal>`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "desde_minuto",
+                      "value": "0",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "hasta_minuto",
+                      "value": "45",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Muestras de posición por celda de 5 × 5 m (cancha de 105 × 68 m, 21 × 14 celdas), contadas en InfluxDB, con intensidad relativa a la celda más ocupada; las celdas sin muestras se omiten. Los minutos se cuentan desde el inicio del tracking del partido, con inicio inclusivo y fin exclusivo, entre 0 y 120. Sin `desde_minuto` empieza en 0; sin `hasta_minuto`, llega al minuto transcurrido del reloj (120 si no hay reloj). En vivo lee el tracking crudo (`fuente: en_vivo`); finalizado, la ocupación materializada por minuto (`fuente: historico`), o el crudo si todavía no se materializó. Partido próximo: 200 con `celdas` vacía, `fuente` e `intervalo` null. Partido inexistente o jugador ajeno a sus selecciones: 404.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT o MONGODB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE o MONGODB_UNAVAILABLE. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"partido\": \"P-002\", \"jugador\": \"ARG-10\", \"fuente\": null, \"grilla\": {\"largo_m\": 105.0, \"ancho_m\": 68.0, \"lado_m\": 5.0, \"columnas\": 21, \"filas\": 14}, \"intervalo\": null, \"celdas\": []}"
+            },
+            {
+              "name": "VALIDACION_INVALIDA",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/mapa-calor?jugador_id={{codigoJugador}}&desde_minuto=45&hasta_minuto=45",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "mapa-calor"
+                  ],
+                  "query": [
+                    {
+                      "key": "jugador_id",
+                      "value": "{{codigoJugador}}",
+                      "description": "`<equipo>-<dorsal>`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "desde_minuto",
+                      "value": "45",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "hasta_minuto",
+                      "value": "45",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Muestras de posición por celda de 5 × 5 m (cancha de 105 × 68 m, 21 × 14 celdas), contadas en InfluxDB, con intensidad relativa a la celda más ocupada; las celdas sin muestras se omiten. Los minutos se cuentan desde el inicio del tracking del partido, con inicio inclusivo y fin exclusivo, entre 0 y 120. Sin `desde_minuto` empieza en 0; sin `hasta_minuto`, llega al minuto transcurrido del reloj (120 si no hay reloj). En vivo lee el tracking crudo (`fuente: en_vivo`); finalizado, la ocupación materializada por minuto (`fuente: historico`), o el crudo si todavía no se materializó. Partido próximo: 200 con `celdas` vacía, `fuente` e `intervalo` null. Partido inexistente o jugador ajeno a sus selecciones: 404.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT o MONGODB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE o MONGODB_UNAVAILABLE. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"VALIDACION_INVALIDA\", \"message\": \"Parámetros inválidos: 'desde_minuto' debe ser anterior a 'hasta_minuto'.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "JUGADOR_NO_ENCONTRADO",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/mapa-calor?jugador_id=BRA-10&desde_minuto=0&hasta_minuto=45",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "mapa-calor"
+                  ],
+                  "query": [
+                    {
+                      "key": "jugador_id",
+                      "value": "BRA-10",
+                      "description": "`<equipo>-<dorsal>`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "desde_minuto",
+                      "value": "0",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "hasta_minuto",
+                      "value": "45",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Muestras de posición por celda de 5 × 5 m (cancha de 105 × 68 m, 21 × 14 celdas), contadas en InfluxDB, con intensidad relativa a la celda más ocupada; las celdas sin muestras se omiten. Los minutos se cuentan desde el inicio del tracking del partido, con inicio inclusivo y fin exclusivo, entre 0 y 120. Sin `desde_minuto` empieza en 0; sin `hasta_minuto`, llega al minuto transcurrido del reloj (120 si no hay reloj). En vivo lee el tracking crudo (`fuente: en_vivo`); finalizado, la ocupación materializada por minuto (`fuente: historico`), o el crudo si todavía no se materializó. Partido próximo: 200 con `celdas` vacía, `fuente` e `intervalo` null. Partido inexistente o jugador ajeno a sus selecciones: 404.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT o MONGODB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE o MONGODB_UNAVAILABLE. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"JUGADOR_NO_ENCONTRADO\", \"message\": \"El jugador 'BRA-10' no pertenece a las selecciones del partido.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "INFLUXDB_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/mapa-calor?jugador_id={{codigoJugador}}&desde_minuto=0&hasta_minuto=45",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "mapa-calor"
+                  ],
+                  "query": [
+                    {
+                      "key": "jugador_id",
+                      "value": "{{codigoJugador}}",
+                      "description": "`<equipo>-<dorsal>`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "desde_minuto",
+                      "value": "0",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "hasta_minuto",
+                      "value": "45",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Muestras de posición por celda de 5 × 5 m (cancha de 105 × 68 m, 21 × 14 celdas), contadas en InfluxDB, con intensidad relativa a la celda más ocupada; las celdas sin muestras se omiten. Los minutos se cuentan desde el inicio del tracking del partido, con inicio inclusivo y fin exclusivo, entre 0 y 120. Sin `desde_minuto` empieza en 0; sin `hasta_minuto`, llega al minuto transcurrido del reloj (120 si no hay reloj). En vivo lee el tracking crudo (`fuente: en_vivo`); finalizado, la ocupación materializada por minuto (`fuente: historico`), o el crudo si todavía no se materializó. Partido próximo: 200 con `celdas` vacía, `fuente` e `intervalo` null. Partido inexistente o jugador ajeno a sus selecciones: 404.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT o MONGODB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE o MONGODB_UNAVAILABLE. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"INFLUXDB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "INFLUXDB_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/mapa-calor?jugador_id={{codigoJugador}}&desde_minuto=0&hasta_minuto=45",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "mapa-calor"
+                  ],
+                  "query": [
+                    {
+                      "key": "jugador_id",
+                      "value": "{{codigoJugador}}",
+                      "description": "`<equipo>-<dorsal>`",
+                      "disabled": false
+                    },
+                    {
+                      "key": "desde_minuto",
+                      "value": "0",
+                      "description": null,
+                      "disabled": false
+                    },
+                    {
+                      "key": "hasta_minuto",
+                      "value": "45",
+                      "description": null,
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "Muestras de posición por celda de 5 × 5 m (cancha de 105 × 68 m, 21 × 14 celdas), contadas en InfluxDB, con intensidad relativa a la celda más ocupada; las celdas sin muestras se omiten. Los minutos se cuentan desde el inicio del tracking del partido, con inicio inclusivo y fin exclusivo, entre 0 y 120. Sin `desde_minuto` empieza en 0; sin `hasta_minuto`, llega al minuto transcurrido del reloj (120 si no hay reloj). En vivo lee el tracking crudo (`fuente: en_vivo`); finalizado, la ocupación materializada por minuto (`fuente: historico`), o el crudo si todavía no se materializó. Partido próximo: 200 con `celdas` vacía, `fuente` e `intervalo` null. Partido inexistente o jugador ajeno a sus selecciones: 404.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT o MONGODB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE o MONGODB_UNAVAILABLE. Nunca se devuelven credenciales ni mensajes del driver."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"INFLUXDB_UNAVAILABLE\", \"message\": \"El servicio de datos 'InfluxDB' no se encuentra disponible temporalmente.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Fixture",
       "item": [
         {

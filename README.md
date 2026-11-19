@@ -61,7 +61,7 @@ el frontend debe usar el mismo destino en `API_PROXY_TARGET`.
 | --- | --- |
 | `MONGO_URI`, `MONGO_DATABASE` | `mongodb://127.0.0.1:27018`, `fixture2030` |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB` | `127.0.0.1`, `6380`, `0` |
-| `INFLUX_URL`, `INFLUX_DATABASE` | `http://127.0.0.1:8181`, `fixture2030_resumen` |
+| `INFLUX_URL`, `INFLUX_DATABASE`, `INFLUX_DATABASE_EN_VIVO` | `http://127.0.0.1:8181`, `fixture2030_resumen`, `fixture2030_en_vivo` |
 | `DB_TIMEOUT_SECONDS` | `5` |
 
 Los puertos deben coincidir con `.env` y los mappings de Compose. Influx admite
@@ -356,6 +356,30 @@ El simulador `scripts/simular_partido.py` genera planes desde catálogos existen
 y los reproduce únicamente mediante ejecución explícita. No carga datos al
 arrancar ni reinicia escenarios. Ver [contrato, uso y límites](docs/eventos.md).
 
+## Mapa de calor de un jugador (caso 10)
+
+`GET /partidos/{codigo}/mapa-calor?jugador_id=ARG-10&desde_minuto=0&hasta_minuto=45`
+devuelve cuántas muestras de posición del jugador caen en cada celda de 5 × 5 m
+(cancha de 105 × 68 m, 21 × 14 celdas) y una intensidad de 0 a 1 relativa a la
+celda más ocupada; las celdas sin muestras se omiten. InfluxDB calcula la celda
+y cuenta: no se promedian coordenadas.
+
+- Minutos desde el inicio del tracking del partido, inicio inclusivo y fin
+  exclusivo, entre 0 y 120. Sin rango: desde 0 hasta el minuto del reloj + 1
+  (120 si no hay reloj). `desde_minuto ≥ hasta_minuto` o fuera de 0–120: 400.
+- El inicio es `inicio_tracking` del partido en MongoDB si existe (UTC, lo
+  registra la simulación) o, si no, `fecha_hora` del calendario (datos precargados).
+- En vivo lee `tracking_jugador` de `fixture2030_en_vivo` (`fuente: en_vivo`).
+  Finalizado suma `ocupacion_jugador_minuto` de `fixture2030_resumen` por celda,
+  con las ventanas que empiezan dentro del rango (`fuente: historico`); si el partido
+  todavía no se materializó, usa el crudo mientras exista (`fuente: en_vivo`).
+  Partido próximo: 200 con celdas vacías, sin consultar InfluxDB.
+- Partido inexistente o jugador ajeno a las dos selecciones: 404. InfluxDB caído: 503;
+  timeout: 504.
+- Cache-Aside en Redis con clave `mapa_calor:v2:{partido}:{jugador}:{desde}:{hasta}`
+  (`todo` si falta un límite): TTL 5 s si `fuente: en_vivo` (el polling del front) y
+  1 h si `historico`. El partido próximo no se cachea. Redis caído o contenido
+  inválido: se calcula igual. La materialización borra `mapa_calor:v2:{partido}:*`.
 ## Comparación de equipos (caso 8)
 
 `GET /partidos/{codigo}/estadisticas` sin fechas compara posesión, tiros, pases,
