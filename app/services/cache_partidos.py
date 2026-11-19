@@ -8,12 +8,17 @@ from app.adapters import mongo_adapter, redis_adapter
 from app.adapters.redis_adapter import borrar_por_patron
 from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
+from app.core.metrics import record_cache
 
 logger = logging.getLogger(__name__)
 Modelo = TypeVar("Modelo", bound=BaseModel)
 
 PLAYOFFS_CACHE_KEY = "playoffs:v2:todos"
 PATRONES_DERIVADOS = ("partido:v2:*", "eventos:v2:*", "alineaciones:v2:*", "grupos:v2:*", PLAYOFFS_CACHE_KEY)
+FUNCIONALIDAD_POR_NAMESPACE = {
+    "partido": "partido", "eventos": "eventos", "alineaciones": "alineaciones",
+    "grupos": "posiciones", "playoffs": "playoffs",
+}
 
 
 def clave_partido(codigo: str) -> str:
@@ -38,15 +43,20 @@ def clave_posiciones(grupo: str) -> str:
 
 def leer_cache(key: str, modelo: type[Modelo]) -> Optional[Modelo]:
     namespace = key.split(":", 1)[0]
+    funcionalidad = FUNCIONALIDAD_POR_NAMESPACE[namespace]
     try:
         cached = redis_adapter.get_cache(key)
         if cached is not None:
             respuesta = modelo.model_validate_json(cached)
             logger.info("%s_cache=hit", namespace)
+            record_cache(funcionalidad, "hit")
             return respuesta
     except (DatabaseUnavailableError, ValidationError, UnicodeError):
         logger.warning("Caché %s no disponible o inválida", namespace)
+        record_cache(funcionalidad, "error")
+        return None
     logger.info("%s_cache=miss", namespace)
+    record_cache(funcionalidad, "miss")
     return None
 
 

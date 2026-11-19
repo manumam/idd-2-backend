@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from app.adapters import mongo_adapter, redis_adapter
 from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
+from app.core.metrics import record_cache
 from app.schemas.fixture import FixtureResponse
 
 logger = logging.getLogger(__name__)
@@ -22,17 +23,27 @@ def invalidar_fixture() -> bool:
         return False
 
 
-def consultar_fixture() -> FixtureResponse:
+def _leer_cache_fixture() -> FixtureResponse | None:
     try:
         cached = redis_adapter.get_cache(FIXTURE_CACHE_KEY)
         if cached is not None:
             respuesta = FixtureResponse.model_validate_json(cached)
             logger.info("fixture_cache=hit")
+            record_cache("fixture", "hit")
             return respuesta
     except (DatabaseUnavailableError, ValidationError, UnicodeError):
         logger.warning("Caché del fixture no disponible o inválida")
-
+        record_cache("fixture", "error")
+        return None
     logger.info("fixture_cache=miss")
+    record_cache("fixture", "miss")
+    return None
+
+
+def consultar_fixture() -> FixtureResponse:
+    cached = _leer_cache_fixture()
+    if cached is not None:
+        return cached
     documentos = mongo_adapter.list_fixture()
     respuesta = FixtureResponse(items=[
         dict(codigo=d["_id"], **{k: v for k, v in d.items() if k != "_id"})

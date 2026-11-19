@@ -1,8 +1,9 @@
 from unittest.mock import Mock
 
-from prometheus_client import REGISTRY
+from prometheus_client import REGISTRY, generate_latest
 
 from app.adapters import mongo_adapter, redis_adapter
+from app.core.exceptions import DatabaseUnavailableError
 from app.main import app
 
 
@@ -60,3 +61,39 @@ def test_error_interno_se_cuenta_con_status_500(client, monkeypatch):
     assert client.get("/equipos/ARG").status_code == 500
 
     assert REGISTRY.get_sample_value("api_http_requests_total", etiquetas) == antes + 1
+
+
+def lecturas_cache(funcionalidad: str, resultado: str) -> float:
+    return REGISTRY.get_sample_value(
+        "api_cache_total", {"funcionalidad": funcionalidad, "resultado": resultado}
+    ) or 0.0
+
+
+def test_cache_fixture_cuenta_miss_y_hit(client, cache_redis, monkeypatch):
+    monkeypatch.setattr(mongo_adapter, "list_fixture", Mock(return_value=[]))
+    miss, hit = lecturas_cache("fixture", "miss"), lecturas_cache("fixture", "hit")
+
+    client.get("/fixture")
+    client.get("/fixture")
+
+    assert lecturas_cache("fixture", "miss") == miss + 1
+    assert lecturas_cache("fixture", "hit") == hit + 1
+
+
+def test_cache_por_funcionalidad_sin_codigos_en_etiquetas(monkeypatch):
+    from app.schemas.grupos import PosicionesResponse
+    from app.services.cache_partidos import clave_posiciones, leer_cache
+    get_cache = Mock(return_value=None)
+    monkeypatch.setattr(redis_adapter, "get_cache", get_cache)
+    antes = {resultado: lecturas_cache("posiciones", resultado) for resultado in ("hit", "miss", "error")}
+
+    leer_cache(clave_posiciones("A"), PosicionesResponse)
+    get_cache.return_value = "{"
+    leer_cache(clave_posiciones("A"), PosicionesResponse)
+    get_cache.side_effect = DatabaseUnavailableError("Redis")
+    leer_cache(clave_posiciones("A"), PosicionesResponse)
+
+    assert lecturas_cache("posiciones", "miss") == antes["miss"] + 1
+    assert lecturas_cache("posiciones", "error") == antes["error"] + 2
+    assert lecturas_cache("posiciones", "hit") == antes["hit"]
+    assert "grupos:v2:A" not in generate_latest().decode()
