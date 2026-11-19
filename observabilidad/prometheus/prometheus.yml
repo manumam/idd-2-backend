@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+
+# Un job por fuente. Cada target lleva `entorno` (prueba | demo) para separar
+# los datos de prueba de los de la demo en Grafana Cloud.
+scrape_configs:
+  - job_name: api
+    metrics_path: /metrics
+    static_configs:
+      # Puerto = API_PORT del .env del backend (default 8000).
+      - targets: ["host.docker.internal:8000"]
+        labels:
+          entorno: prueba

@@ -99,6 +99,7 @@ si la fuente cae o no devuelve los datos esperados. Ver [tests/README.md](tests/
 
 - [Seguimiento de los casos del MVP](docs/casos_de_uso.md).
 - [Observabilidad y errores](docs/observabilidad_y_errores.md).
+- [Monitoreo con Prometheus y Grafana Cloud](observabilidad/README.md).
 - [Pruebas y evidencia disponible](laboratorio/pruebas_y_evidencia.md).
 
 `/live` comprueba el proceso sin consultar motores. `/ready` devuelve 200 si MongoDB e InfluxDB responden a su ping o 503 si alguno falla; Redis es caché opcional y no se evalúa. `/health` devuelve 200 con `up/down` para MongoDB, Redis e InfluxDB aun si alguna está caída. Los endpoints
