@@ -45,9 +45,11 @@ MongoDB se publica solo en loopback en `MONGO_PORT` (27018 por defecto);
 `fixture2030_fixture2030_data`. Redis usa `REDIS_PORT` (6380 por defecto).
 Estas dos bases no requieren otro clon ni ejecutan cargas de datos al iniciar.
 
-Los montajes para importar MongoDB son opcionales, mediante
-`docker-compose.imports.yaml` y `TP_DATA_DIR` (por defecto `../idd-2-tp`).
-Los otros motores todavía usan scripts y datos del repositorio de hitos anteriores.
+`docker-compose.yaml` define MongoDB, Redis e InfluxDB. Los montajes para importar
+MongoDB son opcionales, mediante `docker-compose.imports.yaml` y `TP_DATA_DIR`
+(por defecto `../idd-2-tp`). InfluxDB todavía monta scripts del repositorio de hitos
+anteriores. Los volúmenes locales de Neo4j y Cassandra que ya existan no se borran;
+pueden eliminarse manualmente si ya no se necesitan.
 
 ### Configuración local
 

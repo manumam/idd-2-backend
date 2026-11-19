@@ -13,8 +13,9 @@
   El Compose normal es `docker-compose.yaml`. Para estas vistas, iniciar solo
   `mongo redis`: no requieren el repositorio vecino. MongoDB usa `MONGO_PORT`
   (27018 por defecto), que debe coincidir con `MONGO_URI` en `.env`.
-  `docker-compose.imports.yaml` agrega montajes opcionales para importar MongoDB;
-  otros motores todavía usan montajes de `../idd-2-tp`. Comprobar puertos libres.
+  El Compose define MongoDB, Redis e InfluxDB. `docker-compose.imports.yaml`
+  agrega montajes opcionales para importar MongoDB; InfluxDB todavía monta scripts
+  de `../idd-2-tp`. Comprobar puertos libres.
 - Si falta el repositorio de datos, una conexión o hay otro proyecto ocupando el
   puerto, informar el bloqueo. No conectar la app a bases de otro proyecto ni
   cambiar al laboratorio como alternativa. No detener contenedores ajenos.
