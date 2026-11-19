@@ -15,6 +15,18 @@ from app.core.exceptions import DatabaseUnavailableError
 
 logger = logging.getLogger(__name__)
 
+# encontrado en documentación de InfluxDB (SQL: floor, least)
+# Misma celda que la materialización: LEAST lleva el borde lejano (x = 105, y = 68) a la última celda.
+SQL_MUESTRAS_POR_CELDA = (
+    "SELECT LEAST(FLOOR(x_m / $lado_m), $ultima_columna) AS columna, "
+    "LEAST(FLOOR(y_m / $lado_m), $ultima_fila) AS fila, "
+    "COUNT(*) AS muestras "
+    "FROM tracking_jugador "
+    "WHERE partido_id = $partido AND jugador_id = $jugador AND time >= $desde AND time < $hasta "
+    "AND x_m BETWEEN 0 AND $largo_m AND y_m BETWEEN 0 AND $ancho_m "
+    "GROUP BY columna, fila"
+)
+
 
 class InfluxAdapter(BaseAdapter):
     """Encapsula llamadas HTTP/SQL a InfluxDB 3 Core."""
@@ -76,6 +88,14 @@ class InfluxAdapter(BaseAdapter):
         if equipo_id:
             params["equipo"] = equipo_id
         return self.query_sql(sql, params)
+
+    @observe("InfluxDB")
+    def contar_muestras_por_celda(
+        self, partido_id: str, jugador_id: str, desde: str, hasta: str, grilla: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Muestras crudas de un jugador por celda en [desde, hasta), desde la base en vivo."""
+        params = dict(grilla, partido=partido_id, jugador=jugador_id, desde=desde, hasta=hasta)
+        return self.query_sql(SQL_MUESTRAS_POR_CELDA, params, settings.influx_database_en_vivo)
 
     @observe("InfluxDB")
     def ping(self) -> bool:

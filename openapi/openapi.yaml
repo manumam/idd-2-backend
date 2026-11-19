@@ -1152,6 +1152,133 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
+  /partidos/{codigo}/mapa-calor:
+    get:
+      tags:
+      - Mapa de calor
+      summary: Mapa de calor de un jugador en un partido
+      description: 'Muestras de posición por celda de 5 × 5 m (cancha de 105 × 68
+        m, 21 × 14 celdas), contadas en InfluxDB, con intensidad relativa a la celda
+        más ocupada; las celdas sin muestras se omiten. Los minutos se cuentan desde
+        el inicio del tracking del partido, con inicio inclusivo y fin exclusivo,
+        entre 0 y 120. Sin `desde_minuto` empieza en 0; sin `hasta_minuto`, llega
+        al minuto transcurrido del reloj (120 si no hay reloj). Partido próximo: 200
+        con `celdas` vacía, `fuente` e `intervalo` null. Partido inexistente o jugador
+        ajeno a sus selecciones: 404.'
+      operationId: obtener_mapa_calor_partidos__codigo__mapa_calor_get
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^P-[0-9]{3}$
+          description: Código del partido
+          examples:
+          - P-001
+          title: Codigo
+        description: Código del partido
+      - name: jugador_id
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-Z]{3}-([1-9]|[1-9][0-9])$
+          description: '`<equipo>-<dorsal>`'
+          examples:
+          - ARG-10
+          title: Jugador Id
+        description: '`<equipo>-<dorsal>`'
+      - name: desde_minuto
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+            maximum: 120
+            minimum: 0
+            description: Minuto desde el inicio del tracking del partido
+          - type: 'null'
+          title: Desde Minuto
+      - name: hasta_minuto
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+            maximum: 120
+            minimum: 0
+            description: Minuto desde el inicio del tracking del partido
+          - type: 'null'
+          title: Hasta Minuto
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MapaCalorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '400':
+          description: Parámetro inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '503':
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
 components:
   schemas:
     AlineacionEquipo:
@@ -1201,6 +1328,29 @@ components:
       required:
       - partido
       title: AlineacionesResponse
+    CeldaMapa:
+      properties:
+        columna:
+          type: integer
+          title: Columna
+        fila:
+          type: integer
+          title: Fila
+        muestras:
+          type: integer
+          title: Muestras
+        intensidad:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Intensidad
+      type: object
+      required:
+      - columna
+      - fila
+      - muestras
+      - intensidad
+      title: CeldaMapa
     CruceResuelto:
       properties:
         codigo:
@@ -1496,6 +1646,31 @@ components:
       - lineas
       title: Formacion
       description: Disposición inicial; líneas desde defensa hacia ataque, sin tracking.
+    GrillaCancha:
+      properties:
+        largo_m:
+          type: number
+          title: Largo M
+        ancho_m:
+          type: number
+          title: Ancho M
+        lado_m:
+          type: number
+          title: Lado M
+        columnas:
+          type: integer
+          title: Columnas
+        filas:
+          type: integer
+          title: Filas
+      type: object
+      required:
+      - largo_m
+      - ancho_m
+      - lado_m
+      - columnas
+      - filas
+      title: GrillaCancha
     Grupo:
       properties:
         codigo:
@@ -1542,6 +1717,19 @@ components:
       required:
       - estado
       title: HealthResponse
+    IntervaloMinutos:
+      properties:
+        desde_minuto:
+          type: integer
+          title: Desde Minuto
+        hasta_minuto:
+          type: integer
+          title: Hasta Minuto
+      type: object
+      required:
+      - desde_minuto
+      - hasta_minuto
+      title: IntervaloMinutos
     JugadorAlineacion:
       properties:
         codigo:
@@ -1684,6 +1872,45 @@ components:
           default: alive
       type: object
       title: LivenessResponse
+    MapaCalorResponse:
+      properties:
+        partido:
+          type: string
+          title: Partido
+        jugador:
+          type: string
+          title: Jugador
+        fuente:
+          anyOf:
+          - type: string
+            enum:
+            - en_vivo
+            - historico
+          - type: 'null'
+          title: Fuente
+          description: '`en_vivo`: tracking crudo; `historico`: ocupación materializada;
+            null en un partido próximo'
+        grilla:
+          $ref: '#/components/schemas/GrillaCancha'
+        intervalo:
+          anyOf:
+          - $ref: '#/components/schemas/IntervaloMinutos'
+          - type: 'null'
+          description: Minutos efectivos [desde, hasta); null en un partido próximo
+        celdas:
+          items:
+            $ref: '#/components/schemas/CeldaMapa'
+          type: array
+          title: Celdas
+      type: object
+      required:
+      - partido
+      - jugador
+      - fuente
+      - grilla
+      - intervalo
+      - celdas
+      title: MapaCalorResponse
     Marcador:
       properties:
         goles_local:

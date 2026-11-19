@@ -145,6 +145,12 @@ class MongoAdapter(BaseAdapter):
         return self._execute(lambda: self.db["partidos"].find_one({"_id": codigo}, projection))
 
     @observe("MongoDB")
+    def find_inicio_tracking(self, codigo: str):
+        documento = self._execute(lambda: self.db["partidos"].find_one(
+            {"_id": codigo}, {"_id": 0, "inicio_tracking": 1}))
+        return (documento or {}).get("inicio_tracking")
+
+    @observe("MongoDB")
     def find_eventos(self, codigo: str):
         """Una instantánea con eventos, marcador y referencias del encuentro."""
         fields = ("_id", "fecha_hora", "fase", "grupo", "local", "visitante", "estado",

@@ -355,3 +355,21 @@ finalizar, con Nothing Design oscuro.
 El simulador `scripts/simular_partido.py` genera planes desde catálogos existentes
 y los reproduce únicamente mediante ejecución explícita. No carga datos al
 arrancar ni reinicia escenarios. Ver [contrato, uso y límites](docs/eventos.md).
+
+## Mapa de calor de un jugador (caso 10)
+
+`GET /partidos/{codigo}/mapa-calor?jugador_id=ARG-10&desde_minuto=0&hasta_minuto=45`
+devuelve cuántas muestras de posición del jugador caen en cada celda de 5 × 5 m
+(cancha de 105 × 68 m, 21 × 14 celdas) y una intensidad de 0 a 1 relativa a la
+celda más ocupada; las celdas sin muestras se omiten. InfluxDB calcula la celda
+y cuenta: no se promedian coordenadas.
+
+- Minutos desde el inicio del tracking del partido, inicio inclusivo y fin
+  exclusivo, entre 0 y 120. Sin rango: desde 0 hasta el minuto del reloj + 1
+  (120 si no hay reloj). `desde_minuto ≥ hasta_minuto` o fuera de 0–120: 400.
+- El inicio es `inicio_tracking` del partido en MongoDB si existe (UTC, lo
+  registra la simulación) o, si no, `fecha_hora` del calendario (datos precargados).
+- En vivo y finalizado lee `tracking_jugador` de `fixture2030_en_vivo`
+  (`fuente: en_vivo`). Partido próximo: 200 con celdas vacías, sin consultar InfluxDB.
+- Partido inexistente o jugador ajeno a las dos selecciones: 404. InfluxDB caído: 503;
+  timeout: 504. Todavía sin caché Redis.

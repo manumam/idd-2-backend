@@ -23,3 +23,8 @@ FechaHora = Annotated[
     Query(pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", description="Hora UTC `AAAA-MM-DDThh:mm:ssZ`"),
 ]
 Ventana = Literal["1m", "5m"]
+
+JugadorQuery = Annotated[
+    str, Query(pattern=r"^[A-Z]{3}-([1-9]|[1-9][0-9])$", description="`<equipo>-<dorsal>`", examples=["ARG-10"])
+]
+MinutoQuery = Annotated[int, Query(ge=0, le=120, description="Minuto desde el inicio del tracking del partido")]
