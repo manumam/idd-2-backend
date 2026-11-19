@@ -19,7 +19,9 @@ router = APIRouter(tags=["Mapa de calor"])
         "con intensidad relativa a la celda más ocupada; las celdas sin muestras se omiten. Los minutos se "
         "cuentan desde el inicio del tracking del partido, con inicio inclusivo y fin exclusivo, entre 0 y 120. "
         "Sin `desde_minuto` empieza en 0; sin `hasta_minuto`, llega al minuto transcurrido del reloj "
-        "(120 si no hay reloj). Partido próximo: 200 con `celdas` vacía, `fuente` e `intervalo` null. "
+        "(120 si no hay reloj). En vivo lee el tracking crudo (`fuente: en_vivo`); finalizado, la ocupación "
+        "materializada por minuto (`fuente: historico`), o el crudo si todavía no se materializó. "
+        "Partido próximo: 200 con `celdas` vacía, `fuente` e `intervalo` null. "
         "Partido inexistente o jugador ajeno a sus selecciones: 404."
     ),
     responses=RESPUESTAS_FICHA,

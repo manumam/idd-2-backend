@@ -27,6 +27,22 @@ SQL_MUESTRAS_POR_CELDA = (
     "GROUP BY columna, fila"
 )
 
+# El tiempo de cada punto es el comienzo de su ventana de un minuto.
+SQL_OCUPACION_POR_CELDA = (
+    "SELECT celda, SUM(muestras) AS muestras "
+    "FROM ocupacion_jugador_minuto "
+    "WHERE partido_id = $partido AND jugador_id = $jugador AND time >= $desde AND time < $hasta "
+    "GROUP BY celda"
+)
+
+
+def _tabla_inexistente(error: DatabaseUnavailableError) -> bool:
+    response = getattr(error.original_error, "response", None)
+    if response is None or response.status_code != 400:
+        return False
+    texto = response.text or ""
+    return "table" in texto and "not found" in texto
+
 
 class InfluxAdapter(BaseAdapter):
     """Encapsula llamadas HTTP/SQL a InfluxDB 3 Core."""
@@ -96,6 +112,18 @@ class InfluxAdapter(BaseAdapter):
         """Muestras crudas de un jugador por celda en [desde, hasta), desde la base en vivo."""
         params = dict(grilla, partido=partido_id, jugador=jugador_id, desde=desde, hasta=hasta)
         return self.query_sql(SQL_MUESTRAS_POR_CELDA, params, settings.influx_database_en_vivo)
+
+    @observe("InfluxDB")
+    def sumar_ocupacion_por_celda(self, partido_id: str, jugador_id: str, desde: str, hasta: str) -> List[Dict[str, Any]]:
+        """Muestras materializadas de un jugador por celda, de las ventanas que empiezan en [desde, hasta)."""
+        params = {"partido": partido_id, "jugador": jugador_id, "desde": desde, "hasta": hasta}
+        try:
+            return self.query_sql(SQL_OCUPACION_POR_CELDA, params, settings.influx_database)
+        except DatabaseUnavailableError as error:
+            # Antes de la primera materialización la tabla no existe: no hay histórico, no es una falla.
+            if _tabla_inexistente(error):
+                return []
+            raise
 
     @observe("InfluxDB")
     def ping(self) -> bool:

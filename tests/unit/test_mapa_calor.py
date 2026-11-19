@@ -3,9 +3,10 @@ from datetime import datetime
 from unittest.mock import Mock
 
 import pytest
+import requests
 
 from app.adapters import influx_adapter, mongo_adapter
-from app.adapters.influx_adapter import SQL_MUESTRAS_POR_CELDA
+from app.adapters.influx_adapter import SQL_MUESTRAS_POR_CELDA, SQL_OCUPACION_POR_CELDA
 from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
 from app.services.grilla_cancha import parametros_grilla
@@ -21,13 +22,32 @@ CRUDO = [
 ]
 
 
+MATERIALIZADO = [
+    {'celda': '11_3', 'muestras': 30},
+    {'celda': '20_13', 'muestras': 60},
+    {'celda': '99_1', 'muestras': 5},
+]
+
+
+def rechazo_influx(texto):
+    respuesta = requests.Response()
+    respuesta.status_code = 400
+    respuesta._content = texto.encode()
+    return DatabaseUnavailableError('InfluxDB', requests.HTTPError(response=respuesta))
+
+
 class InfluxFalso:
-    def __init__(self, filas=CRUDO):
+    def __init__(self, filas=CRUDO, ocupacion=MATERIALIZADO):
         self.consultas = []
         self.filas = filas
+        self.ocupacion = ocupacion
 
     def query_sql(self, query, params=None, database=None):
         self.consultas.append((query, params, database))
+        if query == SQL_OCUPACION_POR_CELDA:
+            if self.ocupacion is None:
+                raise rechazo_influx("Error during planning: table 'public.iox.ocupacion_jugador_minuto' not found")
+            return self.ocupacion
         return self.filas
 
 
@@ -78,11 +98,40 @@ def test_rango_explicito_anclado_al_inicio_del_tracking(client, partido, influx)
     assert (params['desde'], params['hasta']) == ('2030-06-09T15:12:00Z', '2030-06-09T15:47:00Z')
 
 
+def test_finalizado_lee_la_ocupacion_materializada(client, partido, influx):
+    partido.update(estado='finalizado', reloj=None)
+    response = client.get(URL, params={'jugador_id': 'ARG-10', 'desde_minuto': 0, 'hasta_minuto': 45})
+    data = response.json()
+    assert data['fuente'] == 'historico'
+    assert data['celdas'] == [
+        {'columna': 11, 'fila': 3, 'muestras': 30, 'intensidad': 0.5},
+        {'columna': 20, 'fila': 13, 'muestras': 60, 'intensidad': 1.0},
+    ]
+    assert influx.consultas == [(SQL_OCUPACION_POR_CELDA, dict(
+        partido='P-002', jugador='ARG-10', desde='2030-06-09T13:00:00Z', hasta='2030-06-09T13:45:00Z'),
+        settings.influx_database)]
+    assert 'AVG' not in SQL_OCUPACION_POR_CELDA.upper()
+
+
 def test_finalizado_sin_reloj_lee_todo_el_partido(client, partido, influx):
     partido.update(estado='finalizado', reloj=None)
     response = client.get(URL, params={'jugador_id': 'ARG-10'})
     assert response.json()['intervalo'] == {'desde_minuto': 0, 'hasta_minuto': 120}
     assert influx.consultas[0][1]['hasta'] == '2030-06-09T15:00:00Z'
+
+
+@pytest.mark.parametrize('ocupacion', [[], None])
+def test_finalizado_sin_materializar_usa_el_crudo(client, partido, influx, ocupacion):
+    partido.update(estado='finalizado')
+    influx.ocupacion = ocupacion
+    data = client.get(URL, params={'jugador_id': 'ARG-10'}).json()
+    assert data['fuente'] == 'en_vivo' and len(data['celdas']) == 2
+    assert [c[0] for c in influx.consultas] == [SQL_OCUPACION_POR_CELDA, SQL_MUESTRAS_POR_CELDA]
+
+
+def test_en_vivo_no_lee_la_ocupacion_materializada(client, partido, influx):
+    client.get(URL, params={'jugador_id': 'ARG-10'})
+    assert [c[0] for c in influx.consultas] == [SQL_MUESTRAS_POR_CELDA]
 
 
 def test_proximo_devuelve_celdas_vacias_sin_consultar_influx(client, partido, influx):
@@ -142,3 +191,15 @@ def test_influx_caido(client, partido, monkeypatch, error, status, code):
     response = client.get(URL, params={'jugador_id': 'ARG-10'})
     assert response.status_code == status
     assert response.json()['code'] == code
+
+
+def test_error_de_consulta_del_historico_no_cae_al_crudo(client, partido, influx, monkeypatch):
+    partido['estado'] = 'finalizado'
+    def rechazar(query, params=None, database=None):
+        if query == SQL_OCUPACION_POR_CELDA:
+            raise rechazo_influx('Schema error: No field named muestras_mal')
+        return CRUDO
+    monkeypatch.setattr(influx_adapter, 'query_sql', rechazar)
+    response = client.get('/partidos/P-002/mapa-calor', params={'jugador_id': 'ARG-10'})
+    assert response.status_code == 500
+    assert response.json()['code'] == 'INFLUXDB_QUERY_FAILED'

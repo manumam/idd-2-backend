@@ -90,6 +90,9 @@ fuera de la cancha. Funciones en la documentación de InfluxDB 3 Core:
 .venv/bin/python scripts/materializar_ocupacion.py --todos   # partidos con tracking_jugador
 ```
 
+`GET /partidos/{codigo}/mapa-calor` lee esta tabla en partidos finalizados: suma
+`muestras` por `celda` de las ventanas que empiezan en el rango pedido.
+
 Ejecutarlo después de cada partido y antes de que venza su crudo (7 días). La
 escritura reutiliza los lotes y reintentos de `cargar_influx.py`; si queda alguna
 línea rechazada termina con código 1. Reprocesar escribe el mismo valor en la

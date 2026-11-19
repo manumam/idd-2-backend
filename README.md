@@ -369,7 +369,10 @@ y cuenta: no se promedian coordenadas.
   (120 si no hay reloj). `desde_minuto ≥ hasta_minuto` o fuera de 0–120: 400.
 - El inicio es `inicio_tracking` del partido en MongoDB si existe (UTC, lo
   registra la simulación) o, si no, `fecha_hora` del calendario (datos precargados).
-- En vivo y finalizado lee `tracking_jugador` de `fixture2030_en_vivo`
-  (`fuente: en_vivo`). Partido próximo: 200 con celdas vacías, sin consultar InfluxDB.
+- En vivo lee `tracking_jugador` de `fixture2030_en_vivo` (`fuente: en_vivo`).
+  Finalizado suma `ocupacion_jugador_minuto` de `fixture2030_resumen` por celda,
+  con las ventanas que empiezan dentro del rango (`fuente: historico`); si el partido
+  todavía no se materializó, usa el crudo mientras exista (`fuente: en_vivo`).
+  Partido próximo: 200 con celdas vacías, sin consultar InfluxDB.
 - Partido inexistente o jugador ajeno a las dos selecciones: 404. InfluxDB caído: 503;
   timeout: 504. Todavía sin caché Redis.

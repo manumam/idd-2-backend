@@ -7,7 +7,8 @@ from app.core.exceptions import InvalidRequestError, ResourceNotFoundError
 from app.schemas.mapa_calor import CeldaMapa, GrillaCancha, IntervaloMinutos, MapaCalorResponse
 from app.schemas.partidos import PartidoResponse
 from app.services import partidos_service
-from app.services.grilla_cancha import COLUMNAS, FILAS, Celda, celdas_con_intensidad, parametros_grilla
+from app.services.grilla_cancha import (
+    COLUMNAS, FILAS, Celda, celda_desde_id, celdas_con_intensidad, parametros_grilla)
 
 # Tiempo reglamentario más prórroga; coincide con el máximo del reloj del partido.
 MINUTO_MAXIMO = 120
@@ -60,6 +61,26 @@ def leer_mapa_crudo(partido: str, jugador: str, inicio: datetime, desde: int, ha
     return {Celda(int(f["columna"]), int(f["fila"])): int(f["muestras"]) for f in filas}
 
 
+def leer_mapa_historico(partido: str, jugador: str, inicio: datetime, desde: int, hasta: int) -> dict[Celda, int]:
+    filas = influx_adapter.sumar_ocupacion_por_celda(partido, jugador, _hora(inicio, desde), _hora(inicio, hasta))
+    muestras = {}
+    for f in filas:
+        celda = celda_desde_id(f["celda"])
+        if celda is not None:
+            muestras[celda] = int(f["muestras"])
+    return muestras
+
+
+def _leer_mapa(detalle: PartidoResponse, jugador: str, desde: int, hasta: int) -> tuple[str, dict[Celda, int]]:
+    inicio = _inicio_tracking(detalle)
+    if detalle.estado == "finalizado":
+        muestras = leer_mapa_historico(detalle.codigo, jugador, inicio, desde, hasta)
+        if muestras:
+            return "historico", muestras
+        # Sin ocupación materializada (todavía no se ejecutó el script) se usa el crudo mientras no venza.
+    return "en_vivo", leer_mapa_crudo(detalle.codigo, jugador, inicio, desde, hasta)
+
+
 def obtener_mapa_calor(
     partido: str, jugador: str, desde_minuto: Optional[int], hasta_minuto: Optional[int]
 ) -> MapaCalorResponse:
@@ -74,9 +95,9 @@ def obtener_mapa_calor(
     desde = desde_minuto if desde_minuto is not None else 0
     hasta = hasta_minuto if hasta_minuto is not None else _minuto_transcurrido(detalle)
     _validar_rango(desde, hasta)
-    muestras = leer_mapa_crudo(partido, jugador, _inicio_tracking(detalle), desde, hasta)
+    fuente, muestras = _leer_mapa(detalle, jugador, desde, hasta)
     return MapaCalorResponse(
-        partido=partido, jugador=jugador, fuente="en_vivo", grilla=_grilla(),
+        partido=partido, jugador=jugador, fuente=fuente, grilla=_grilla(),
         intervalo=IntervaloMinutos(desde_minuto=desde, hasta_minuto=hasta),
         celdas=[CeldaMapa(**c) for c in celdas_con_intensidad(muestras)],
     )
