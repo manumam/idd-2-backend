@@ -8,7 +8,7 @@ CASES = [
     ("mongodb", "/equipos/ARG", "codigo"),
     ("mongodb", "/jugadores?equipo=ARG&limit=2", "items"),
     ("mongodb", "/jugadores/ARG-10", "codigo"),
-    ("neo4j", "/partidos/P-001", "codigo"),
+    ("mongodb", "/partidos/P-001", "codigo"),
     ("neo4j", "/partidos/P-001/eventos?limit=2", "items"),
     ("neo4j", "/sedes/S-04/goleadores?confederacion=CONMEBOL&limit=2", "items"),
     ("cassandra", "/partidos/ARG-ESP-20300624/comentarios?bloque=2030-06-24T20:05:00Z&limit=1", "items"),

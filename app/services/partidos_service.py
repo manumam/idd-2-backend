@@ -1,6 +1,13 @@
-"""Casos de uso 4 a 6: partidos, eventos y goleadores por sede (Neo4j)."""
+"""Detalle MongoDB/Redis; eventos y goleadores históricos aún usan Neo4j."""
+import hashlib
+import json
+import logging
+from pydantic import ValidationError
 
-from app.adapters import neo4j_adapter
+from app.adapters import neo4j_adapter, mongo_adapter, redis_adapter
+from app.config.settings import settings
+from app.core.exceptions import DatabaseUnavailableError
+from app.services.playoffs_service import consultar_playoffs
 from app.core.exceptions import ResourceNotFoundError
 from app.schemas.equipos import EquipoRef
 from app.schemas.partidos import (
@@ -11,7 +18,6 @@ from app.schemas.partidos import (
     JugadorRef,
     PartidoResponse,
     Protagonista,
-    SedeRef,
 )
 
 
@@ -19,26 +25,43 @@ def _partido_no_encontrado(codigo: str) -> ResourceNotFoundError:
     return ResourceNotFoundError("PARTIDO_NO_ENCONTRADO", f"No existe el partido '{codigo}'.")
 
 
-def _equipo(codigo, nombre):
-    return EquipoRef(codigo=codigo, nombre=nombre) if codigo is not None else None
+logger = logging.getLogger(__name__)
 
 
 def obtener_partido(codigo: str) -> PartidoResponse:
-    p = neo4j_adapter.find_partido(codigo)
-    if p is None:
+    documento = mongo_adapter.find_partido(codigo)
+    if documento is None:
         raise _partido_no_encontrado(codigo)
-    sede = p["sede"]
-    local = p.get("local")
-    visitante = p.get("visitante")
-    return PartidoResponse(
-        codigo=p["id"],
-        fase=p["fase"],
-        grupo=p["grupo"] or None,  # sin grupo fuera de la fase de grupos
-        fecha=p["fecha"],
-        sede=SedeRef(codigo=sede["id"], nombre=sede["nombre"], ciudad=sede["ciudad"]) if sede else None,
-        local=_equipo(local["id"], local["nombre"]) if local else None,
-        visitante=_equipo(visitante["id"], visitante["nombre"]) if visitante else None,
-    )
+    datos = {k: v for k, v in documento.items() if k != "_id"}
+    datos["codigo"] = documento["_id"]
+    if datos["fase"] != "Grupos":
+        cruce = next((c for c in consultar_playoffs().items if c.codigo == codigo), None)
+        if cruce is not None:
+            datos.update(cruce.partido.model_dump())
+            datos.update(origen_local=cruce.local.descripcion, origen_visitante=cruce.visitante.descripcion,
+                         requiere_revision=cruce.requiere_revision)
+            # Un reloj de participantes obsoletos tampoco describe el encuentro actual.
+            if cruce.partido.estado == "proximo":
+                datos["reloj"] = None
+    # Versionado por todas las entradas efectivas: cambios externos, cierres y
+    # correcciones dejan de usar la clave anterior sin necesitar escrituras en GET.
+    payload = json.dumps(datos, default=str, sort_keys=True, ensure_ascii=False)
+    key = f"partido:v1:{codigo}:" + hashlib.sha256(payload.encode()).hexdigest()
+    try:
+        cached = redis_adapter.get_cache(key)
+        if cached is not None:
+            # fecha es un campo calculado, no una entrada al modelo.
+            value = json.loads(cached)
+            value.pop("fecha", None)
+            return PartidoResponse.model_validate(value)
+    except (DatabaseUnavailableError, ValidationError, UnicodeError, ValueError, TypeError, AttributeError):
+        logger.warning("Caché del partido no disponible o inválida")
+    respuesta = PartidoResponse.model_validate(datos)
+    try:
+        redis_adapter.set_cache(key, respuesta.model_dump_json(), settings.fixture_cache_ttl_seconds)
+    except DatabaseUnavailableError:
+        logger.warning("No se pudo cachear el partido")
+    return respuesta
 
 
 def listar_eventos(codigo: str, limit: int) -> EventosResponse:

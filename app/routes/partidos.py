@@ -8,7 +8,8 @@ from app.services import partidos_service
 router = APIRouter(tags=["Partidos y eventos"], responses=RESPUESTAS_FICHA)
 
 
-@router.get("/partidos/{codigo}", response_model=PartidoResponse, summary="Ficha de un partido")
+@router.get("/partidos/{codigo}", response_model=PartidoResponse, summary="Ficha de un partido",
+            description="Detalle desde MongoDB con sede, fecha/hora UTC, estado, resultado y reloj persistido (puede ser null si aún no fue informado). Tanda separada de goles de juego. Plazas de playoffs resueltas como en el cuadro; requiere_revision identifica resultados obsoletos o no decisivos. Redis opcional con claves versionadas por las entradas actuales y TTL corto. fecha se conserva como fecha UTC por compatibilidad.")
 def obtener_partido(codigo: CodigoPartido) -> PartidoResponse:
     return partidos_service.obtener_partido(codigo)
 

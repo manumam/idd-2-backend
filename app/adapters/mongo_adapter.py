@@ -117,6 +117,13 @@ class MongoAdapter(BaseAdapter):
         ))
 
     @observe("MongoDB")
+    def find_partido(self, codigo: str) -> Optional[Dict[str, Any]]:
+        projection = {field: 1 for field in (
+            "_id", "fecha_hora", "fase", "grupo", "local", "visitante", "estado",
+            "resultado", "sede", "reloj")}
+        return self._execute(lambda: self.db["partidos"].find_one({"_id": codigo}, projection))
+
+    @observe("MongoDB")
     def list_cruces(self):
         return self._execute(lambda: list(self.db['cruces'].find(
             {}, {'_id': 1, 'fase': 1, 'orden': 1, 'local': 1, 'visitante': 1}).sort('_id', 1)))

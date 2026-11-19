@@ -1146,11 +1146,11 @@
               ],
               "query": []
             },
-            "description": "Ficha de un partido\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+            "description": "Detalle MongoDB con fecha/hora UTC, sede, estado, marcador y reloj persistido. Redis opcional, caché versionada por entradas actuales. reloj=null si no fue informado; no se infiere del horario. Los penales se informan separados. Plazas derivadas de playoffs, requiere_revision ante resultados obsoletos. fecha conserva la fecha UTC por compatibilidad."
           },
           "response": [
             {
-              "name": "NEO4J_TIMEOUT",
+              "name": "MONGODB_TIMEOUT",
               "originalRequest": {
                 "method": "GET",
                 "header": [],
@@ -1165,7 +1165,7 @@
                   ],
                   "query": []
                 },
-                "description": "Ficha de un partido\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+                "description": "Detalle MongoDB con fecha/hora UTC, sede, estado, marcador y reloj persistido. Redis opcional, caché versionada por entradas actuales. reloj=null si no fue informado; no se infiere del horario. Los penales se informan separados. Plazas derivadas de playoffs, requiere_revision ante resultados obsoletos. fecha conserva la fecha UTC por compatibilidad."
               },
               "status": "Gateway Timeout",
               "code": 504,
@@ -1179,10 +1179,10 @@
                   "value": "postman-ejemplo"
                 }
               ],
-              "body": "{\"code\": \"NEO4J_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+              "body": "{\"code\": \"MONGODB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
             },
             {
-              "name": "NEO4J_AUTHENTICATION_FAILED",
+              "name": "MONGODB_AUTHENTICATION_FAILED",
               "originalRequest": {
                 "method": "GET",
                 "header": [],
@@ -1197,7 +1197,7 @@
                   ],
                   "query": []
                 },
-                "description": "Ficha de un partido\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+                "description": "Detalle MongoDB con fecha/hora UTC, sede, estado, marcador y reloj persistido. Redis opcional, caché versionada por entradas actuales. reloj=null si no fue informado; no se infiere del horario. Los penales se informan separados. Plazas derivadas de playoffs, requiere_revision ante resultados obsoletos. fecha conserva la fecha UTC por compatibilidad."
               },
               "status": "Service Unavailable",
               "code": 503,
@@ -1211,10 +1211,10 @@
                   "value": "postman-ejemplo"
                 }
               ],
-              "body": "{\"code\": \"NEO4J_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+              "body": "{\"code\": \"MONGODB_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
             },
             {
-              "name": "NEO4J_ACCESS_DENIED",
+              "name": "MONGODB_ACCESS_DENIED",
               "originalRequest": {
                 "method": "GET",
                 "header": [],
@@ -1229,7 +1229,7 @@
                   ],
                   "query": []
                 },
-                "description": "Ficha de un partido\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+                "description": "Detalle MongoDB con fecha/hora UTC, sede, estado, marcador y reloj persistido. Redis opcional, caché versionada por entradas actuales. reloj=null si no fue informado; no se infiere del horario. Los penales se informan separados. Plazas derivadas de playoffs, requiere_revision ante resultados obsoletos. fecha conserva la fecha UTC por compatibilidad."
               },
               "status": "Service Unavailable",
               "code": 503,
@@ -1243,10 +1243,10 @@
                   "value": "postman-ejemplo"
                 }
               ],
-              "body": "{\"code\": \"NEO4J_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+              "body": "{\"code\": \"MONGODB_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
             },
             {
-              "name": "NEO4J_CONTEXT_UNAVAILABLE",
+              "name": "MONGODB_CONTEXT_UNAVAILABLE",
               "originalRequest": {
                 "method": "GET",
                 "header": [],
@@ -1261,7 +1261,7 @@
                   ],
                   "query": []
                 },
-                "description": "Ficha de un partido\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+                "description": "Detalle MongoDB con fecha/hora UTC, sede, estado, marcador y reloj persistido. Redis opcional, caché versionada por entradas actuales. reloj=null si no fue informado; no se infiere del horario. Los penales se informan separados. Plazas derivadas de playoffs, requiere_revision ante resultados obsoletos. fecha conserva la fecha UTC por compatibilidad."
               },
               "status": "Service Unavailable",
               "code": 503,
@@ -1275,7 +1275,91 @@
                   "value": "postman-ejemplo"
                 }
               ],
-              "body": "{\"code\": \"NEO4J_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+              "body": "{\"code\": \"MONGODB_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "Próximo",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}"
+                  ],
+                  "query": []
+                },
+                "description": "Detalle MongoDB con fecha/hora UTC, sede, estado, marcador y reloj persistido. Redis opcional, caché versionada por entradas actuales. reloj=null si no fue informado; no se infiere del horario. Los penales se informan separados. Plazas derivadas de playoffs, requiere_revision ante resultados obsoletos. fecha conserva la fecha UTC por compatibilidad."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"codigo\": \"P-001\",\n  \"fecha\": \"2030-06-08\",\n  \"fecha_hora\": \"2030-06-08T18:00:00Z\",\n  \"fase\": \"Grupos\",\n  \"grupo\": \"A\",\n  \"local\": {\n    \"codigo\": \"URU\",\n    \"nombre\": \"Uruguay\"\n  },\n  \"visitante\": {\n    \"codigo\": \"ESP\",\n    \"nombre\": \"España\"\n  },\n  \"sede\": {\n    \"codigo\": \"S-01\",\n    \"nombre\": \"Estadio Centenario\",\n    \"ciudad\": \"Montevideo\"\n  },\n  \"estado\": \"proximo\",\n  \"resultado\": null,\n  \"reloj\": null,\n  \"origen_local\": null,\n  \"origen_visitante\": null,\n  \"requiere_revision\": false\n}"
+            },
+            {
+              "name": "En vivo",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}"
+                  ],
+                  "query": []
+                },
+                "description": "Detalle MongoDB con fecha/hora UTC, sede, estado, marcador y reloj persistido. Redis opcional, caché versionada por entradas actuales. reloj=null si no fue informado; no se infiere del horario. Los penales se informan separados. Plazas derivadas de playoffs, requiere_revision ante resultados obsoletos. fecha conserva la fecha UTC por compatibilidad."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"codigo\": \"P-001\",\n  \"fecha\": \"2030-06-08\",\n  \"fecha_hora\": \"2030-06-08T18:00:00Z\",\n  \"fase\": \"Grupos\",\n  \"grupo\": \"A\",\n  \"local\": {\n    \"codigo\": \"URU\",\n    \"nombre\": \"Uruguay\"\n  },\n  \"visitante\": {\n    \"codigo\": \"ESP\",\n    \"nombre\": \"España\"\n  },\n  \"sede\": {\n    \"codigo\": \"S-01\",\n    \"nombre\": \"Estadio Centenario\",\n    \"ciudad\": \"Montevideo\"\n  },\n  \"estado\": \"en_vivo\",\n  \"resultado\": {\n    \"goles_local\": 1,\n    \"goles_visitante\": 0,\n    \"penales\": null\n  },\n  \"reloj\": {\n    \"periodo\": \"primer_tiempo\",\n    \"minuto\": 45,\n    \"adicional\": 2\n  },\n  \"origen_local\": null,\n  \"origen_visitante\": null,\n  \"requiere_revision\": false\n}"
+            },
+            {
+              "name": "Finalizado con tanda",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/P-127",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "P-127"
+                  ],
+                  "query": []
+                },
+                "description": "Detalle MongoDB con fecha/hora UTC, sede, estado, marcador y reloj persistido. Redis opcional, caché versionada por entradas actuales. reloj=null si no fue informado; no se infiere del horario. Los penales se informan separados. Plazas derivadas de playoffs, requiere_revision ante resultados obsoletos. fecha conserva la fecha UTC por compatibilidad."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"codigo\": \"P-127\",\n  \"fecha\": \"2030-06-08\",\n  \"fecha_hora\": \"2030-06-08T18:00:00Z\",\n  \"fase\": \"Final\",\n  \"grupo\": null,\n  \"local\": {\n    \"codigo\": \"URU\",\n    \"nombre\": \"Uruguay\"\n  },\n  \"visitante\": {\n    \"codigo\": \"ESP\",\n    \"nombre\": \"España\"\n  },\n  \"sede\": {\n    \"codigo\": \"S-01\",\n    \"nombre\": \"Estadio Centenario\",\n    \"ciudad\": \"Montevideo\"\n  },\n  \"estado\": \"finalizado\",\n  \"resultado\": {\n    \"goles_local\": 1,\n    \"goles_visitante\": 1,\n    \"penales\": {\n      \"goles_local\": 4,\n      \"goles_visitante\": 3\n    }\n  },\n  \"reloj\": null,\n  \"origen_local\": null,\n  \"origen_visitante\": null,\n  \"requiere_revision\": false\n}"
             }
           ]
         },

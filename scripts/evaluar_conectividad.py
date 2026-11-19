@@ -17,8 +17,8 @@ from app.services.health_service import FUENTES
 import requests
 
 ROUTES = {
-    'mongodb': ['/equipos/ARG', '/jugadores?equipo=ARG&limit=2', '/jugadores/ARG-10'],
-    'neo4j': ['/partidos/P-001', '/partidos/P-001/eventos?limit=2', '/sedes/S-04/goleadores?confederacion=CONMEBOL&limit=2'],
+    'mongodb': ['/partidos/P-001', '/equipos/ARG', '/jugadores?equipo=ARG&limit=2', '/jugadores/ARG-10'],
+    'neo4j': ['/partidos/P-001/eventos?limit=2', '/sedes/S-04/goleadores?confederacion=CONMEBOL&limit=2'],
     'redis': ['/sesiones/SES-DEMO'],
     'cassandra': ['/partidos/ARG-ESP-20300624/comentarios?bloque=2030-06-24T20:05:00Z&limit=2'],
     'iris': ['/objetos/partidos/' + os.getenv('IRIS_TEST_ID', '1')],
