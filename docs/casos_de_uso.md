@@ -61,3 +61,7 @@ casos conservan las brechas detalladas abajo.
 El contrato HTTP implementado se consulta en [OpenAPI](../openapi/openapi.yaml)
 y [Postman](../postman_collection.json). Esta revisión es de código y
 documentación; no certifica pruebas de carga ni distribución global.
+
+### Tracking y estadísticas del caso 8
+
+El simulador `simular_estadisticas.py` escribe posesión, tiros acumulados y cantidades de pases por intervalo en `estadisticas_partido`; los eventos deportivos se guardan en MongoDB. No genera posiciones ni trayectorias de jugadores o pelota. Para un mapa de calor con contenido se necesita una carga de tracking independiente y, para conservarlo, materializar la ocupación antes de que venza el crudo. Sin muestras, tabla o base de tracking creada, el mapa devuelve 200 con `celdas: []`; no inventa posiciones. Los fallos de autenticación, permisos, conexión y consultas inválidas siguen devolviendo errores.

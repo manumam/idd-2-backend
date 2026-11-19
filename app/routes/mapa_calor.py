@@ -21,6 +21,8 @@ router = APIRouter(tags=["Mapa de calor"])
         "Sin `desde_minuto` empieza en 0; sin `hasta_minuto`, llega al minuto transcurrido del reloj "
         "(120 si no hay reloj). En vivo lee el tracking crudo (`fuente: en_vivo`); finalizado, la ocupación "
         "materializada por minuto (`fuente: historico`), o el crudo si todavía no se materializó. "
+        "Sin datos de tracking, incluida una tabla o base de tracking aún no creada, devuelve 200 con "
+        "`celdas` vacía; los fallos de autenticación, permisos, conexión y consulta se siguen informando. "
         "Partido próximo: 200 con `celdas` vacía, `fuente` e `intervalo` null. "
         "Se cachea en Redis 5 s en vivo y 1 h en histórico. "
         "Partido inexistente o jugador ajeno a sus selecciones: 404."

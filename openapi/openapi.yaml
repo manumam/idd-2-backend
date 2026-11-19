@@ -1160,6 +1160,13 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
+        '404':
+          description: Partido no encontrado en la consulta de comparación
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
   /partidos/{codigo}/mapa-calor:
     get:
       tags:
@@ -1172,10 +1179,12 @@ paths:
         entre 0 y 120. Sin `desde_minuto` empieza en 0; sin `hasta_minuto`, llega
         al minuto transcurrido del reloj (120 si no hay reloj). En vivo lee el tracking
         crudo (`fuente: en_vivo`); finalizado, la ocupación materializada por minuto
-        (`fuente: historico`), o el crudo si todavía no se materializó. Partido próximo:
-        200 con `celdas` vacía, `fuente` e `intervalo` null. Se cachea en Redis 5
-        s en vivo y 1 h en histórico. Partido inexistente o jugador ajeno a sus selecciones:
-        404.'
+        (`fuente: historico`), o el crudo si todavía no se materializó. Sin datos
+        de tracking, incluida una tabla o base de tracking aún no creada, devuelve
+        200 con `celdas` vacía; los fallos de autenticación, permisos, conexión y
+        consulta se siguen informando. Partido próximo: 200 con `celdas` vacía, `fuente`
+        e `intervalo` null. Se cachea en Redis 5 s en vivo y 1 h en histórico. Partido
+        inexistente o jugador ajeno a sus selecciones: 404.'
       operationId: obtener_mapa_calor_partidos__codigo__mapa_calor_get
       parameters:
       - name: codigo
@@ -1285,8 +1294,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Partido no encontrado en la consulta de comparación
           headers:
             X-Request-Id:
               description: Identificador de correlación
