@@ -151,6 +151,40 @@
           },
           "actualizado_en": {
             "bsonType": "date"
+          },
+          "reloj": {
+            "bsonType": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "periodo",
+              "minuto"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "periodo": {
+                "enum": [
+                  "primer_tiempo",
+                  "entretiempo",
+                  "segundo_tiempo",
+                  "prorroga_primer_tiempo",
+                  "descanso_prorroga",
+                  "prorroga_segundo_tiempo",
+                  "tanda",
+                  "pausa"
+                ]
+              },
+              "minuto": {
+                "bsonType": "int",
+                "minimum": 0,
+                "maximum": 120
+              },
+              "adicional": {
+                "bsonType": "int",
+                "minimum": 0
+              }
+            }
           }
         }
       }
@@ -159,7 +193,8 @@
       "$or": [
         {
           "estado": "proximo",
-          "resultado": null
+          "resultado": null,
+          "reloj": null
         },
         {
           "estado": {

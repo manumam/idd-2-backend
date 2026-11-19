@@ -12,8 +12,8 @@ EQUIPO = dict(_id="ARG", nombre="Argentina", confederacion="CONMEBOL", grupo="A"
               ranking_fifa=1, anfitrion=True)
 JUGADOR = dict(_id="ARG-10", nombre="Jugador", apellido="Demo", dorsal=10, posicion="Delantero",
                equipo={"_id": "ARG", "nombre": "Argentina"}, fecha_nacimiento=datetime(2000, 1, 1))
-PARTIDO = dict(id="P-001", fase="Grupos", grupo="A", fecha="2030-06-24", sede=None,
-               local={"id": "ARG", "nombre": "Argentina"}, visitante=None)
+PARTIDO = dict(_id="P-001", fase="Grupos", grupo="A", fecha_hora=datetime(2030, 6, 24, 20), sede=None,
+               local={"codigo": "ARG", "nombre": "Argentina"}, visitante=None, estado="proximo", resultado=None)
 COMENTARIO = dict(comentario_id=UUID("ba894580-ec17-11f5-8123-0242ac120002"), usuario_id="U001",
                   nombre_usuario="Demo", idioma="es", texto="Vamos", estado_moderacion="APROBADO")
 SESION = dict(usuario_id="U001", nombre_usuario="Demo", rol="hincha", idioma="es",
@@ -29,13 +29,19 @@ CASES = [
     ("/equipos/ARG", mongo_adapter, "find_equipo", EQUIPO),
     ("/jugadores/ARG-10", mongo_adapter, "find_jugador", JUGADOR),
     ("/jugadores?equipo=ARG", mongo_adapter, "list_jugadores", [JUGADOR]),
-    ("/partidos/P-001", neo4j_adapter, "find_partido", PARTIDO),
+    ("/partidos/P-001", mongo_adapter, "find_partido", PARTIDO),
     ("/partidos/P-001/eventos", neo4j_adapter, "find_eventos", []),
     (COMMENTS, cassandra_adapter, "list_comentarios", [COMENTARIO]),
     ("/sesiones/SES-DEMO", redis_adapter, "get_sesion", SESION),
     (STATS, influx_adapter, "find_estadisticas", [PUNTO]),
     ("/objetos/partidos/1", iris_adapter, "find_partido", OBJETO),
 ]
+
+
+@pytest.fixture(autouse=True)
+def cache_detalle_sin_motores(monkeypatch):
+    monkeypatch.setattr(redis_adapter, 'get_cache', Mock(return_value=None))
+    monkeypatch.setattr(redis_adapter, 'set_cache', Mock())
 
 
 @pytest.mark.parametrize("url,adapter,method,data", CASES)
@@ -72,7 +78,7 @@ def test_dependency_down(client, monkeypatch, url, adapter, method, data):
 @pytest.mark.parametrize("url,adapter,method", [
     ("/equipos/ARG", mongo_adapter, "find_equipo"),
     ("/jugadores/ARG-10", mongo_adapter, "find_jugador"),
-    ("/partidos/P-001", neo4j_adapter, "find_partido"),
+    ("/partidos/P-001", mongo_adapter, "find_partido"),
     ("/partidos/P-001/eventos", neo4j_adapter, "find_eventos"),
     ("/sesiones/SES-EXPIRED", redis_adapter, "get_sesion"),
     ("/objetos/partidos/1", iris_adapter, "find_partido"),

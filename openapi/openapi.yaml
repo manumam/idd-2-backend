@@ -896,6 +896,12 @@ paths:
       tags:
       - Partidos y eventos
       summary: Ficha de un partido
+      description: Detalle desde MongoDB con sede, fecha/hora UTC, estado, resultado
+        y reloj persistido (puede ser null si aún no fue informado). Tanda separada
+        de goles de juego. Plazas de playoffs resueltas como en el cuadro; requiere_revision
+        identifica resultados obsoletos o no decisivos. Redis opcional con claves
+        versionadas por las entradas actuales y TTL corto. fecha se conserva como
+        fecha UTC por compatibilidad.
       operationId: obtener_partido_partidos__codigo__get
       parameters:
       - name: codigo
@@ -2156,23 +2162,22 @@ components:
       properties:
         codigo:
           type: string
+          pattern: ^P-[0-9]{3}$
           title: Codigo
+        fecha_hora:
+          type: string
+          format: date-time
+          title: Fecha Hora
         fase:
           type: string
+          minLength: 1
           title: Fase
         grupo:
           anyOf:
           - type: string
+            pattern: ^[A-P]$
           - type: 'null'
           title: Grupo
-        fecha:
-          type: string
-          format: date
-          title: Fecha
-        sede:
-          anyOf:
-          - $ref: '#/components/schemas/SedeRef'
-          - type: 'null'
         local:
           anyOf:
           - $ref: '#/components/schemas/EquipoRef'
@@ -2181,10 +2186,56 @@ components:
           anyOf:
           - $ref: '#/components/schemas/EquipoRef'
           - type: 'null'
+        estado:
+          type: string
+          enum:
+          - proximo
+          - en_vivo
+          - finalizado
+          title: Estado
+        resultado:
+          anyOf:
+          - $ref: '#/components/schemas/ResultadoFixture'
+          - type: 'null'
+        sede:
+          anyOf:
+          - $ref: '#/components/schemas/SedeRef'
+          - type: 'null'
+        reloj:
+          anyOf:
+          - $ref: '#/components/schemas/RelojPartido'
+          - type: 'null'
+        origen_local:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Origen Local
+        origen_visitante:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Origen Visitante
+        requiere_revision:
+          type: boolean
+          title: Requiere Revision
+          default: false
+        fecha:
+          type: string
+          format: date
+          title: Fecha
+          description: Fecha UTC conservada por compatibilidad; usar fecha_hora para
+            visualizar.
+          readOnly: true
+      additionalProperties: false
       type: object
       required:
       - codigo
+      - fecha_hora
       - fase
+      - local
+      - visitante
+      - estado
+      - resultado
       - fecha
       title: PartidoResponse
     PlayoffsResponse:
@@ -2378,6 +2429,37 @@ components:
       - derrota
       - orden_desempate
       title: ReglasGrupo
+    RelojPartido:
+      properties:
+        periodo:
+          type: string
+          enum:
+          - primer_tiempo
+          - entretiempo
+          - segundo_tiempo
+          - prorroga_primer_tiempo
+          - descanso_prorroga
+          - prorroga_segundo_tiempo
+          - tanda
+          - pausa
+          title: Periodo
+        minuto:
+          type: integer
+          maximum: 120.0
+          minimum: 0.0
+          title: Minuto
+        adicional:
+          type: integer
+          minimum: 0.0
+          title: Adicional
+          default: 0
+      additionalProperties: false
+      type: object
+      required:
+      - periodo
+      - minuto
+      title: RelojPartido
+      description: Instantánea informada por la ingesta; nunca se infiere del horario.
     ResultadoFixture:
       properties:
         goles_local:

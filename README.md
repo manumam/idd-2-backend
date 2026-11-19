@@ -131,8 +131,27 @@ estado y resultado. Usa MongoDB `partidos` y Redis opcional, con
 
 El dataset de 127 partidos y el escenario de tres estados están incluidos en
 `data/fixture/`: CSV, calendario UTC, escenario y validador. Los datos son sintéticos.
-El detalle `/partidos/{codigo}` sigue usando Neo4j y todavía no incorpora los estados
-del listado; esa migración figura en el seguimiento del MVP.
+El detalle `GET /partidos/{codigo}` usa MongoDB y Redis opcional. Devuelve
+`fecha_hora` UTC, sede, equipos, fase/grupo, estado, resultado con tanda separada y
+`reloj` (período, minuto absoluto de juego y adicional). Conserva `fecha` como fecha UTC.
+El reloj es una instantánea persistida, sin extrapolar desde el horario; `null`
+significa que aún no fue informado. Representa entretiempo, pausas, prórroga y tanda.
+La ingesta/simulador que lo avance automáticamente sigue pendiente (caso 7).
+La ficha `/partido.html?codigo=P-001` del frontend se abre desde fixture, grupos y
+playoffs y se actualiza cada 15 s mientras está visible, hasta finalizar.
+Los cruces reutilizan la resolución del cuadro; los resultados con participantes
+obsoletos no se muestran como propios y llevan `requiere_revision`.
+
+La caché `partido:v1:{codigo}:{hash}` incluye todas las entradas efectivas:
+se consulta MongoDB y, en eliminatorias, el cuadro antes de elegir la clave.
+Una corrección invalida lógicamente la copia anterior; Redis elimina claves viejas
+por `FIXTURE_CACHE_TTL_SECONDS`. Redis caído o contenido inválido no bloquean la lectura.
+MongoDB sigue siendo necesario incluso con caché. No se agregan escrituras a los GET.
+El validador de `data/fixture/partidos-validator.json` admite `reloj` opcional.
+La carga explícita de fixture aplica ese validador y conserva reloj/estado/resultado
+existentes; solo `--reiniciar-escenario` los reemplaza. No se migra ni carga al arrancar.
+Una base creada con el validador anterior requiere aplicar explícitamente el nuevo
+validador antes de escribir el campo `reloj`; la lectura sigue funcionando sin él.
 
 ### Caché del fixture actual
 
@@ -281,8 +300,10 @@ Los resultados con participantes obsoletos o sin desempate válido requieren rev
 y no propagan ganador. El escritor de resultados debe registrar ambos equipos;
 GET no sobrescribe resultados ni asigna participantes en el fixture persistido.
 
-En el frontend: `/playoffs.html`; cada cruce abre un resumen navegable del encuentro.
-El detalle completo del caso 5 sigue pendiente. Tests locales: resolución completa,
+En el frontend: `/playoffs.html`; cada tarjeta abre la ficha central del encuentro.
+`?partido=P-097` conserva el resumen navegable del camino.
+El detalle central del caso 5 está implementado en `/partido.html?codigo=…`,
+con sede, reloj persistido opcional y enlace al camino del cruce. Tests locales: resolución completa,
 penales, cierres, correcciones en cascada, dependencias inválidas y fallos de caché.
 La validación con motores reales requiere `.env` apuntando al MongoDB del proyecto
 (27018 por defecto); no conectar al MongoDB de otro proyecto en 27017.

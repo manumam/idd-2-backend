@@ -10,6 +10,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from app.schemas.partidos import RelojPartido
+
 DATA = ROOT / "data/fixture"
 CACHE_KEY = "fixture:v1:todos"
 
@@ -78,6 +80,9 @@ def preparar(import_dir, calendario, escenario=None):
         if p['grupo'] and not re.fullmatch('[A-P]', p['grupo']):
             raise ValueError(f"Grupo inválido: {codigo}")
         validar_resultado(c['estado'], c['resultado'])
+        reloj = RelojPartido.model_validate(c['reloj']).model_dump() if c.get('reloj') is not None else None
+        if c['estado'] == 'proximo' and reloj is not None:
+            raise ValueError('Un partido próximo no tiene reloj')
         slots = participaciones[codigo]
         pendientes = c.get('plazas_pendientes', [])
         if not isinstance(pendientes, list) or len(set(pendientes)) != len(pendientes) or set(pendientes) - {'Local', 'Visitante'}:
@@ -99,7 +104,7 @@ def preparar(import_dir, calendario, escenario=None):
         docs.append(dict(_id=codigo, fecha_hora=fecha, fase=p['fase'], grupo=p['grupo'] or None,
                          local=referencia('Local'), visitante=referencia('Visitante'),
                          sede=dict(codigo=sede['id'], nombre=sede['nombre'], ciudad=sede['ciudad']),
-                         estado=c['estado'], resultado=c['resultado']))
+                         estado=c['estado'], resultado=c['resultado'], reloj=reloj))
     return docs
 
 
@@ -116,8 +121,9 @@ def cargar(db, docs, reiniciar=False):
     ops = []
     now = datetime.now(timezone.utc)
     for doc in docs:
-        calendar = {k: v for k, v in doc.items() if k not in ('_id', 'estado', 'resultado')}
+        calendar = {k: v for k, v in doc.items() if k not in ('_id', 'estado', 'resultado', 'reloj')}
         initial = {k: doc[k] for k in ('estado', 'resultado')}
+        initial['reloj'] = doc.get('reloj')
         if reiniciar:
             calendar.update(initial)
             initial = {}

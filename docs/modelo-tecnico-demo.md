@@ -120,7 +120,7 @@ que vencen por TTL. Redis caído o corrupto no impide calcular el cuadro.
 
 El frontend ofrece `/playoffs.html`, rondas, enlaces entre cruces y una vista
 resumida de cada encuentro mediante `?partido=P-097`. Esta vista no reemplaza
-el detalle completo del caso 5 (sede, reloj y navegación a sus funcionalidades).
+la ficha central `/partido.html?codigo=…` del caso 5, accesible desde fixture, grupos y playoffs. El detalle ya usa MongoDB/Redis y un reloj persistido opcional; el avance automático depende de la ingesta pendiente.
 
 Cada plaza de un cruce conserva su origen aunque el equipo aún no esté definido:
 
