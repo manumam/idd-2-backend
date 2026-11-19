@@ -185,6 +185,275 @@
                 "minimum": 0
               }
             }
+          },
+          "alineaciones": {
+            "bsonType": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "local": {
+                "bsonType": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "equipo",
+                  "titulares",
+                  "suplentes"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "equipo": {
+                    "bsonType": "object",
+                    "required": [
+                      "codigo",
+                      "nombre"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "codigo": {
+                        "bsonType": "string",
+                        "pattern": "^[A-Z]{3}$"
+                      },
+                      "nombre": {
+                        "bsonType": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "titulares": {
+                    "bsonType": "array",
+                    "minItems": 11,
+                    "maxItems": 11,
+                    "items": {
+                      "bsonType": "object",
+                      "required": [
+                        "codigo",
+                        "nombre",
+                        "dorsal",
+                        "posicion"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "codigo": {
+                          "bsonType": "string",
+                          "pattern": "^[A-Z]{3}-[1-9][0-9]?$"
+                        },
+                        "nombre": {
+                          "bsonType": "string",
+                          "minLength": 1
+                        },
+                        "dorsal": {
+                          "bsonType": "int",
+                          "minimum": 1,
+                          "maximum": 99
+                        },
+                        "posicion": {
+                          "bsonType": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  },
+                  "suplentes": {
+                    "bsonType": "array",
+                    "maxItems": 15,
+                    "items": {
+                      "bsonType": "object",
+                      "required": [
+                        "codigo",
+                        "nombre",
+                        "dorsal",
+                        "posicion"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "codigo": {
+                          "bsonType": "string",
+                          "pattern": "^[A-Z]{3}-[1-9][0-9]?$"
+                        },
+                        "nombre": {
+                          "bsonType": "string",
+                          "minLength": 1
+                        },
+                        "dorsal": {
+                          "bsonType": "int",
+                          "minimum": 1,
+                          "maximum": 99
+                        },
+                        "posicion": {
+                          "bsonType": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  },
+                  "formacion": {
+                    "bsonType": [
+                      "object",
+                      "null"
+                    ],
+                    "required": [
+                      "arquero",
+                      "lineas"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "arquero": {
+                        "bsonType": "string",
+                        "pattern": "^[A-Z]{3}-[1-9][0-9]?$"
+                      },
+                      "lineas": {
+                        "bsonType": "array",
+                        "minItems": 2,
+                        "maxItems": 5,
+                        "items": {
+                          "bsonType": "array",
+                          "minItems": 1,
+                          "maxItems": 5,
+                          "items": {
+                            "bsonType": "string",
+                            "pattern": "^[A-Z]{3}-[1-9][0-9]?$"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "visitante": {
+                "bsonType": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "equipo",
+                  "titulares",
+                  "suplentes"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "equipo": {
+                    "bsonType": "object",
+                    "required": [
+                      "codigo",
+                      "nombre"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "codigo": {
+                        "bsonType": "string",
+                        "pattern": "^[A-Z]{3}$"
+                      },
+                      "nombre": {
+                        "bsonType": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "titulares": {
+                    "bsonType": "array",
+                    "minItems": 11,
+                    "maxItems": 11,
+                    "items": {
+                      "bsonType": "object",
+                      "required": [
+                        "codigo",
+                        "nombre",
+                        "dorsal",
+                        "posicion"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "codigo": {
+                          "bsonType": "string",
+                          "pattern": "^[A-Z]{3}-[1-9][0-9]?$"
+                        },
+                        "nombre": {
+                          "bsonType": "string",
+                          "minLength": 1
+                        },
+                        "dorsal": {
+                          "bsonType": "int",
+                          "minimum": 1,
+                          "maximum": 99
+                        },
+                        "posicion": {
+                          "bsonType": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  },
+                  "suplentes": {
+                    "bsonType": "array",
+                    "maxItems": 15,
+                    "items": {
+                      "bsonType": "object",
+                      "required": [
+                        "codigo",
+                        "nombre",
+                        "dorsal",
+                        "posicion"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "codigo": {
+                          "bsonType": "string",
+                          "pattern": "^[A-Z]{3}-[1-9][0-9]?$"
+                        },
+                        "nombre": {
+                          "bsonType": "string",
+                          "minLength": 1
+                        },
+                        "dorsal": {
+                          "bsonType": "int",
+                          "minimum": 1,
+                          "maximum": 99
+                        },
+                        "posicion": {
+                          "bsonType": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  },
+                  "formacion": {
+                    "bsonType": [
+                      "object",
+                      "null"
+                    ],
+                    "required": [
+                      "arquero",
+                      "lineas"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "arquero": {
+                        "bsonType": "string",
+                        "pattern": "^[A-Z]{3}-[1-9][0-9]?$"
+                      },
+                      "lineas": {
+                        "bsonType": "array",
+                        "minItems": 2,
+                        "maxItems": 5,
+                        "items": {
+                          "bsonType": "array",
+                          "minItems": 1,
+                          "maxItems": 5,
+                          "items": {
+                            "bsonType": "string",
+                            "pattern": "^[A-Z]{3}-[1-9][0-9]?$"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

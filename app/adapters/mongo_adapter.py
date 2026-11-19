@@ -124,6 +124,11 @@ class MongoAdapter(BaseAdapter):
         return self._execute(lambda: self.db["partidos"].find_one({"_id": codigo}, projection))
 
     @observe("MongoDB")
+    def find_alineaciones(self, codigo: str):
+        return self._execute(lambda: self.db["partidos"].find_one(
+            {"_id": codigo}, {"_id": 1, "alineaciones": 1}))
+
+    @observe("MongoDB")
     def list_cruces(self):
         return self._execute(lambda: list(self.db['cruces'].find(
             {}, {'_id': 1, 'fase': 1, 'orden': 1, 'local': 1, 'visitante': 1}).sort('_id', 1)))

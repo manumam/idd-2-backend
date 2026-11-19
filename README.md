@@ -307,3 +307,20 @@ con sede, reloj persistido opcional y enlace al camino del cruce. Tests locales:
 penales, cierres, correcciones en cascada, dependencias inválidas y fallos de caché.
 La validación con motores reales requiere `.env` apuntando al MongoDB del proyecto
 (27018 por defecto); no conectar al MongoDB de otro proyecto en 27017.
+
+## Alineaciones (caso 6)
+
+`GET /partidos/{codigo}/alineaciones` consulta titulares y suplentes desde MongoDB,
+con Redis opcional. El frontend las muestra dentro del partido y conserva el contexto
+al abrir una ficha de jugador. La carga por encuentro es explícita y conserva las
+convocatorias existentes salvo `--reemplazar`; no se ejecuta durante el arranque.
+Ver [contrato, carga y límites con el caso 9](docs/alineaciones.md).
+
+Para probar con Argentina, el seed `scripts/cargar_alineaciones_argentina.py` carga
+convocatorias simuladas de once titulares y quince suplentes en P-002, P-051 y P-083.
+Requiere el fixture y sus 26 jugadores existentes. Conserva alineaciones y resultados
+y no se ejecuta durante el arranque. Ver [instrucciones](docs/alineaciones.md).
+
+Las alineaciones admiten una formación opcional con arquero y líneas de titulares.
+La página muestra el esquema sobre una cancha y permite alternar equipo. El seed
+de Argentina incorpora un 4–3–3 simulado; ver [modelo y orientación](docs/alineaciones.md).

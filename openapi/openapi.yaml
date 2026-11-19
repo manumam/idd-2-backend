@@ -1196,6 +1196,99 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
+  /partidos/{codigo}/alineaciones:
+    get:
+      tags:
+      - Partidos y eventos
+      summary: Alineaciones de un partido
+      description: 'Titulares y suplentes por selección, con código de jugador, nombre
+        completo, dorsal y posición del encuentro. Incluye formacion opcional con
+        arquero y lineas ordenadas desde defensa hacia ataque, de izquierda a derecha
+        al mirar al arco rival. Contiene exactamente los once titulares; no es tracking
+        en vivo. Cada lado es null si aún no fue informado o pertenece a una plaza
+        obsoleta. Partido inexistente: 404. MongoDB con Redis opcional versionado;
+        no reemplaza datos faltantes con el plantel.'
+      operationId: obtener_alineaciones_partidos__codigo__alineaciones_get
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^P-[0-9]{3}$
+          description: Código del partido
+          examples:
+          - P-001
+          title: Codigo
+        description: Código del partido
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlineacionesResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '500':
+          description: Alineaciones persistidas inválidas; requieren revisión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '400':
+          description: Parámetro inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '503':
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
   /partidos/{codigo}/estadisticas:
     get:
       tags:
@@ -1535,6 +1628,53 @@ paths:
                 type: string
 components:
   schemas:
+    AlineacionEquipo:
+      properties:
+        equipo:
+          $ref: '#/components/schemas/EquipoRef'
+        titulares:
+          items:
+            $ref: '#/components/schemas/JugadorAlineacion'
+          type: array
+          maxItems: 11
+          minItems: 11
+          title: Titulares
+        suplentes:
+          items:
+            $ref: '#/components/schemas/JugadorAlineacion'
+          type: array
+          maxItems: 15
+          title: Suplentes
+        formacion:
+          anyOf:
+          - $ref: '#/components/schemas/Formacion'
+          - type: 'null'
+      additionalProperties: false
+      type: object
+      required:
+      - equipo
+      - titulares
+      - suplentes
+      title: AlineacionEquipo
+    AlineacionesResponse:
+      properties:
+        local:
+          anyOf:
+          - $ref: '#/components/schemas/AlineacionEquipo'
+          - type: 'null'
+        visitante:
+          anyOf:
+          - $ref: '#/components/schemas/AlineacionEquipo'
+          - type: 'null'
+        partido:
+          type: string
+          pattern: ^P-[0-9]{3}$
+          title: Partido
+      additionalProperties: false
+      type: object
+      required:
+      - partido
+      title: AlineacionesResponse
     Comentario:
       properties:
         comentarioId:
@@ -1813,6 +1953,31 @@ components:
       required:
       - items
       title: FixtureResponse
+    Formacion:
+      properties:
+        arquero:
+          type: string
+          pattern: ^[A-Z]{3}-[1-9][0-9]?$
+          title: Arquero
+        lineas:
+          items:
+            items:
+              type: string
+              pattern: ^[A-Z]{3}-[1-9][0-9]?$
+            type: array
+            maxItems: 5
+            minItems: 1
+          type: array
+          maxItems: 5
+          minItems: 2
+          title: Lineas
+      additionalProperties: false
+      type: object
+      required:
+      - arquero
+      - lineas
+      title: Formacion
+      description: Disposición inicial; líneas desde defensa hacia ataque, sin tracking.
     GolResponse:
       properties:
         jugador:
@@ -1897,6 +2062,33 @@ components:
       required:
       - estado
       title: HealthResponse
+    JugadorAlineacion:
+      properties:
+        codigo:
+          type: string
+          pattern: ^[A-Z]{3}-[1-9][0-9]?$
+          title: Codigo
+        nombre:
+          type: string
+          minLength: 1
+          title: Nombre
+        dorsal:
+          type: integer
+          maximum: 99.0
+          minimum: 1.0
+          title: Dorsal
+        posicion:
+          type: string
+          minLength: 1
+          title: Posicion
+      additionalProperties: false
+      type: object
+      required:
+      - codigo
+      - nombre
+      - dorsal
+      - posicion
+      title: JugadorAlineacion
     JugadorDetalle:
       properties:
         codigo:

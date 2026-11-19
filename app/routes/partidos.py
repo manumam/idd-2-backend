@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
-from app.schemas.errors import RESPUESTAS_FICHA
+from app.schemas.alineaciones import AlineacionesResponse
+from app.schemas.errors import RESPUESTAS_FICHA, ErrorResponse
 from app.schemas.params import CodigoPartido, CodigoSede, Confederacion, LimitEventos, LimitGoleadores
 from app.schemas.partidos import EventosResponse, GoleadoresResponse, PartidoResponse
 from app.services import partidos_service
@@ -32,3 +33,14 @@ def listar_eventos(codigo: CodigoPartido, limit: LimitEventos = 50) -> EventosRe
 )
 def listar_goleadores(codigo: CodigoSede, confederacion: Confederacion, limit: LimitGoleadores = 50) -> GoleadoresResponse:
     return partidos_service.listar_goleadores(codigo, confederacion, limit)
+
+
+@router.get(
+    "/partidos/{codigo}/alineaciones",
+    response_model=AlineacionesResponse,
+    summary="Alineaciones de un partido",
+    responses={500: {"model": ErrorResponse, "description": "Alineaciones persistidas inválidas; requieren revisión"}},
+    description="Titulares y suplentes por selección, con código de jugador, nombre completo, dorsal y posición del encuentro. Incluye formacion opcional con arquero y lineas ordenadas desde defensa hacia ataque, de izquierda a derecha al mirar al arco rival. Contiene exactamente los once titulares; no es tracking en vivo. Cada lado es null si aún no fue informado o pertenece a una plaza obsoleta. Partido inexistente: 404. MongoDB con Redis opcional versionado; no reemplaza datos faltantes con el plantel.",
+)
+def obtener_alineaciones(codigo: CodigoPartido):
+    return partidos_service.obtener_alineaciones(codigo)

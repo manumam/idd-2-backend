@@ -1,0 +1,583 @@
+{
+  "partidos": [
+    {
+      "partido": "P-002",
+      "alineaciones": {
+        "local": {
+          "equipo": {
+            "codigo": "ARG",
+            "nombre": "Argentina"
+          },
+          "titulares": [
+            {
+              "codigo": "ARG-23",
+              "nombre": "Damián Emiliano MARTÍNEZ",
+              "dorsal": 23,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "ARG-26",
+              "nombre": "Nahuel MOLINA LUCERO",
+              "dorsal": 26,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-13",
+              "nombre": "Cristian Gabriel ROMERO",
+              "dorsal": 13,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-19",
+              "nombre": "Nicolas Hernan Gonzalo OTAMENDI",
+              "dorsal": 19,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-3",
+              "nombre": "Nicolás Alejandro TAGLIAFICO",
+              "dorsal": 3,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-7",
+              "nombre": "Rodrigo Javier DE PAUL",
+              "dorsal": 7,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-24",
+              "nombre": "Enzo Jeremías FERNÁNDEZ",
+              "dorsal": 24,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-20",
+              "nombre": "Alexis MAC ALLISTER",
+              "dorsal": 20,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-10",
+              "nombre": "Lionel Andrés MESSI",
+              "dorsal": 10,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-9",
+              "nombre": "Julián ÁLVAREZ",
+              "dorsal": 9,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-22",
+              "nombre": "Lautaro Javier MARTÍNEZ",
+              "dorsal": 22,
+              "posicion": "Delantero"
+            }
+          ],
+          "suplentes": [
+            {
+              "codigo": "ARG-1",
+              "nombre": "Juan Agustín MUSSO",
+              "dorsal": 1,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "ARG-2",
+              "nombre": "Leonardo Julián BALERDI ROSA",
+              "dorsal": 2,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-4",
+              "nombre": "Gonzalo Ariel MONTIEL",
+              "dorsal": 4,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-5",
+              "nombre": "Leandro Daniel PAREDES",
+              "dorsal": 5,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-6",
+              "nombre": "Lisandro MARTÍNEZ",
+              "dorsal": 6,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-8",
+              "nombre": "Valentin BARCO",
+              "dorsal": 8,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-11",
+              "nombre": "Giovani LO CELSO",
+              "dorsal": 11,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-12",
+              "nombre": "Geronimo RULLI",
+              "dorsal": 12,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "ARG-14",
+              "nombre": "Exequiel Alejandro PALACIOS",
+              "dorsal": 14,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-15",
+              "nombre": "Nicolas Ivan GONZALEZ",
+              "dorsal": 15,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-16",
+              "nombre": "Thiago Ezequiel ALMADA",
+              "dorsal": 16,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-17",
+              "nombre": "Giuliano SIMEONE",
+              "dorsal": 17,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-18",
+              "nombre": "Nicolas PAZ MARTÍNEZ",
+              "dorsal": 18,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-21",
+              "nombre": "Jose Manuel Alberto LOPEZ",
+              "dorsal": 21,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-25",
+              "nombre": "Facundo Axel MEDINA",
+              "dorsal": 25,
+              "posicion": "Defensor"
+            }
+          ],
+          "formacion": {
+            "arquero": "ARG-23",
+            "lineas": [
+              [
+                "ARG-26",
+                "ARG-13",
+                "ARG-19",
+                "ARG-3"
+              ],
+              [
+                "ARG-7",
+                "ARG-24",
+                "ARG-20"
+              ],
+              [
+                "ARG-10",
+                "ARG-9",
+                "ARG-22"
+              ]
+            ]
+          }
+        },
+        "visitante": null
+      }
+    },
+    {
+      "partido": "P-051",
+      "alineaciones": {
+        "local": {
+          "equipo": {
+            "codigo": "ARG",
+            "nombre": "Argentina"
+          },
+          "titulares": [
+            {
+              "codigo": "ARG-23",
+              "nombre": "Damián Emiliano MARTÍNEZ",
+              "dorsal": 23,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "ARG-26",
+              "nombre": "Nahuel MOLINA LUCERO",
+              "dorsal": 26,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-13",
+              "nombre": "Cristian Gabriel ROMERO",
+              "dorsal": 13,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-19",
+              "nombre": "Nicolas Hernan Gonzalo OTAMENDI",
+              "dorsal": 19,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-3",
+              "nombre": "Nicolás Alejandro TAGLIAFICO",
+              "dorsal": 3,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-7",
+              "nombre": "Rodrigo Javier DE PAUL",
+              "dorsal": 7,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-24",
+              "nombre": "Enzo Jeremías FERNÁNDEZ",
+              "dorsal": 24,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-20",
+              "nombre": "Alexis MAC ALLISTER",
+              "dorsal": 20,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-10",
+              "nombre": "Lionel Andrés MESSI",
+              "dorsal": 10,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-9",
+              "nombre": "Julián ÁLVAREZ",
+              "dorsal": 9,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-22",
+              "nombre": "Lautaro Javier MARTÍNEZ",
+              "dorsal": 22,
+              "posicion": "Delantero"
+            }
+          ],
+          "suplentes": [
+            {
+              "codigo": "ARG-1",
+              "nombre": "Juan Agustín MUSSO",
+              "dorsal": 1,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "ARG-2",
+              "nombre": "Leonardo Julián BALERDI ROSA",
+              "dorsal": 2,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-4",
+              "nombre": "Gonzalo Ariel MONTIEL",
+              "dorsal": 4,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-5",
+              "nombre": "Leandro Daniel PAREDES",
+              "dorsal": 5,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-6",
+              "nombre": "Lisandro MARTÍNEZ",
+              "dorsal": 6,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-8",
+              "nombre": "Valentin BARCO",
+              "dorsal": 8,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-11",
+              "nombre": "Giovani LO CELSO",
+              "dorsal": 11,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-12",
+              "nombre": "Geronimo RULLI",
+              "dorsal": 12,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "ARG-14",
+              "nombre": "Exequiel Alejandro PALACIOS",
+              "dorsal": 14,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-15",
+              "nombre": "Nicolas Ivan GONZALEZ",
+              "dorsal": 15,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-16",
+              "nombre": "Thiago Ezequiel ALMADA",
+              "dorsal": 16,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-17",
+              "nombre": "Giuliano SIMEONE",
+              "dorsal": 17,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-18",
+              "nombre": "Nicolas PAZ MARTÍNEZ",
+              "dorsal": 18,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-21",
+              "nombre": "Jose Manuel Alberto LOPEZ",
+              "dorsal": 21,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-25",
+              "nombre": "Facundo Axel MEDINA",
+              "dorsal": 25,
+              "posicion": "Defensor"
+            }
+          ],
+          "formacion": {
+            "arquero": "ARG-23",
+            "lineas": [
+              [
+                "ARG-26",
+                "ARG-13",
+                "ARG-19",
+                "ARG-3"
+              ],
+              [
+                "ARG-7",
+                "ARG-24",
+                "ARG-20"
+              ],
+              [
+                "ARG-10",
+                "ARG-9",
+                "ARG-22"
+              ]
+            ]
+          }
+        },
+        "visitante": null
+      }
+    },
+    {
+      "partido": "P-083",
+      "alineaciones": {
+        "local": {
+          "equipo": {
+            "codigo": "ARG",
+            "nombre": "Argentina"
+          },
+          "titulares": [
+            {
+              "codigo": "ARG-23",
+              "nombre": "Damián Emiliano MARTÍNEZ",
+              "dorsal": 23,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "ARG-26",
+              "nombre": "Nahuel MOLINA LUCERO",
+              "dorsal": 26,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-13",
+              "nombre": "Cristian Gabriel ROMERO",
+              "dorsal": 13,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-19",
+              "nombre": "Nicolas Hernan Gonzalo OTAMENDI",
+              "dorsal": 19,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-3",
+              "nombre": "Nicolás Alejandro TAGLIAFICO",
+              "dorsal": 3,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-7",
+              "nombre": "Rodrigo Javier DE PAUL",
+              "dorsal": 7,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-24",
+              "nombre": "Enzo Jeremías FERNÁNDEZ",
+              "dorsal": 24,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-20",
+              "nombre": "Alexis MAC ALLISTER",
+              "dorsal": 20,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-10",
+              "nombre": "Lionel Andrés MESSI",
+              "dorsal": 10,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-9",
+              "nombre": "Julián ÁLVAREZ",
+              "dorsal": 9,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-22",
+              "nombre": "Lautaro Javier MARTÍNEZ",
+              "dorsal": 22,
+              "posicion": "Delantero"
+            }
+          ],
+          "suplentes": [
+            {
+              "codigo": "ARG-1",
+              "nombre": "Juan Agustín MUSSO",
+              "dorsal": 1,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "ARG-2",
+              "nombre": "Leonardo Julián BALERDI ROSA",
+              "dorsal": 2,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-4",
+              "nombre": "Gonzalo Ariel MONTIEL",
+              "dorsal": 4,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-5",
+              "nombre": "Leandro Daniel PAREDES",
+              "dorsal": 5,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-6",
+              "nombre": "Lisandro MARTÍNEZ",
+              "dorsal": 6,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "ARG-8",
+              "nombre": "Valentin BARCO",
+              "dorsal": 8,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-11",
+              "nombre": "Giovani LO CELSO",
+              "dorsal": 11,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-12",
+              "nombre": "Geronimo RULLI",
+              "dorsal": 12,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "ARG-14",
+              "nombre": "Exequiel Alejandro PALACIOS",
+              "dorsal": 14,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-15",
+              "nombre": "Nicolas Ivan GONZALEZ",
+              "dorsal": 15,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "ARG-16",
+              "nombre": "Thiago Ezequiel ALMADA",
+              "dorsal": 16,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-17",
+              "nombre": "Giuliano SIMEONE",
+              "dorsal": 17,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-18",
+              "nombre": "Nicolas PAZ MARTÍNEZ",
+              "dorsal": 18,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-21",
+              "nombre": "Jose Manuel Alberto LOPEZ",
+              "dorsal": 21,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "ARG-25",
+              "nombre": "Facundo Axel MEDINA",
+              "dorsal": 25,
+              "posicion": "Defensor"
+            }
+          ],
+          "formacion": {
+            "arquero": "ARG-23",
+            "lineas": [
+              [
+                "ARG-26",
+                "ARG-13",
+                "ARG-19",
+                "ARG-3"
+              ],
+              [
+                "ARG-7",
+                "ARG-24",
+                "ARG-20"
+              ],
+              [
+                "ARG-10",
+                "ARG-9",
+                "ARG-22"
+              ]
+            ]
+          }
+        },
+        "visitante": null
+      }
+    }
+  ]
+}
