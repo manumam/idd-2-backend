@@ -9,6 +9,8 @@ from contextvars import ContextVar
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
 
+from app.core.metrics import METRICS_PATH, record_request, route_template
+
 REQUEST_ID_HEADER = "X-Request-Id"
 _VALID_ID = re.compile(r"^[A-Za-z0-9-]{1,64}$")
 _request_id: ContextVar[str] = ContextVar("request_id", default="-")
@@ -47,7 +49,11 @@ async def request_context_middleware(request: Request, call_next):
                     "requestId": request_id,
                 },
             )
-        elapsed_ms = (time.perf_counter() - start) * 1000
+        elapsed_seconds = time.perf_counter() - start
+        elapsed_ms = elapsed_seconds * 1000
+        ruta = route_template(request.scope)
+        if ruta != METRICS_PATH:
+            record_request(ruta, request.method, response.status_code, elapsed_seconds)
         response.headers[REQUEST_ID_HEADER] = request_id
         logger.info(
             "request_id=%s method=%s path=%s status=%s duration_ms=%.1f",
