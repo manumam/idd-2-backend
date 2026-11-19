@@ -41,6 +41,9 @@ para personas. No se exponen credenciales, consultas ni trazas del servidor.
 | 503 | Dependencia inaccesible o configuración rechazada | `<FUENTE>_UNAVAILABLE`, `_AUTHENTICATION_FAILED`, `_ACCESS_DENIED` o `_CONTEXT_UNAVAILABLE` |
 | 504 | Tiempo de espera de una dependencia agotado | `<FUENTE>_TIMEOUT` |
 
+`<FUENTE>` es `MONGODB` o `INFLUXDB`. Redis es caché opcional: sus fallas se
+registran y la respuesta se obtiene de MongoDB, sin devolver códigos `REDIS_*`.
+
 La identidad o los permisos rechazados por una base generan 503, no un error de
 login del visitante. La clasificación usa tipos y códigos del driver; no publica
 sus mensajes. Un timeout no identifica por sí solo si la causa es red, DNS o carga.

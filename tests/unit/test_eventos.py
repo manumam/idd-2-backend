@@ -6,7 +6,7 @@ from unittest.mock import Mock
 import pytest
 from pydantic import ValidationError
 
-from app.adapters import mongo_adapter, redis_adapter, neo4j_adapter
+from app.adapters import mongo_adapter, redis_adapter
 from app.core.exceptions import DatabaseUnavailableError
 from app.schemas.partidos import EventoResponse
 from app.services.seguimiento_service import TickPartido, aplicar_tick
@@ -46,7 +46,6 @@ def almacen(monkeypatch, cache_redis):
         return True
     monkeypatch.setattr(mongo_adapter, 'guardar_seguimiento', Mock(side_effect=guardar))
     monkeypatch.setattr(mongo_adapter, 'list_cruces', Mock(return_value=[]))
-    monkeypatch.setattr(neo4j_adapter, 'find_eventos', Mock(side_effect=AssertionError('No usar Neo4j')))
     return doc, cache_redis
 
 

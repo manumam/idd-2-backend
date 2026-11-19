@@ -98,16 +98,3 @@ class EventosResponse(BaseModel):
     estado: Literal["proximo", "en_vivo", "finalizado"]
     resultado: ResultadoFixture | None
     reloj: RelojPartido | None
-
-
-class GolResponse(BaseModel):
-    jugador: JugadorRef
-    equipo: EquipoRef
-    partido: str
-    minuto: int
-
-
-class GoleadoresResponse(BaseModel):
-    sede: str
-    confederacion: str
-    items: List[GolResponse]

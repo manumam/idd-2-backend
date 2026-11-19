@@ -143,9 +143,9 @@ class ClienteMemoria:
 def test_carga_masiva_borra_namespaces_derivados_con_scan(fuentes):
     _, cache = fuentes
     cache.update({k: '{}' for k in ('partido:v2:P-001', 'eventos:v2:P-001:50:0', 'alineaciones:v2:P-001',
-                                    'grupos:v2:A', 'playoffs:v2:todos', 'sesion:abc', 'fixture:v1:todos')})
+                                    'grupos:v2:A', 'playoffs:v2:todos', 'ajena:abc', 'fixture:v1:todos')})
     borrar_cache_derivada(ClienteMemoria(cache))
-    assert set(cache) == {'sesion:abc', 'fixture:v1:todos'}
+    assert set(cache) == {'ajena:abc', 'fixture:v1:todos'}
 
 
 def test_mongo_consulta_grupo_con_proyeccion_y_orden():

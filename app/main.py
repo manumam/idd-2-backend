@@ -10,7 +10,7 @@ from fastapi.openapi.utils import get_openapi
 
 from app.core.handlers import register_handlers
 from app.core.request_context import request_context_middleware
-from app.routes import comentarios, equipos, estadisticas, fixture, grupos, health, objetos, partidos, sesiones
+from app.routes import equipos, estadisticas, fixture, grupos, health, partidos
 from app.schemas.errors import ErrorResponse
 from app.routes import metricas, playoffs
 
@@ -45,11 +45,8 @@ app.include_router(fixture.router)
 app.include_router(grupos.router)
 app.include_router(playoffs.router)
 app.include_router(equipos.router)
-app.include_router(sesiones.router)
 app.include_router(partidos.router)
 app.include_router(estadisticas.router)
-app.include_router(comentarios.router)
-app.include_router(objetos.router)
 
 
 def custom_openapi():

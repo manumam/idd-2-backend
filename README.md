@@ -5,8 +5,6 @@ caché e InfluxDB para series temporales. Los [lineamientos](docs/lineamientos-e
 [casos de uso](docs/casos-de-uso-fixture.md) y [modelo técnico](docs/modelo-tecnico-demo.md)
 definen el alcance; el [seguimiento](docs/casos_de_uso.md) registra lo implementado y pendiente.
 
-La API actual todavía conserva adaptadores y rutas de Neo4j, Cassandra, sesiones
-e IRIS que deben migrarse o retirarse. Su existencia no modifica el alcance del MVP.
 Consultar el [índice de documentación](docs/README.md).
 
 El arranque de la aplicación, los tests habituales y las evaluaciones de hitos son
@@ -89,8 +87,7 @@ probar fuentes reales, seleccionar explícitamente `tests/integration` y usar ba
 dedicadas para pruebas, con datos representativos:
 
 ```bash
-LIVE_MODULES=mongodb,neo4j,cassandra,redis,influxdb,iris IRIS_TEST_ID=1 \
-  python -m pytest tests/integration -v
+LIVE_MODULES=mongodb,influxdb python -m pytest tests/integration -v
 ```
 
 Se puede seleccionar un subconjunto en `LIVE_MODULES`. Los tests habilitados fallan
@@ -101,9 +98,6 @@ si la fuente cae o no devuelve los datos esperados. Ver [tests/README.md](tests/
 - [Seguimiento de los casos del MVP](docs/casos_de_uso.md).
 - [Observabilidad y errores](docs/observabilidad_y_errores.md).
 - [Pruebas y evidencia disponible](laboratorio/pruebas_y_evidencia.md).
-
-Cassandra vuelve a exponer el feed de comentarios de solo lectura. IRIS recupera la vista de partidos y eventos por ID persistente (`/objetos/partidos/{id}`). Ver `tests/fixtures/README.md` para cargar sus esquemas. IRIS se levanta por separado; sus credenciales y namespace se configuran con `IRIS_*`.
-La única mutación HTTP es invalidar una sesión (DELETE idempotente).
 
 `/live` comprueba el proceso sin consultar motores. `/ready` devuelve 200 si MongoDB e InfluxDB responden a su ping o 503 si alguno falla; Redis es caché opcional y no se evalúa. `/health` devuelve 200 con `up/down` para MongoDB, Redis e InfluxDB aun si alguna está caída. Los endpoints
 de datos responden 503 ante una dependencia inaccesible o con identidad/permisos/contexto rechazados, y 504 ante timeout. Los detalles del driver no
@@ -126,7 +120,7 @@ La práctica de laboratorio y su evidencia están en [laboratorio/](laboratorio/
 
 `GET /fixture` lista los partidos por fecha/hora UTC y código, con equipos, fase,
 estado y resultado. Usa MongoDB `partidos` y Redis opcional, con
-`FIXTURE_CACHE_TTL_SECONDS=5`. No requiere que Neo4j o Influx estén disponibles.
+`FIXTURE_CACHE_TTL_SECONDS=5`. No requiere que InfluxDB esté disponible.
 
 El dataset de 127 partidos y el escenario de tres estados están incluidos en
 `data/fixture/`: CSV, calendario UTC, escenario y validador. Los datos son sintéticos.

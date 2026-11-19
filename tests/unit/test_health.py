@@ -27,12 +27,10 @@ def test_live_never_calls_dependencies(client, monkeypatch):
 
 
 def test_health_lists_only_final_stack_sources(client, monkeypatch):
-    pings = _mockear_pings(monkeypatch, caidas=('redis',))
+    _mockear_pings(monkeypatch, caidas=('redis',))
     response = client.get('/health')
     assert response.status_code == 200
     assert response.json() == {'estado': {'mongodb': 'up', 'redis': 'down', 'influxdb': 'up'}}
-    for name in ('neo4j', 'cassandra', 'iris'):
-        pings[name].assert_not_called()
 
 
 def test_ready_all_essential_up(client, monkeypatch):

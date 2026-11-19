@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Script CLI para verificar la conectividad de los seis motores NoSQL.
+"""Script CLI para verificar la conectividad de MongoDB, Redis e InfluxDB.
 
 Cumple con RF17, RNF11 y entrega de scripts de la consigna (§9):
 - Ejecuta un ping activo sobre cada adaptador.
@@ -15,14 +15,7 @@ import time
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.config.settings import settings
-from app.adapters import (
-    mongo_adapter,
-    neo4j_adapter,
-    cassandra_adapter,
-    redis_adapter,
-    influx_adapter,
-    iris_adapter,
-)
+from app.adapters import influx_adapter, mongo_adapter, redis_adapter
 from app.core.exceptions import DatabaseUnavailableError
 
 
@@ -52,9 +45,7 @@ def main():
     print(f" Timeout configurado por consulta: {settings.db_timeout_seconds} segundos\n")
 
     targets = [(name, adapter, "configuración de entorno") for name, adapter in [
-        ("MongoDB", mongo_adapter), ("Neo4j", neo4j_adapter),
-        ("Cassandra", cassandra_adapter), ("Redis", redis_adapter),
-        ("InfluxDB", influx_adapter), ("IRIS", iris_adapter),
+        ("MongoDB", mongo_adapter), ("Redis", redis_adapter), ("InfluxDB", influx_adapter),
     ]]
 
     results = []

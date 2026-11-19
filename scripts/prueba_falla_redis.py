@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Detiene y restaura exclusivamente Redis del Compose aislado Hito 11."""
+"""Detiene y restaura Redis del Compose aislado Hito 11: la API sigue respondiendo desde MongoDB."""
 import argparse
 import json
 import subprocess
@@ -28,31 +28,31 @@ def main():
         row['correcto'] = row['status_http'] == expected and row['request_id'] == row['correlacion_esperada']
         rows.append(row)
         return row['correcto']
-    def check_group(stage, session, ready):
+    def check_group(stage):
         return all([check(stage, '/live', 200), check(stage, '/health', 200),
-                    check(stage, '/ready', ready), check(stage, '/sesiones/SES-DEMO', session)])
+                    check(stage, '/ready', 200), check(stage, '/fixture', 200)])
     try:
-        if not check_group('inicial', 200, 200):
-            raise RuntimeError('Preparar los datos y las seis dependencias antes de detener Redis')
+        if not check_group('inicial'):
+            raise RuntimeError('Preparar los datos y las dependencias antes de detener Redis')
         try:
             subprocess.run(COMMAND + ['stop', 'redis'], check=True, timeout=30)
-            if not check_group('detenido', 503, 503):
+            if not check_group('detenido'):
                 raise RuntimeError('Respuesta inesperada con Redis detenido')
         finally:
             subprocess.run(COMMAND + ['start', 'redis'], check=True, timeout=30)
         for attempt in range(10):
-            if check('recuperacion', '/ready', 200):
+            if check('recuperacion', '/fixture', 200):
                 break
             time.sleep(0.5)
         else:
             raise RuntimeError('Redis no recuperado dentro del plazo')
-        if not check_group('recuperado', 200, 200):
-            raise RuntimeError('La sesion no se recupero')
+        if not check_group('recuperado'):
+            raise RuntimeError('La API no se recupero')
     finally:
         report = dict(resultados=rows, persistencia='Volumen redis_lab conservado; no se borraron datos ni volumenes.')
         args.salida.parent.mkdir(parents=True, exist_ok=True)
         args.salida.write_text(json.dumps(report, indent=2) + '\n')
-    print('Redis y readiness recuperados. Liveness siempre 200. Evidencia guardada.')
+    print('Redis recuperado. La API respondio desde MongoDB mientras estuvo detenido. Evidencia guardada.')
 
 
 if __name__ == '__main__':

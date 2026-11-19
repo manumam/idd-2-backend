@@ -2,7 +2,6 @@
 """Diagnóstico no destructivo; no imprime excepciones ni URI con credenciales."""
 import argparse
 import json
-import os
 import socket
 import sys
 import time
@@ -13,29 +12,22 @@ from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.config.settings import settings
+from app.services.fixture_service import FIXTURE_CACHE_KEY
 from app.services.health_service import FUENTES
 import requests
 
 ROUTES = {
     'mongodb': ['/partidos/P-001/eventos?limit=2', '/partidos/P-001', '/equipos/ARG', '/jugadores?equipo=ARG&limit=2', '/jugadores/ARG-10'],
-    'neo4j': ['/sedes/S-04/goleadores?confederacion=CONMEBOL&limit=2'],
-    'redis': ['/sesiones/SES-DEMO'],
-    'cassandra': ['/partidos/ARG-ESP-20300624/comentarios?bloque=2030-06-24T20:05:00Z&limit=2'],
-    'iris': ['/objetos/partidos/' + os.getenv('IRIS_TEST_ID', '1')],
+    'redis': ['/fixture'],
     'influxdb': ['/partidos/P-001/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z'],
 }
 
 
 def target(source):
-    if source == 'cassandra':
-        return settings.cassandra_hosts[0], settings.cassandra_port
-    if source == 'iris':
-        return settings.iris_host, settings.iris_port
     if source == 'redis':
         return settings.redis_host, settings.redis_port
     url, default = {
         'mongodb': (settings.mongo_uri, 27017),
-        'neo4j': (settings.neo4j_uri, 7687),
         'influxdb': (settings.influx_url, 8181),
     }[source]
     parsed = urlsplit(url)
@@ -49,15 +41,9 @@ def read_minimum(source):
         if 'equipos' not in db.list_collection_names():
             return {'estado': 'degradado', 'diagnostico': 'coleccion_equipos_ausente'}
         found = db.equipos.find_one({'_id': 'ARG'}, {'_id': 1})
-    elif source == 'neo4j':
-        found = adapter.find_partido('P-001')
-    elif source == 'cassandra':
-        found = adapter.list_comentarios('ARG-ESP-20300624', datetime(2030, 6, 24, 20, 5, tzinfo=timezone.utc), 2)
-    elif source == 'iris':
-        found = adapter.find_partido(int(os.getenv('IRIS_TEST_ID', '1')), 2, 0)
     elif source == 'redis':
-        found = adapter.get_sesion('SES-DEMO')
-        ttl = adapter.client.ttl('sesion:SES-DEMO')
+        found = adapter.get_cache(FIXTURE_CACHE_KEY)
+        ttl = adapter.client.ttl(FIXTURE_CACHE_KEY)
         return {'estado': 'disponible', 'resultado': 'clave_presente' if found else 'clave_ausente_o_expirada', 'ttl': ttl}
     else:
         found = adapter.find_estadisticas('P-001', '2030-06-24T20:00:00Z', '2030-06-24T20:05:00Z', None, 2)

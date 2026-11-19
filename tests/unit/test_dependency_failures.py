@@ -4,7 +4,6 @@ import pytest
 import requests
 from pymongo.errors import OperationFailure, NetworkTimeout
 from redis.exceptions import AuthenticationError, AuthorizationError, TimeoutError
-from neo4j.exceptions import Neo4jError
 
 from app.adapters import mongo_adapter, redis_adapter
 from app.adapters.influx_adapter import InfluxAdapter
@@ -21,8 +20,6 @@ from app.core.dependency_failures import classify_failure
     (OperationFailure('secret', code=13), 'authorization'),
     (OperationFailure('secret', code=26), 'context'),
     (OperationFailure('secret', code=2), 'query'),
-    (Neo4jError._hydrate_neo4j(code='Neo.ClientError.Database.DatabaseNotFound', message='secret'), 'context'),
-    (Neo4jError._hydrate_neo4j(code='Neo.ClientError.Security.Forbidden', message='secret'), 'authorization'),
 ])
 def test_driver_categories(error, category):
     assert classify_failure(error) == category
@@ -32,26 +29,18 @@ def test_driver_categories(error, category):
 
 
 @pytest.mark.parametrize('error,status,suffix', [
-    (TimeoutError('secret'), 504, 'TIMEOUT'),
-    (AuthenticationError('secret'), 503, 'AUTHENTICATION_FAILED'),
-    (AuthorizationError('secret'), 503, 'ACCESS_DENIED'),
+    (NetworkTimeout('secret'), 504, 'TIMEOUT'),
+    (OperationFailure('secret', code=18), 503, 'AUTHENTICATION_FAILED'),
+    (OperationFailure('secret', code=13), 503, 'ACCESS_DENIED'),
     (OperationFailure('secret', code=26), 503, 'CONTEXT_UNAVAILABLE'),
     (OperationFailure('secret', code=2), 500, 'QUERY_FAILED'),
 ])
 def test_http_error_contract(client, monkeypatch, caplog, error, status, suffix):
     # Inject at the driver's operation boundary, exercising adapter translation.
-    driver = Mock()
-    driver.hgetall.side_effect = error
-    if isinstance(error, OperationFailure):
-        monkeypatch.setattr(mongo_adapter, 'connect', Mock(side_effect=error))
-        response = client.get('/equipos/ARG', headers={'X-Request-Id': 'failure-test'})
-        source = 'MONGODB'
-    else:
-        monkeypatch.setattr(redis_adapter, 'get_client', lambda: driver)
-        response = client.get('/sesiones/SES-DEMO', headers={'X-Request-Id': 'failure-test'})
-        source = 'REDIS'
+    monkeypatch.setattr(mongo_adapter, 'connect', Mock(side_effect=error))
+    response = client.get('/equipos/ARG', headers={'X-Request-Id': 'failure-test'})
     assert response.status_code == status
-    assert response.json()['code'] == f'{source}_{suffix}'
+    assert response.json()['code'] == f'MONGODB_{suffix}'
     assert response.json()['requestId'] == response.headers['X-Request-Id'] == 'failure-test'
     assert 'secret' not in response.text + caplog.text
 
@@ -82,36 +71,3 @@ def test_health_keeps_down_on_timeout(client, monkeypatch):
     monkeypatch.setattr(redis_adapter, 'ping', Mock(side_effect=DatabaseUnavailableError('Redis', TimeoutError())))
     assert client.get('/health').json()['estado']['redis'] == 'down'
 
-
-def test_neo4j_missing_database_through_adapter(client, monkeypatch):
-    from app.adapters import neo4j_adapter
-    error = Neo4jError._hydrate_neo4j(code='Neo.ClientError.Database.DatabaseNotFound', message='secret')
-    monkeypatch.setattr(neo4j_adapter, 'get_driver', Mock(side_effect=error))
-    response = client.get('/sedes/S-04/goleadores?confederacion=CONMEBOL')
-    assert response.status_code == 503
-    assert response.json()['code'] == 'NEO4J_CONTEXT_UNAVAILABLE'
-    assert 'secret' not in response.text
-
-
-@pytest.mark.parametrize('native_error,status,suffix', [
-    ('timeout', 504, 'TIMEOUT'),
-    ('authentication', 503, 'AUTHENTICATION_FAILED'),
-    ('authorization', 503, 'ACCESS_DENIED'),
-    ('query', 500, 'QUERY_FAILED'),
-])
-def test_cassandra_native_failures_through_route(client, monkeypatch, native_error, status, suffix):
-    from cassandra import AuthenticationFailed, Unauthorized, InvalidRequest, OperationTimedOut
-    from cassandra.cluster import NoHostAvailable
-    from app.adapters import cassandra_adapter
-    types = dict(timeout=OperationTimedOut, authentication=AuthenticationFailed,
-                 authorization=Unauthorized, query=InvalidRequest)
-    error = types[native_error]('secret')
-    if native_error == 'authentication':
-        error = NoHostAvailable('secret', {'localhost': error})
-    session = Mock()
-    session.execute.side_effect = error
-    monkeypatch.setattr(cassandra_adapter, '_session', session)
-    response = client.get('/partidos/ARG-ESP-20300624/comentarios?bloque=2030-06-24T20:05:00Z')
-    assert response.status_code == status
-    assert response.json()['code'] == 'CASSANDRA_' + suffix
-    assert 'secret' not in response.text

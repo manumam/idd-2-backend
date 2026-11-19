@@ -2,25 +2,15 @@
 
 from concurrent.futures import ThreadPoolExecutor
 
-from app.adapters import (
-    cassandra_adapter,
-    iris_adapter,
-    influx_adapter,
-    mongo_adapter,
-    neo4j_adapter,
-    redis_adapter,
-)
+from app.adapters import influx_adapter, mongo_adapter, redis_adapter
 
 FUENTES = {
-    "cassandra": cassandra_adapter,
-    "iris": iris_adapter,
     "mongodb": mongo_adapter,
-    "neo4j": neo4j_adapter,
     "redis": redis_adapter,
     "influxdb": influx_adapter,
 }
 
-FUENTES_HEALTH = ("mongodb", "redis", "influxdb")
+FUENTES_HEALTH = tuple(FUENTES)
 
 # Redis es caché opcional: si cae, la API sigue respondiendo desde MongoDB.
 FUENTES_ESENCIALES = ("mongodb", "influxdb")

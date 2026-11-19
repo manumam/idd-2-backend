@@ -5,7 +5,7 @@ from unittest.mock import Mock, MagicMock
 import pytest
 from pymongo.errors import NetworkTimeout
 
-from app.adapters import mongo_adapter, redis_adapter, neo4j_adapter
+from app.adapters import mongo_adapter, redis_adapter
 from app.adapters.mongo_adapter import MongoAdapter
 from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
@@ -20,7 +20,6 @@ def fuentes(monkeypatch, cache_redis):
                      local=dict(codigo='URU', nombre='Uruguay'), visitante=dict(codigo='ESP', nombre='España'),
                      sede=dict(codigo='S-01', nombre='Centenario', ciudad='Montevideo'), estado='proximo', resultado=None)
     monkeypatch.setattr(mongo_adapter, 'find_partido', Mock(side_effect=lambda _: documento))
-    monkeypatch.setattr(neo4j_adapter, 'find_partido', Mock(side_effect=AssertionError('No usar Neo4j')))
     monkeypatch.setattr(mongo_adapter, 'list_cruces', Mock(return_value=[]))
     return documento, cache_redis
 

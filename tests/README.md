@@ -19,13 +19,12 @@ dedicadas. No usar las bases de desarrollo: hay pruebas con escrituras y borrado
 Estas pruebas no inician contenedores automáticamente.
 
 ```bash
-LIVE_MODULES=mongodb,neo4j .venv/bin/python -m pytest tests/integration/test_live.py -q
+LIVE_MODULES=mongodb,influxdb .venv/bin/python -m pytest tests/integration/test_live.py -q
 ```
 
 `LIVE_MODULES` selecciona fuentes reales ya configuradas y cargadas; exige resultados
-no vacíos. Redis crea y elimina `sesion:SES-HITO10TEST`. Cassandra requiere dos
-comentarios en la ventana de prueba. IRIS requiere `IRIS_TEST_ID` del objeto cargado.
-Ver `tests/fixtures/README.md` para los esquemas.
+no vacíos. Admite `mongodb` e `influxdb`; Redis es caché y se prueba con la
+integración del fixture.
 
 La integración del fixture usa `FIXTURE_INTEGRATION=1`,
 `FIXTURE_TEST_MONGO_URI` y `FIXTURE_TEST_REDIS_PORT`; crea y borra una base MongoDB

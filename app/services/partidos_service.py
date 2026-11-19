@@ -1,23 +1,19 @@
-"""Detalle y eventos MongoDB/Redis; goleadores históricos aún usan Neo4j."""
+"""Detalle, eventos y alineaciones desde MongoDB con caché Redis."""
 from typing import Callable
 
 from pydantic import ValidationError
 
-from app.adapters import neo4j_adapter, mongo_adapter
+from app.adapters import mongo_adapter
 from app.services.cache_partidos import (
     clave_alineaciones, clave_eventos, clave_partido, guardar_cache, leer_cache)
 from app.services.playoffs_service import consultar_playoffs
 from app.core.exceptions import ResourceNotFoundError
 from app.schemas.alineaciones import Alineaciones, AlineacionesResponse
 from app.core.exceptions import BaseAppException
-from app.schemas.equipos import EquipoRef
 from app.schemas.playoffs import PlayoffsResponse
 from app.schemas.partidos import (
     EventoResponse,
     EventosResponse,
-    GoleadoresResponse,
-    GolResponse,
-    JugadorRef,
     PartidoResponse,
 )
 
@@ -85,22 +81,6 @@ def listar_eventos(codigo: str, limit: int, skip: int = 0) -> EventosResponse:
         estado=partido.estado, resultado=partido.resultado, reloj=partido.reloj)
     guardar_cache(key, respuesta)
     return respuesta
-
-
-def listar_goleadores(sede: str, confederacion: str, limit: int) -> GoleadoresResponse:
-    if not neo4j_adapter.sede_existe(sede):
-        raise ResourceNotFoundError("SEDE_NO_ENCONTRADA", f"No existe la sede '{sede}'.")
-    goles = neo4j_adapter.find_goleadores(sede, confederacion, limit)
-    items = [
-        GolResponse(
-            jugador=JugadorRef(codigo=g["jugador_id"], nombre=g["jugador_nombre"]),
-            equipo=EquipoRef(codigo=g["equipo_id"], nombre=g["equipo_nombre"]),
-            partido=g["partido"],
-            minuto=g["minuto"],
-        )
-        for g in goles
-    ]
-    return GoleadoresResponse(sede=sede, confederacion=confederacion, items=items)
 
 
 def obtener_alineaciones(codigo: str) -> AlineacionesResponse:

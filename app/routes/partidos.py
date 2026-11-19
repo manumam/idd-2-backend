@@ -2,8 +2,8 @@ from fastapi import APIRouter
 
 from app.schemas.alineaciones import AlineacionesResponse
 from app.schemas.errors import RESPUESTAS_FICHA, ErrorResponse
-from app.schemas.params import CodigoPartido, CodigoSede, Confederacion, LimitEventos, LimitGoleadores, SkipEventos
-from app.schemas.partidos import EventosResponse, GoleadoresResponse, PartidoResponse
+from app.schemas.params import CodigoPartido, LimitEventos, SkipEventos
+from app.schemas.partidos import EventosResponse, PartidoResponse
 from app.services import partidos_service
 
 router = APIRouter(tags=["Partidos y eventos"], responses=RESPUESTAS_FICHA)
@@ -24,16 +24,6 @@ def obtener_partido(codigo: CodigoPartido) -> PartidoResponse:
 )
 def listar_eventos(codigo: CodigoPartido, limit: LimitEventos = 50, skip: SkipEventos = 0) -> EventosResponse:
     return partidos_service.listar_eventos(codigo, limit, skip)
-
-
-@router.get(
-    "/sedes/{codigo}/goleadores",
-    response_model=GoleadoresResponse,
-    summary="Goles de jugadores de una confederación en una sede",
-    description="Recorre sede, partidos, goles, autores y equipos. Sin goles devuelve 200 con lista vacía.",
-)
-def listar_goleadores(codigo: CodigoSede, confederacion: Confederacion, limit: LimitGoleadores = 50) -> GoleadoresResponse:
-    return partidos_service.listar_goleadores(codigo, confederacion, limit)
 
 
 @router.get(
