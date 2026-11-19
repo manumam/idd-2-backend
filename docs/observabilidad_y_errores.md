@@ -113,13 +113,14 @@ de botella.
 
 ## Pendiente respecto del MVP
 
-Los logs, las métricas y los chequeos de salud no completan la observabilidad
-propuesta. Prometheus ya hace scrape de la API (ver [observabilidad](../observabilidad/README.md)).
-Todavía faltan los exporters, el dashboard de Grafana con los percentiles
-calculados a partir de los histogramas, y medir solicitudes por región,
-antigüedad de datos y recursos según los lineamientos.
+Prometheus hace scrape de la API, de los exporters de MongoDB, Redis y node y del
+`/metrics` de InfluxDB, y envía las series a Grafana Cloud con la etiqueta `entorno`.
+El dashboard War Room calcula los percentiles a partir de los histogramas (ver
+[observabilidad](../observabilidad/README.md)). Todavía faltan, según los lineamientos:
+solicitudes por región, antigüedad del dato servido y la prueba con MongoDB detenido.
 
-Los objetivos de disponibilidad, latencia y concurrencia son metas del diseño;
-no son resultados demostrados por los logs ni las métricas actuales. Los procedimientos de carga
-y la evidencia de evaluación se conservan fuera de `docs/`, en
+La corrida de carga en entorno `prueba` (30 usuarios, 10 req/s) dio 0 errores y P95 de
+16 ms ([resultados](../carga/resultados/prueba-20261119-1648/resumen.md)). Es una carga
+modesta: confirma el SLO de latencia a ese nivel, no demuestra la concurrencia objetivo
+del diseño. Procedimientos y evidencia anteriores siguen en
 [laboratorio](../laboratorio/README.md) y [hito-12](../hito-12/README.md).

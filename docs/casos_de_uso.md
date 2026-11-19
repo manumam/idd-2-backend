@@ -54,7 +54,7 @@ casos conservan las brechas detalladas abajo.
 ## Brechas transversales
 
 - Completar simulación temporal de Influx y consolidación estadística. El caso 7 ya incluye simulador deportivo e ingesta validada por consola; no ejecuta cargas al arrancar.
-- Completar cachés por funcionalidad, los exporters y el dashboard de Grafana sobre las métricas que Prometheus ya toma de `/metrics`.
+- Completar cachés por funcionalidad. El monitoreo (Prometheus, exporters, dashboard en Grafana Cloud y prueba de carga) está integrado; faltan las métricas por región y de antigüedad del dato servido.
 - Validar los contratos propuestos antes de implementarlos. OpenAPI y Postman
   describen la API actual y solo deben cambiar junto con sus rutas y schemas.
 
