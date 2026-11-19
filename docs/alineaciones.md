@@ -27,10 +27,12 @@ La lectura usa una proyección acotada y reutiliza el detalle para resolver plaz
 de playoffs. No se muestran convocatorias de equipos que perdieron su plaza por
 una corrección. Un lado pendiente no se completa automáticamente con el plantel.
 
-Redis es opcional: las respuestas usan claves `alineaciones:v1:{codigo}:{hash}`
-versionadas por el contenido efectivo y el TTL configurado del fixture. Se comprueba
-MongoDB en cada lectura, como en el detalle; no se sirven datos anteriores frente
-a un borrado o una caída. Las correcciones cambian la clave sin esperar su TTL.
+Redis es opcional: Cache-Aside con clave `alineaciones:v2:{codigo}` y el TTL
+configurado del fixture. Un hit no consulta MongoDB; ante miss se leen el detalle y
+las convocatorias y se guarda la respuesta. `scripts/cargar_alineaciones.py` borra las
+claves de los partidos cargados, y un tick o una carga del cuadro también las
+invalida porque pueden cambiar las plazas. Hasta vencer el TTL, una copia en caché
+puede responder aunque MongoDB no esté disponible.
 
 ## Carga explícita
 
@@ -69,7 +71,7 @@ partidos, no carga el plantel ni modifica resultados, reloj o estado. Un documen
 sin alineaciones o con valor `null` admite la carga inicial; uno con alineaciones,
 aunque sus lados estén pendientes, se conserva salvo `--reemplazar`. La ejecución
 es repetible; no es una transacción del lote y un fallo de escritura puede dejar
-una carga parcial. Las claves versionadas reflejan cada escritura en la lectura siguiente.
+una carga parcial. Al terminar, aun ante un fallo, borra las claves de caché de los partidos del lote.
 
 ## Frontend y límite con el caso 9
 

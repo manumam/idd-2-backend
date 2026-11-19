@@ -5,6 +5,7 @@ from app.core.exceptions import DatabaseUnavailableError
 from app.schemas.fixture import PartidoFixture
 from app.schemas.grupos import Grupo
 from app.schemas.playoffs import Cruce
+from app.services.cache_partidos import invalidar_resultado
 from app.services.playoffs_service import resolver, validar_cruces
 from scripts.cargar_playoffs import preparar, cargar
 from scripts.cargar_fixture import preparar as fixture, DATA
@@ -108,19 +109,23 @@ def test_rechaza_dataset_invalido(mutacion):
     with pytest.raises(ValueError): validar_cruces(cs,ps,gs)
 
 
-def test_http_cache_correcciones_vacio_y_fallos(client,monkeypatch):
+def test_http_cache_correcciones_vacio_y_fallos(client,monkeypatch,cache_redis):
     cs,ps,gs=datos()
     monkeypatch.setattr(mongo_adapter,'list_cruces',Mock(return_value=cs))
     monkeypatch.setattr(mongo_adapter,'list_fixture',Mock(return_value=[{k:v for k,v in p.items() if k in PartidoFixture.model_fields or k=='_id'} for p in ps]))
     monkeypatch.setattr(mongo_adapter,'list_grupos',Mock(return_value=gs))
-    cache={}
-    monkeypatch.setattr(redis_adapter,'get_cache',lambda k:cache.get(k))
-    monkeypatch.setattr(redis_adapter,'set_cache',lambda k,v,t:cache.update({k:v}))
+    cache=cache_redis
     first=client.get('/playoffs')
     assert first.status_code==200
-    assert client.get('/playoffs').json()==first.json() and len(cache)==1
+    assert client.get('/playoffs').json()==first.json() and list(cache)==['playoffs:v2:todos']
+    mongo_adapter.list_fixture.assert_called_once()
+    redis_adapter.set_cache.assert_called_once()
     finalizar_grupos(mongo_adapter.list_fixture.return_value)
-    assert client.get('/playoffs').json()['items'][0]['local']['equipo'] is not None and len(cache)==2
+    assert client.get('/playoffs').json()==first.json()
+    cache['partido:v2:P-097']='{}'
+    assert invalidar_resultado('P-001','A')
+    assert 'partido:v2:P-097' not in cache
+    assert client.get('/playoffs').json()['items'][0]['local']['equipo'] is not None and len(cache)==1
     for k in cache: cache[k]='invalid'
     assert client.get('/playoffs').status_code==200
     for method in ['get_cache','set_cache']:

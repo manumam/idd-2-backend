@@ -159,6 +159,7 @@ def main():
     from pymongo import MongoClient
     from redis import Redis
     from redis.exceptions import RedisError
+    from app.services.cache_partidos import borrar_cache_derivada
     with MongoClient(settings.mongo_uri, serverSelectionTimeoutMS=5000,
                      connectTimeoutMS=5000, socketTimeoutMS=5000) as client:
         try:
@@ -170,6 +171,7 @@ def main():
                            db=settings.redis_db, password=settings.redis_password or None,
                            socket_connect_timeout=2, socket_timeout=2) as cache:
                     cache.delete(CACHE_KEY)
+                    borrar_cache_derivada(cache)
             except RedisError:
                 print('Advertencia: invalidación Redis fallida; esperar el TTL configurado.', file=sys.stderr)
         print(json.dumps(result))

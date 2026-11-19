@@ -31,10 +31,10 @@ def tick(minuto, eventos=(), finalizado=False, adicional=0):
 
 
 @pytest.fixture
-def almacen(monkeypatch):
+def almacen(monkeypatch, cache_redis):
     doc = dict(_id='P-001', fecha_hora=datetime(2030, 6, 24, 20), fase='Grupos', grupo='A',
                local=LOCAL, visitante=VISITA, sede=None, estado='proximo', resultado=None)
-    monkeypatch.setattr(mongo_adapter, 'find_eventos', lambda codigo: deepcopy(doc) if codigo == 'P-001' else None)
+    monkeypatch.setattr(mongo_adapter, 'find_eventos', Mock(side_effect=lambda codigo: deepcopy(doc) if codigo == 'P-001' else None))
     monkeypatch.setattr(mongo_adapter, 'find_partido', lambda codigo: {k: deepcopy(v) for k, v in doc.items() if k != 'eventos'})
     def jugador(codigo):
         eq, dorsal = codigo.split('-')
@@ -45,12 +45,9 @@ def almacen(monkeypatch):
         doc.update(deepcopy(cambios))
         return True
     monkeypatch.setattr(mongo_adapter, 'guardar_seguimiento', Mock(side_effect=guardar))
-    cache = {}
-    monkeypatch.setattr(redis_adapter, 'get_cache', lambda key: cache.get(key))
-    monkeypatch.setattr(redis_adapter, 'set_cache', lambda key, value, ttl: cache.update({key: value}))
-    monkeypatch.setattr(redis_adapter, 'delete_cache', Mock())
+    monkeypatch.setattr(mongo_adapter, 'list_cruces', Mock(return_value=[]))
     monkeypatch.setattr(neo4j_adapter, 'find_eventos', Mock(side_effect=AssertionError('No usar Neo4j')))
-    return doc, cache
+    return doc, cache_redis
 
 
 def test_recorrido_completo_y_cierre(client, almacen):
@@ -70,7 +67,8 @@ def test_recorrido_completo_y_cierre(client, almacen):
     assert respuesta['items'][2]['protagonistas'][1]['rol'] == 'entra'
     assert client.get('/partidos/P-001').json()['resultado'] == respuesta['resultado']
     assert doc['estado'] == 'finalizado'
-    assert redis_adapter.delete_cache.call_count == 6
+    assert mongo_adapter.guardar_seguimiento.call_count == 6
+    assert redis_adapter.delete_cache_matching.call_count == 6
 
 
 def test_generador_y_reproduccion_del_guion_sin_motores(client, almacen, monkeypatch):
@@ -124,7 +122,7 @@ def test_reenvio_y_autogol(client, almacen):
     assert data['resultado'] == dict(goles_local=1, goles_visitante=1, penales=None)
 
 
-def test_paginacion_orden_y_claves_versionadas(client, almacen):
+def test_paginacion_orden_y_tick_invalida_todas_las_paginas(client, almacen):
     doc, cache = almacen
     aplicar_tick('P-001', tick(46, [evento('b', minuto=45, adicional=2), evento('a', minuto=45)]))
     primera = client.get('/partidos/P-001/eventos?limit=1').json()
@@ -132,11 +130,12 @@ def test_paginacion_orden_y_claves_versionadas(client, almacen):
     assert primera['items'][0]['codigo'] == 'a' and primera['siguiente_skip'] == 1
     assert segunda['items'][0]['codigo'] == 'b' and segunda['siguiente_skip'] is None
     assert primera['total'] == 2
-    antes = set(cache)
+    assert {'eventos:v2:P-001:1:0', 'eventos:v2:P-001:1:1'} <= set(cache)
     aplicar_tick('P-001', tick(62, [evento('c', minuto=62)]))
+    assert not any(k.startswith('eventos:v2:P-001:') for k in cache)
     data = client.get('/partidos/P-001/eventos?limit=1').json()
     assert data['total'] == 3 and data['resultado']['goles_local'] == 3
-    assert set(cache) != antes
+    assert client.get('/partidos/P-001/eventos?limit=1&skip=1').json()['items'][0]['codigo'] == 'b'
     assert client.get('/partidos/P-001/eventos?skip=99').json()['items'] == []
 
 
@@ -148,11 +147,39 @@ def test_parametros_invalidos(client, monkeypatch, query):
     lectura.assert_not_called()
 
 
+def test_hit_no_consulta_mongo_y_miss_guarda_una_vez(client, almacen):
+    _, cache = almacen
+    primera = client.get('/partidos/P-001/eventos').json()
+    assert client.get('/partidos/P-001/eventos').json() == primera
+    mongo_adapter.find_eventos.assert_called_once_with('P-001')
+    redis_adapter.set_cache.assert_called_once()
+    assert list(cache) == ['eventos:v2:P-001:50:0']
+
+
+def test_tick_invalida_detalle_alineaciones_grupo_y_cuadro(client, almacen):
+    _, cache = almacen
+    mongo_adapter.list_cruces.return_value = [dict(_id='P-073')]
+    for key in ('partido:v2:P-001', 'alineaciones:v2:P-001', 'eventos:v2:P-001:10:20', 'grupos:v2:A',
+                'playoffs:v2:todos', 'partido:v2:P-073', 'eventos:v2:P-073:50:0', 'partido:v2:P-002', 'grupos:v2:B'):
+        cache[key] = '{}'
+    aplicar_tick('P-001', tick(12, [evento()]))
+    assert set(cache) == {'partido:v2:P-002', 'grupos:v2:B'}
+
+
+def test_tick_confirma_aunque_redis_no_invalide(almacen, monkeypatch):
+    doc, _ = almacen
+    monkeypatch.setattr(redis_adapter, 'delete_cache', Mock(side_effect=DatabaseUnavailableError('Redis')))
+    assert aplicar_tick('P-001', tick(12, [evento()]))
+    assert doc['estado'] == 'en_vivo'
+
+
 def test_no_encontrado_y_sin_redis(client, almacen, monkeypatch):
     assert client.get('/partidos/P-999/eventos').status_code == 404
     for metodo in ('get_cache', 'set_cache'):
         monkeypatch.setattr(redis_adapter, metodo, Mock(side_effect=DatabaseUnavailableError('Redis')))
     assert client.get('/partidos/P-001/eventos').status_code == 200
+    assert client.get('/partidos/P-001/eventos').status_code == 200
+    assert mongo_adapter.find_eventos.call_count == 3
 
 
 def test_rechaza_referencias_y_no_escribe(almacen, monkeypatch):

@@ -56,12 +56,14 @@ def main():
     from pymongo import MongoClient
     from redis import Redis
     from redis.exceptions import RedisError
+    from app.services.cache_partidos import borrar_cache_derivada
     with MongoClient(settings.mongo_uri, serverSelectionTimeoutMS=5000, socketTimeoutMS=5000) as client:
         result = cargar(client[settings.mongo_database], equipos, partidos)
     try:
         with Redis(host=settings.redis_host, port=settings.redis_port, db=settings.redis_db,
                    password=settings.redis_password or None, socket_connect_timeout=2, socket_timeout=2) as cache:
             cache.delete('fixture:v1:todos')
+            borrar_cache_derivada(cache)
     except RedisError:
         print('Advertencia: no se pudo invalidar la caché; esperar su TTL.', file=sys.stderr)
     print(json.dumps(result))

@@ -1,10 +1,12 @@
 from copy import deepcopy
+from fnmatch import fnmatchcase
 from unittest.mock import Mock, MagicMock, call
 import pytest
 from app.adapters import mongo_adapter, redis_adapter
 from app.core.exceptions import DatabaseUnavailableError
 from app.schemas.grupos import Grupo
 from app.schemas.fixture import PartidoFixture
+from app.services.cache_partidos import borrar_cache_derivada, invalidar_resultado
 from app.services.grupos_service import calcular_posiciones
 from scripts.cargar_grupos import preparar
 from scripts.cargar_inicio_mundial import preparar as inicio
@@ -59,28 +61,31 @@ def test_rechaza_participantes_y_cruces_invalidos():
 
 
 @pytest.fixture
-def fuentes(monkeypatch):
+def fuentes(monkeypatch, cache_redis):
     monkeypatch.setattr(mongo_adapter, 'list_grupos', Mock(return_value=[G]))
     monkeypatch.setattr(mongo_adapter, 'find_grupo', Mock(return_value=G))
+    monkeypatch.setattr(mongo_adapter, 'list_cruces', Mock(return_value=[]))
     matches = Mock(return_value=[partido()])
     monkeypatch.setattr(mongo_adapter, 'list_partidos_grupo', matches)
-    cache = {}
-    monkeypatch.setattr(redis_adapter, 'get_cache', lambda k: cache.get(k))
-    monkeypatch.setattr(redis_adapter, 'set_cache', lambda k,v,t: cache.update({k:v}))
-    return matches, cache
+    return matches, cache_redis
 
 
-def test_http_correccion_cierre_y_cache_idempotente(client, fuentes):
+def test_http_correccion_cierre_e_invalidacion(client, fuentes):
     matches, cache = fuentes
     assert client.get('/grupos').json()['items'][0]['codigo'] == 'A'
     first = client.get('/grupos/A/posiciones').json()
-    assert client.get('/grupos/A/posiciones').json() == first and len(cache) == 1
+    assert client.get('/grupos/A/posiciones').json() == first and list(cache) == ['grupos:v2:A']
+    matches.assert_called_once_with('A')
     matches.return_value = [partido(goles=(0, 2))]
+    assert client.get('/grupos/A/posiciones').json() == first
+    assert invalidar_resultado('P-001', 'A')
     corrected = client.get('/grupos/A/posiciones').json()
-    assert corrected['items'][0]['equipo']['codigo'] == 'BRA' and len(cache) == 2
+    assert corrected['items'][0]['equipo']['codigo'] == 'BRA' and len(cache) == 1
     matches.return_value = [partido(estado='proximo')]
+    invalidar_resultado('P-001', 'A')
     assert all(r['jugados'] == 0 for r in client.get('/grupos/A/posiciones').json()['items'])
     matches.return_value = [partido()]
+    invalidar_resultado('P-001', 'A')
     assert client.get('/grupos/A/posiciones').json() == first
 
 
@@ -88,6 +93,8 @@ def test_http_errores_y_redis_opcional(client, fuentes, monkeypatch):
     monkeypatch.setattr(redis_adapter, 'get_cache', Mock(side_effect=DatabaseUnavailableError('Redis')))
     monkeypatch.setattr(redis_adapter, 'set_cache', Mock(side_effect=DatabaseUnavailableError('Redis')))
     assert client.get('/grupos/A/posiciones').status_code == 200
+    assert client.get('/grupos/A/posiciones').status_code == 200
+    assert mongo_adapter.find_grupo.call_count == 2
     mongo_adapter.find_grupo.reset_mock()
     assert client.get('/grupos/Z/posiciones').status_code == 400
     mongo_adapter.find_grupo.assert_not_called()
@@ -112,11 +119,33 @@ def test_reglas_cambiadas_y_cache_corrupta(client, fuentes, monkeypatch):
     first = client.get('/grupos/A/posiciones').json()
     for key in cache: cache[key] = '{invalid'
     assert client.get('/grupos/A/posiciones').json() == first
+    assert mongo_adapter.find_grupo.call_count == 2
     changed = deepcopy(G)
     changed['reglas']['victoria'] = 5
     monkeypatch.setattr(mongo_adapter, 'find_grupo', Mock(return_value=changed))
+    borrar_cache_derivada(ClienteMemoria(cache))
     assert client.get('/grupos/A/posiciones').json()['items'][0]['puntos'] == 5
-    assert len(cache) == 2
+    assert len(cache) == 1
+
+
+class ClienteMemoria:
+    def __init__(self, cache):
+        self.cache = cache
+
+    def scan_iter(self, match, count):
+        return iter([k for k in self.cache if fnmatchcase(k, match)])
+
+    def delete(self, *keys):
+        for key in keys:
+            self.cache.pop(key, None)
+
+
+def test_carga_masiva_borra_namespaces_derivados_con_scan(fuentes):
+    _, cache = fuentes
+    cache.update({k: '{}' for k in ('partido:v2:P-001', 'eventos:v2:P-001:50:0', 'alineaciones:v2:P-001',
+                                    'grupos:v2:A', 'playoffs:v2:todos', 'sesion:abc', 'fixture:v1:todos')})
+    borrar_cache_derivada(ClienteMemoria(cache))
+    assert set(cache) == {'sesion:abc', 'fixture:v1:todos'}
 
 
 def test_mongo_consulta_grupo_con_proyeccion_y_orden():

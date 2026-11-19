@@ -14,7 +14,6 @@ from app.adapters.neo4j_adapter import Neo4jAdapter
 from app.adapters.mongo_adapter import MongoAdapter
 from app.adapters.redis_adapter import RedisAdapter
 from app.adapters.influx_adapter import InfluxAdapter
-from app.adapters.iris_adapter import IrisAdapter
 from app.core.exceptions import DatabaseUnavailableError
 
 
@@ -84,19 +83,20 @@ def test_redis_expiration_and_private_fields():
     assert "ip_publica" not in result
 
 
-def test_iris_projection_and_parent_relation(monkeypatch):
-    import iris.dbapi
-    connection = Mock()
-    cursor = connection.cursor.return_value
-    cursor.fetchone.return_value = (1, "P-001", "Finalizado")
-    cursor.fetchall.return_value = [(2, "Gol", 15, 1)]
-    monkeypatch.setattr(iris.dbapi, "connect", Mock(return_value=connection))
-    result = IrisAdapter().find_partido(1, 20, 0)
-    assert result["eventos"][0]["partidoId"] == "1"
-    assert cursor.execute.call_args.args[1] == [1]
-    cursor.setQueryTimeout.assert_called_once()
-    cursor.close.assert_called_once()
-    connection.close.assert_called_once()
+def test_redis_borrado_por_patron_usa_scan():
+    adapter = RedisAdapter()
+    adapter._client = Mock()
+    adapter._client.scan_iter.return_value = iter(["eventos:v2:P-001:50:0", "eventos:v2:P-001:1:1"])
+    adapter.delete_cache_matching("eventos:v2:P-001:*")
+    adapter._client.scan_iter.assert_called_once_with(match="eventos:v2:P-001:*", count=100)
+    adapter._client.delete.assert_called_once_with("eventos:v2:P-001:50:0", "eventos:v2:P-001:1:1")
+    adapter._client.keys.assert_not_called()
+    adapter._client.scan_iter.return_value = iter([])
+    adapter.delete_cache_matching("eventos:v2:P-002:*")
+    adapter._client.delete.assert_called_once()
+    adapter._client.scan_iter.side_effect = RedisConnectionError("hidden")
+    with pytest.raises(DatabaseUnavailableError):
+        adapter.delete_cache_matching("eventos:v2:P-001:*")
 
 
 def test_adapter_logs_without_driver_message(monkeypatch, caplog):

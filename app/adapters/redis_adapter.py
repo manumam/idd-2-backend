@@ -18,6 +18,13 @@ from app.core.exceptions import DatabaseUnavailableError
 logger = logging.getLogger(__name__)
 
 
+def borrar_por_patron(client: redis.Redis, pattern: str) -> None:
+    # SCAN recorre por partes; KEYS bloquearía Redis mientras revisa todo el keyspace.
+    claves = list(client.scan_iter(match=pattern, count=100))
+    if claves:
+        client.delete(*claves)
+
+
 class RedisAdapter(BaseAdapter):
     """Encapsula el cliente Redis oficial."""
 
@@ -98,6 +105,10 @@ class RedisAdapter(BaseAdapter):
     @observe("Redis")
     def delete_cache(self, key: str) -> None:
         self._execute(lambda: self.client.delete(key))
+
+    @observe("Redis")
+    def delete_cache_matching(self, pattern: str) -> None:
+        self._execute(lambda: borrar_por_patron(self.client, pattern))
 
     @observe("Redis")
     def ping(self) -> bool:

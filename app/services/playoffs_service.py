@@ -1,16 +1,11 @@
 """Recalcula sin escrituras: las correcciones nunca propagan un resultado ajeno."""
-import hashlib
-import logging
-from pydantic import ValidationError
-from app.adapters import mongo_adapter, redis_adapter
-from app.config.settings import settings
-from app.core.exceptions import DatabaseUnavailableError
+from app.adapters import mongo_adapter
 from app.schemas.fixture import PartidoFixture
 from app.schemas.grupos import Grupo
 from app.schemas.playoffs import Cruce, CruceResuelto, Plaza, PlayoffsResponse
+from app.services.cache_partidos import PLAYOFFS_CACHE_KEY, guardar_cache, leer_cache
 from app.services.grupos_service import calcular_posiciones
 
-logger = logging.getLogger(__name__)
 FASES = ['Dieciseisavos', 'Octavos', 'Cuartos', 'Semifinal', 'Final']
 
 
@@ -85,25 +80,19 @@ def resolver(cruces, partidos, grupos):
     return PlayoffsResponse(items=list(resueltos.values()))
 
 
-def consultar_playoffs():
+def consultar_playoffs() -> PlayoffsResponse:
+    cached = leer_cache(PLAYOFFS_CACHE_KEY, PlayoffsResponse)
+    if cached is not None:
+        return cached
+    respuesta = calcular_playoffs()
+    guardar_cache(PLAYOFFS_CACHE_KEY, respuesta)
+    return respuesta
+
+
+def calcular_playoffs() -> PlayoffsResponse:
     cruces = [Cruce(codigo=d['_id'], **{k:v for k,v in d.items() if k != '_id'}) for d in mongo_adapter.list_cruces()]
     if not cruces:
         return PlayoffsResponse(items=[])
     partidos = {d['_id']: PartidoFixture(codigo=d['_id'], **{k:v for k,v in d.items() if k != '_id'}) for d in mongo_adapter.list_fixture()}
     grupos = {d['_id']: Grupo(codigo=d['_id'], **{k:v for k,v in d.items() if k != '_id'}) for d in mongo_adapter.list_grupos()}
-    # Igual que posiciones: leer fuentes actuales evita cachés obsoletas incluso
-    # ante cierres/correcciones escritos fuera de la API. GET nunca modifica datos.
-    payload = ''.join(c.model_dump_json() for c in cruces) + ''.join(p.model_dump_json() for p in partidos.values()) + ''.join(g.model_dump_json() for g in grupos.values())
-    key = 'playoffs:v1:' + hashlib.sha256(payload.encode()).hexdigest()
-    try:
-        cached = redis_adapter.get_cache(key)
-        if cached is not None:
-            return PlayoffsResponse.model_validate_json(cached)
-    except (DatabaseUnavailableError, ValidationError, UnicodeError):
-        logger.warning('Caché de playoffs no disponible o inválida')
-    respuesta = resolver(cruces, partidos, grupos)
-    try:
-        redis_adapter.set_cache(key, respuesta.model_dump_json(), settings.fixture_cache_ttl_seconds)
-    except DatabaseUnavailableError:
-        logger.warning('No se pudo cachear el cuadro')
-    return respuesta
+    return resolver(cruces, partidos, grupos)

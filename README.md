@@ -141,11 +141,10 @@ playoffs y se actualiza cada 15 s mientras está visible, hasta finalizar.
 Los cruces reutilizan la resolución del cuadro; los resultados con participantes
 obsoletos no se muestran como propios y llevan `requiere_revision`.
 
-La caché `partido:v1:{codigo}:{hash}` incluye todas las entradas efectivas:
-se consulta MongoDB y, en eliminatorias, el cuadro antes de elegir la clave.
-Una corrección invalida lógicamente la copia anterior; Redis elimina claves viejas
-por `FIXTURE_CACHE_TTL_SECONDS`. Redis caído o contenido inválido no bloquean la lectura.
-MongoDB sigue siendo necesario incluso con caché. No se agregan escrituras a los GET.
+El detalle usa Cache-Aside con clave `partido:v2:{codigo}`: lee Redis primero; ante
+miss consulta MongoDB (y el cuadro en eliminatorias) y guarda con
+`FIXTURE_CACHE_TTL_SECONDS`. Un hit no consulta MongoDB. Redis caído o contenido
+inválido no bloquean la lectura. Ver [invalidación](#invalidación-de-partido-eventos-alineaciones-posiciones-y-cuadro).
 El validador de `data/fixture/partidos-validator.json` admite `reloj` opcional.
 La carga explícita de fixture aplica ese validador y conserva reloj/estado/resultado
 existentes; solo `--reiniciar-escenario` los reemplaza. No se migra ni carga al arrancar.
@@ -163,6 +162,29 @@ Los cargadores intentan invalidar la caché. La futura ingesta debe invocar
 `app.services.fixture_service.invalidar_fixture` después de confirmar cambios.
 El TTL limita la antigüedad cuando falla la invalidación; no hay transacción
 distribuida ni garantía de lectura monótona.
+
+### Invalidación de partido, eventos, alineaciones, posiciones y cuadro
+
+Detalle, eventos, alineaciones, posiciones y cuadro usan el mismo Cache-Aside y TTL
+del fixture, con claves derivadas solo de la solicitud:
+
+| Ruta | Clave |
+| --- | --- |
+| `GET /partidos/{codigo}` | `partido:v2:{codigo}` |
+| `GET /partidos/{codigo}/eventos` | `eventos:v2:{codigo}:{limit}:{skip}` |
+| `GET /partidos/{codigo}/alineaciones` | `alineaciones:v2:{codigo}` |
+| `GET /grupos/{id}/posiciones` | `grupos:v2:{id}` |
+| `GET /playoffs` | `playoffs:v2:todos` |
+
+Redis no sabe qué cambió en MongoDB: la aplicación borra las claves después de cada
+escritura confirmada. Un tick del simulador (`aplicar_tick`) invalida el fixture y
+`cache_partidos.invalidar_resultado`: detalle, alineaciones y todas las páginas de
+eventos del partido (`SCAN` con `eventos:v2:{codigo}:*` + `DEL`), posiciones de su
+grupo, el cuadro y las claves de todos los cruces eliminatorios, porque un resultado
+puede cambiar sus participantes. Las cargas de fixture, grupos y cuadro borran con
+`SCAN` los cinco namespaces; la de alineaciones borra las claves de sus partidos.
+Las claves `v1` anteriores vencen por TTL. Una escritura directa en MongoDB, sin
+estos escritores, se ve recién al vencer el TTL.
 
 ## Catálogo para consultar planteles
 
@@ -251,8 +273,8 @@ PJ, PG, PE, PP, GF, GC, DG, puntos, orden y partidos del grupo. Solo cuentan
 resultados finalizados; los goles de tanda se excluyen. Desempates de la demo:
 puntos, diferencia de gol, goles a favor y orden explícito del dataset.
 `completa` requiere todos los cruces entre participantes finalizados.
-Redis es opcional; la clave versionada por contenido evita reutilizar tablas
-anteriores después de cierres, correcciones o cambios de reglas.
+Redis es opcional, con Cache-Aside en `grupos:v2:{id}`; cierres, correcciones y
+cargas de grupos invalidan la tabla ([detalle](#invalidación-de-partido-eventos-alineaciones-posiciones-y-cuadro)).
 
 La sección **Grupos** del frontend permite seleccionar un grupo y desplegar sus
 partidos, con actualización cada 15 segundos y estados de carga, vacío y error.
@@ -293,8 +315,8 @@ La carga es explícita y aditiva; no se ejecuta al arrancar ni modifica partidos
 
 Las reglas de `data/fixture/cruces.json` clasifican los dos primeros de cada grupo,
 con cruces A1–B2, B1–A2, etc.; no representan un reglamento oficial de 2030.
-El cuadro se recalcula desde MongoDB y se cachea por versión de todas sus entradas
-en Redis opcional. Los grupos incompletos conservan la descripción de sus plazas.
+El cuadro se calcula desde MongoDB ante un miss y se cachea en `playoffs:v2:todos`
+con Redis opcional; cualquier resultado o carga lo invalida. Los grupos incompletos conservan la descripción de sus plazas.
 Los resultados con participantes obsoletos o sin desempate válido requieren revisión
 y no propagan ganador. El escritor de resultados debe registrar ambos equipos;
 GET no sobrescribe resultados ni asigna participantes en el fixture persistido.
@@ -310,7 +332,7 @@ La validación con motores reales requiere `.env` apuntando al MongoDB del proye
 ## Alineaciones (caso 6)
 
 `GET /partidos/{codigo}/alineaciones` consulta titulares y suplentes desde MongoDB,
-con Redis opcional. El frontend las muestra dentro del partido y conserva el contexto
+con Redis opcional (`alineaciones:v2:{codigo}`). El frontend las muestra dentro del partido y conserva el contexto
 al abrir una ficha de jugador. La carga por encuentro es explícita y conserva las
 convocatorias existentes salvo `--reemplazar`; no se ejecuta durante el arranque.
 Ver [contrato, carga y límites con el caso 9](docs/alineaciones.md).
@@ -327,7 +349,7 @@ de Argentina incorpora un 4–3–3 simulado; ver [modelo y orientación](docs/a
 ## Cronología del partido (caso 7)
 
 `GET /partidos/{codigo}/eventos?limit=50&skip=0` lee eventos embebidos en MongoDB,
-con caché Redis opcional versionada; ya no depende de Neo4j. Devuelve goles,
+con caché Redis opcional (`eventos:v2:{codigo}:{limit}:{skip}`); ya no depende de Neo4j. Devuelve goles,
 autogoles, tarjetas y cambios con equipo, minuto/adicional y protagonistas,
 además de `total`, `siguiente_skip`, `estado`, `resultado` y `reloj`. El frontend
 actualiza cronología y marcador cada cinco segundos y conserva el histórico al

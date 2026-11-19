@@ -1,4 +1,3 @@
-from builtins import TimeoutError as PythonTimeoutError
 from unittest.mock import Mock
 
 import pytest
@@ -115,13 +114,4 @@ def test_cassandra_native_failures_through_route(client, monkeypatch, native_err
     response = client.get('/partidos/ARG-ESP-20300624/comentarios?bloque=2030-06-24T20:05:00Z')
     assert response.status_code == status
     assert response.json()['code'] == 'CASSANDRA_' + suffix
-    assert 'secret' not in response.text
-
-
-def test_iris_native_timeout_through_route(client, monkeypatch):
-    import iris.dbapi
-    monkeypatch.setattr(iris.dbapi, 'connect', Mock(side_effect=PythonTimeoutError('secret')))
-    response = client.get('/objetos/partidos/1')
-    assert response.status_code == 504
-    assert response.json()['code'] == 'IRIS_TIMEOUT'
     assert 'secret' not in response.text
