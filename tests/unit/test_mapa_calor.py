@@ -149,6 +149,45 @@ def test_sin_muestras_devuelve_celdas_vacias(client, partido, influx):
     assert client.get(URL, params={'jugador_id': 'ARG-10'}).json()['celdas'] == []
 
 
+@pytest.mark.parametrize('estado', ['en_vivo', 'finalizado'])
+@pytest.mark.parametrize('ausencia', ['tabla', 'base'])
+def test_sin_tracking_devuelve_vacio_sin_ocultar_error_de_consulta(
+    client, partido, monkeypatch, estado, ausencia
+):
+    partido['estado'] = estado
+    def post(url, **kwargs):
+        payload = kwargs['json']
+        tabla = 'ocupacion_jugador_minuto' if 'ocupacion_jugador_minuto' in payload['q'] else 'tracking_jugador'
+        respuesta = requests.Response()
+        if ausencia == 'base':
+            import json
+            respuesta.status_code = 404
+            respuesta._content = json.dumps({'error': 'query error: database not found: ' + payload['db']}).encode()
+        else:
+            respuesta.status_code = 400
+            respuesta._content = f"Error during planning: table 'public.iox.{tabla}' not found".encode()
+        return respuesta
+    monkeypatch.setattr(influx_adapter, 'get_session', lambda: Mock(post=post))
+    response = client.get(URL, params={'jugador_id': 'ARG-10'})
+    assert response.status_code == 200
+    assert response.json()['celdas'] == []
+
+
+@pytest.mark.parametrize('status,texto,esperado', [
+    (401, 'unauthorized', 503),
+    (403, 'forbidden', 503),
+    (404, 'ruta no encontrada', 503),
+    (400, "Error during planning: table 'otra_tabla' not found", 500),
+    (400, 'Schema error: No field named x_m', 500),
+])
+def test_ausencia_opcional_no_oculta_otras_fallas(client, partido, monkeypatch, status, texto, esperado):
+    respuesta = requests.Response()
+    respuesta.status_code = status
+    respuesta._content = texto.encode()
+    monkeypatch.setattr(influx_adapter, 'get_session', lambda: Mock(post=Mock(return_value=respuesta)))
+    assert client.get(URL, params={'jugador_id': 'ARG-10'}).status_code == esperado
+
+
 @pytest.mark.parametrize('params', [
     {'jugador_id': 'ARG-10', 'desde_minuto': -1},
     {'jugador_id': 'ARG-10', 'hasta_minuto': 121},

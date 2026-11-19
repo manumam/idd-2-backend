@@ -11,6 +11,15 @@ from app.main import app
 from app.services.health_service import FUENTES
 
 
+def test_lectura_muestras_estadisticas_registra_dependencia(monkeypatch):
+    from app.adapters import influx_adapter
+    monkeypatch.setattr(influx_adapter, 'query_sql', Mock(return_value=[]))
+    labels = {'fuente': 'influxdb', 'operacion': 'find_muestras'}
+    antes = REGISTRY.get_sample_value('api_dependencia_seconds_count', labels) or 0
+    assert influx_adapter.find_muestras('P-002', 'inicio', 'fin') == []
+    assert REGISTRY.get_sample_value('api_dependencia_seconds_count', labels) == antes + 1
+
+
 @pytest.fixture(autouse=True)
 def pings(monkeypatch):
     mocks = {nombre: Mock(return_value=nombre != "redis") for nombre in FUENTES}

@@ -100,3 +100,7 @@ misma serie y timestamp, sin sumar. Un punto de una celda que ya no tiene
 muestras no se borra (el script solo escribe): `--solo-validar`
 informa esos `puntos_obsoletos`. Con el crudo determinístico no aparecen. Si
 Redis no responde, solo advierte y la caché vence por TTL.
+
+### Tracking y estadísticas del caso 8
+
+El simulador `simular_estadisticas.py` escribe posesión, tiros acumulados y cantidades de pases por intervalo en `estadisticas_partido`; los eventos deportivos se guardan en MongoDB. No genera posiciones ni trayectorias de jugadores o pelota. Para un mapa de calor con contenido se necesita una carga de tracking independiente y, para conservarlo, materializar la ocupación antes de que venza el crudo. Sin muestras, tabla o base de tracking creada, el mapa devuelve 200 con `celdas: []`; no inventa posiciones. Los fallos de autenticación, permisos, conexión y consultas inválidas siguen devolviendo errores.

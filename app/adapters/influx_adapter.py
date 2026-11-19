@@ -36,12 +36,21 @@ SQL_OCUPACION_POR_CELDA = (
 )
 
 
-def _tabla_inexistente(error: DatabaseUnavailableError) -> bool:
+def _datos_mapa_inexistentes(error: DatabaseUnavailableError, tabla: str, database: str) -> bool:
+    """Solo la ausencia identificada de datos opcionales equivale a un mapa vacío."""
     response = getattr(error.original_error, "response", None)
-    if response is None or response.status_code != 400:
+    if response is None:
         return False
     texto = response.text or ""
-    return "table" in texto and "not found" in texto
+    if response.status_code == 400:
+        return tabla in texto and "table" in texto and "not found" in texto
+    if response.status_code == 404:
+        try:
+            mensaje = response.json().get("error", "")
+        except (ValueError, AttributeError):
+            return False
+        return mensaje == f"query error: database not found: {database}"
+    return False
 
 
 class InfluxAdapter(BaseAdapter):
@@ -111,7 +120,12 @@ class InfluxAdapter(BaseAdapter):
     ) -> List[Dict[str, Any]]:
         """Muestras crudas de un jugador por celda en [desde, hasta), desde la base en vivo."""
         params = dict(grilla, partido=partido_id, jugador=jugador_id, desde=desde, hasta=hasta)
-        return self.query_sql(SQL_MUESTRAS_POR_CELDA, params, settings.influx_database_en_vivo)
+        try:
+            return self.query_sql(SQL_MUESTRAS_POR_CELDA, params, settings.influx_database_en_vivo)
+        except DatabaseUnavailableError as error:
+            if _datos_mapa_inexistentes(error, "tracking_jugador", settings.influx_database_en_vivo):
+                return []
+            raise
 
     @observe("InfluxDB")
     def sumar_ocupacion_por_celda(self, partido_id: str, jugador_id: str, desde: str, hasta: str) -> List[Dict[str, Any]]:
@@ -121,9 +135,11 @@ class InfluxAdapter(BaseAdapter):
             return self.query_sql(SQL_OCUPACION_POR_CELDA, params, settings.influx_database)
         except DatabaseUnavailableError as error:
             # Antes de la primera materialización la tabla no existe: no hay histórico, no es una falla.
-            if _tabla_inexistente(error):
+            if _datos_mapa_inexistentes(error, "ocupacion_jugador_minuto", settings.influx_database):
                 return []
             raise
+
+    @observe("InfluxDB")
     def find_muestras(self, partido: str, desde: str, hasta: str):
         tablas = self.query_sql("SELECT table_name FROM information_schema.tables WHERE table_name = 'estadisticas_partido'")
         if not tablas:
