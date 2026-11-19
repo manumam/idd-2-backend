@@ -14,6 +14,7 @@ El frontend se incorpora por pedido posterior a los lineamientos de solo API.
 ## Consulta operativa
 
 - [Observabilidad y errores](observabilidad_y_errores.md).
+- [Generación y carga de datos de InfluxDB](influx_datos.md).
 - [Configuración, arranque y carga de datos](../README.md).
 - [Contrato HTTP implementado](../openapi/openapi.yaml) y
   [colección Postman](../postman_collection.json).
