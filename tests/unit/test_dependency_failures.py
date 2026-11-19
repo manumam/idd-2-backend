@@ -88,7 +88,7 @@ def test_neo4j_missing_database_through_adapter(client, monkeypatch):
     from app.adapters import neo4j_adapter
     error = Neo4jError._hydrate_neo4j(code='Neo.ClientError.Database.DatabaseNotFound', message='secret')
     monkeypatch.setattr(neo4j_adapter, 'get_driver', Mock(side_effect=error))
-    response = client.get('/partidos/P-001/eventos')
+    response = client.get('/sedes/S-04/goleadores?confederacion=CONMEBOL')
     assert response.status_code == 503
     assert response.json()['code'] == 'NEO4J_CONTEXT_UNAVAILABLE'
     assert 'secret' not in response.text

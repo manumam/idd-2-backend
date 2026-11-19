@@ -1369,7 +1369,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos",
+              "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos?limit=50&skip=0",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1384,19 +1384,24 @@
                   "value": "50",
                   "description": "Máximo de eventos a devolver",
                   "disabled": false
+                },
+                {
+                  "key": "skip",
+                  "value": "0",
+                  "description": "Eventos a omitir (>= 0). Por defecto 0."
                 }
               ]
             },
-            "description": "Ordenados por minuto. Un partido sin eventos devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+            "description": "Cronología MongoDB/Redis: goles, autogoles, tarjetas y cambios. Orden por minuto, adicional y código; incluye estado, marcador y reloj de una misma instantánea. limit/skip paginan los eventos; total/siguiente_skip permiten recorrerlos todos. Sin eventos: 200 vacío. Partido inexistente: 404. No incluye tandas."
           },
           "response": [
             {
-              "name": "NEO4J_TIMEOUT",
+              "name": "200 — Cronología con marcador",
               "originalRequest": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos",
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos?limit=50&skip=0",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -1411,10 +1416,60 @@
                       "value": "50",
                       "description": "Máximo de eventos a devolver",
                       "disabled": false
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0",
+                      "description": "Eventos a omitir (>= 0). Por defecto 0."
                     }
                   ]
                 },
-                "description": "Ordenados por minuto. Un partido sin eventos devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+                "description": "Cronología MongoDB/Redis: goles, autogoles, tarjetas y cambios. Orden por minuto, adicional y código; incluye estado, marcador y reloj de una misma instantánea. limit/skip paginan los eventos; total/siguiente_skip permiten recorrerlos todos. Sin eventos: 200 vacío. Partido inexistente: 404. No incluye tandas."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\n  \"partido\": \"P-001\",\n  \"items\": [\n    {\n      \"codigo\": \"P-001-gol-12\",\n      \"tipo\": \"gol\",\n      \"minuto\": 12,\n      \"adicional\": 0,\n      \"equipo\": {\n        \"codigo\": \"ARG\",\n        \"nombre\": \"Argentina\"\n      },\n      \"protagonistas\": [\n        {\n          \"jugador\": {\n            \"codigo\": \"ARG-10\",\n            \"nombre\": \"Jugador Demo\"\n          },\n          \"rol\": \"autor\"\n        }\n      ]\n    }\n  ],\n  \"total\": 1,\n  \"siguiente_skip\": null,\n  \"estado\": \"en_vivo\",\n  \"resultado\": {\n    \"goles_local\": 1,\n    \"goles_visitante\": 0,\n    \"penales\": null\n  },\n  \"reloj\": {\n    \"periodo\": \"primer_tiempo\",\n    \"minuto\": 12,\n    \"adicional\": 0\n  }\n}"
+            },
+            {
+              "name": "MONGODB_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos?limit=50&skip=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "eventos"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "50",
+                      "description": "Máximo de eventos a devolver",
+                      "disabled": false
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0",
+                      "description": "Eventos a omitir (>= 0). Por defecto 0."
+                    }
+                  ]
+                },
+                "description": "Cronología MongoDB/Redis: goles, autogoles, tarjetas y cambios. Orden por minuto, adicional y código; incluye estado, marcador y reloj de una misma instantánea. limit/skip paginan los eventos; total/siguiente_skip permiten recorrerlos todos. Sin eventos: 200 vacío. Partido inexistente: 404. No incluye tandas."
               },
               "status": "Gateway Timeout",
               "code": 504,
@@ -1428,15 +1483,15 @@
                   "value": "postman-ejemplo"
                 }
               ],
-              "body": "{\"code\": \"NEO4J_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+              "body": "{\"code\": \"MONGODB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
             },
             {
-              "name": "NEO4J_AUTHENTICATION_FAILED",
+              "name": "MONGODB_AUTHENTICATION_FAILED",
               "originalRequest": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos",
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos?limit=50&skip=0",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -1451,10 +1506,15 @@
                       "value": "50",
                       "description": "Máximo de eventos a devolver",
                       "disabled": false
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0",
+                      "description": "Eventos a omitir (>= 0). Por defecto 0."
                     }
                   ]
                 },
-                "description": "Ordenados por minuto. Un partido sin eventos devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+                "description": "Cronología MongoDB/Redis: goles, autogoles, tarjetas y cambios. Orden por minuto, adicional y código; incluye estado, marcador y reloj de una misma instantánea. limit/skip paginan los eventos; total/siguiente_skip permiten recorrerlos todos. Sin eventos: 200 vacío. Partido inexistente: 404. No incluye tandas."
               },
               "status": "Service Unavailable",
               "code": 503,
@@ -1468,15 +1528,15 @@
                   "value": "postman-ejemplo"
                 }
               ],
-              "body": "{\"code\": \"NEO4J_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
+              "body": "{\"code\": \"MONGODB_AUTHENTICATION_FAILED\", \"message\": \"No se pudo autenticar ante la dependencia.\", \"requestId\": \"postman-ejemplo\"}"
             },
             {
-              "name": "NEO4J_ACCESS_DENIED",
+              "name": "MONGODB_ACCESS_DENIED",
               "originalRequest": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos",
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos?limit=50&skip=0",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -1491,10 +1551,15 @@
                       "value": "50",
                       "description": "Máximo de eventos a devolver",
                       "disabled": false
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0",
+                      "description": "Eventos a omitir (>= 0). Por defecto 0."
                     }
                   ]
                 },
-                "description": "Ordenados por minuto. Un partido sin eventos devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+                "description": "Cronología MongoDB/Redis: goles, autogoles, tarjetas y cambios. Orden por minuto, adicional y código; incluye estado, marcador y reloj de una misma instantánea. limit/skip paginan los eventos; total/siguiente_skip permiten recorrerlos todos. Sin eventos: 200 vacío. Partido inexistente: 404. No incluye tandas."
               },
               "status": "Service Unavailable",
               "code": 503,
@@ -1508,15 +1573,15 @@
                   "value": "postman-ejemplo"
                 }
               ],
-              "body": "{\"code\": \"NEO4J_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
+              "body": "{\"code\": \"MONGODB_ACCESS_DENIED\", \"message\": \"La identidad no tiene permiso para la operación.\", \"requestId\": \"postman-ejemplo\"}"
             },
             {
-              "name": "NEO4J_CONTEXT_UNAVAILABLE",
+              "name": "MONGODB_CONTEXT_UNAVAILABLE",
               "originalRequest": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos",
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos?limit=50&skip=0",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -1531,10 +1596,15 @@
                       "value": "50",
                       "description": "Máximo de eventos a devolver",
                       "disabled": false
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0",
+                      "description": "Eventos a omitir (>= 0). Por defecto 0."
                     }
                   ]
                 },
-                "description": "Ordenados por minuto. Un partido sin eventos devuelve 200 con lista vacía.\nErrores de dependencia: 504 NEO4J_TIMEOUT; 503 NEO4J_UNAVAILABLE, NEO4J_AUTHENTICATION_FAILED, NEO4J_ACCESS_DENIED o NEO4J_CONTEXT_UNAVAILABLE; 500 NEO4J_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+                "description": "Cronología MongoDB/Redis: goles, autogoles, tarjetas y cambios. Orden por minuto, adicional y código; incluye estado, marcador y reloj de una misma instantánea. limit/skip paginan los eventos; total/siguiente_skip permiten recorrerlos todos. Sin eventos: 200 vacío. Partido inexistente: 404. No incluye tandas."
               },
               "status": "Service Unavailable",
               "code": 503,
@@ -1548,7 +1618,52 @@
                   "value": "postman-ejemplo"
                 }
               ],
-              "body": "{\"code\": \"NEO4J_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+              "body": "{\"code\": \"MONGODB_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "500 — Eventos persistidos inválidos",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/eventos?limit=50&skip=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "eventos"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "50",
+                      "description": "Máximo de eventos a devolver",
+                      "disabled": false
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0",
+                      "description": "Eventos a omitir (>= 0). Por defecto 0."
+                    }
+                  ]
+                },
+                "description": "Cronología MongoDB/Redis: goles, autogoles, tarjetas y cambios. Orden por minuto, adicional y código; incluye estado, marcador y reloj de una misma instantánea. limit/skip paginan los eventos; total/siguiente_skip permiten recorrerlos todos. Sin eventos: 200 vacío. Partido inexistente: 404. No incluye tandas."
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\n  \"code\": \"EVENTOS_INVALIDOS\",\n  \"message\": \"Los eventos requieren revisión.\",\n  \"requestId\": \"example-request-id\"\n}"
             }
           ]
         },

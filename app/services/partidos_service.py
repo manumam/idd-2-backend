@@ -1,4 +1,4 @@
-"""Detalle MongoDB/Redis; eventos y goleadores históricos aún usan Neo4j."""
+"""Detalle y eventos MongoDB/Redis; goleadores históricos aún usan Neo4j."""
 import hashlib
 import json
 import logging
@@ -19,7 +19,6 @@ from app.schemas.partidos import (
     GolResponse,
     JugadorRef,
     PartidoResponse,
-    Protagonista,
 )
 
 
@@ -34,7 +33,12 @@ def obtener_partido(codigo: str) -> PartidoResponse:
     documento = mongo_adapter.find_partido(codigo)
     if documento is None:
         raise _partido_no_encontrado(codigo)
-    datos = {k: v for k, v in documento.items() if k != "_id"}
+    return _detalle_documento(documento)
+
+
+def _detalle_documento(documento: dict) -> PartidoResponse:
+    codigo = documento["_id"]
+    datos = {k: v for k, v in documento.items() if k not in ("_id", "eventos", "actualizado_en")}
     datos["codigo"] = documento["_id"]
     if datos["fase"] != "Grupos":
         cruce = next((c for c in consultar_playoffs().items if c.codigo == codigo), None)
@@ -66,23 +70,41 @@ def obtener_partido(codigo: str) -> PartidoResponse:
     return respuesta
 
 
-def listar_eventos(codigo: str, limit: int) -> EventosResponse:
-    eventos = neo4j_adapter.find_eventos(codigo, limit)
-    if eventos is None:
+def listar_eventos(codigo: str, limit: int, skip: int = 0) -> EventosResponse:
+    documento = mongo_adapter.find_eventos(codigo)
+    if documento is None:
         raise _partido_no_encontrado(codigo)
-    items = [
-        EventoResponse(
-            codigo=e["id"],
-            tipo=e["tipo"],
-            minuto=e["minuto"],
-            protagonistas=[
-                Protagonista(jugador=JugadorRef(codigo=j["id"], nombre=j["nombre"]), rol=j["rol"])
-                for j in e["protagonistas"]
-            ],
-        )
-        for e in eventos
-    ]
-    return EventosResponse(partido=codigo, items=items)
+    partido = _detalle_documento(documento)
+    try:
+        eventos = [EventoResponse.model_validate(e) for e in documento.get("eventos", [])]
+        equipos = {e.codigo for e in (partido.local, partido.visitante) if e}
+        if any(e.equipo.codigo not in equipos for e in eventos):
+            if documento["fase"] == "Grupos":
+                raise ValueError("Equipo ajeno al partido")
+            eventos = []  # Una plaza corregida no hereda los eventos del cruce anterior.
+        if partido.requiere_revision or partido.estado == "proximo":
+            eventos = []
+        if len({e.codigo for e in eventos}) != len(eventos):
+            raise ValueError("Identificadores de evento repetidos")
+    except (ValidationError, ValueError, TypeError) as exc:
+        raise BaseAppException("EVENTOS_INVALIDOS", "Los eventos requieren revisión.") from exc
+    eventos.sort(key=lambda e: (e.minuto, e.adicional, e.codigo))
+    total = len(eventos)
+    respuesta = EventosResponse(partido=codigo, items=eventos[skip:skip + limit], total=total,
+        siguiente_skip=skip + limit if skip + limit < total else None,
+        estado=partido.estado, resultado=partido.resultado, reloj=partido.reloj)
+    key = f"eventos:v1:{codigo}:{limit}:{skip}:" + hashlib.sha256(respuesta.model_dump_json().encode()).hexdigest()
+    try:
+        cached = redis_adapter.get_cache(key)
+        if cached is not None and EventosResponse.model_validate_json(cached) == respuesta:
+            return respuesta
+    except (DatabaseUnavailableError, ValidationError, ValueError, TypeError):
+        logger.warning("Caché de eventos no disponible o inválida")
+    try:
+        redis_adapter.set_cache(key, respuesta.model_dump_json(), settings.fixture_cache_ttl_seconds)
+    except DatabaseUnavailableError:
+        logger.warning("No se pudieron cachear los eventos")
+    return respuesta
 
 
 def listar_goleadores(sede: str, confederacion: str, limit: int) -> GoleadoresResponse:

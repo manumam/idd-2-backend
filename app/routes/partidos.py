@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from app.schemas.alineaciones import AlineacionesResponse
 from app.schemas.errors import RESPUESTAS_FICHA, ErrorResponse
-from app.schemas.params import CodigoPartido, CodigoSede, Confederacion, LimitEventos, LimitGoleadores
+from app.schemas.params import CodigoPartido, CodigoSede, Confederacion, LimitEventos, LimitGoleadores, SkipEventos
 from app.schemas.partidos import EventosResponse, GoleadoresResponse, PartidoResponse
 from app.services import partidos_service
 
@@ -19,10 +19,11 @@ def obtener_partido(codigo: CodigoPartido) -> PartidoResponse:
     "/partidos/{codigo}/eventos",
     response_model=EventosResponse,
     summary="Eventos de un partido con sus protagonistas",
-    description="Ordenados por minuto. Un partido sin eventos devuelve 200 con lista vacía.",
+    description="Cronología desde MongoDB con Redis opcional versionado. Orden por minuto, adicional y código; paginación limit/skip con total y siguiente_skip. Incluye equipo, protagonistas y una instantánea consistente del estado, resultado y reloj. Sin eventos: 200 vacío; partido inexistente: 404. No incluye tandas. Plazas obsoletas no heredan eventos.",
+    responses={500: {"model": ErrorResponse, "description": "Eventos persistidos inválidos; requieren revisión"}},
 )
-def listar_eventos(codigo: CodigoPartido, limit: LimitEventos = 50) -> EventosResponse:
-    return partidos_service.listar_eventos(codigo, limit)
+def listar_eventos(codigo: CodigoPartido, limit: LimitEventos = 50, skip: SkipEventos = 0) -> EventosResponse:
+    return partidos_service.listar_eventos(codigo, limit, skip)
 
 
 @router.get(

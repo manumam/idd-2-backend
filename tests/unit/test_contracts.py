@@ -30,7 +30,7 @@ CASES = [
     ("/jugadores/ARG-10", mongo_adapter, "find_jugador", JUGADOR),
     ("/jugadores?equipo=ARG", mongo_adapter, "list_jugadores", [JUGADOR]),
     ("/partidos/P-001", mongo_adapter, "find_partido", PARTIDO),
-    ("/partidos/P-001/eventos", neo4j_adapter, "find_eventos", []),
+    ("/partidos/P-001/eventos", mongo_adapter, "find_eventos", PARTIDO),
     (COMMENTS, cassandra_adapter, "list_comentarios", [COMENTARIO]),
     ("/sesiones/SES-DEMO", redis_adapter, "get_sesion", SESION),
     (STATS, influx_adapter, "find_estadisticas", [PUNTO]),
@@ -79,7 +79,7 @@ def test_dependency_down(client, monkeypatch, url, adapter, method, data):
     ("/equipos/ARG", mongo_adapter, "find_equipo"),
     ("/jugadores/ARG-10", mongo_adapter, "find_jugador"),
     ("/partidos/P-001", mongo_adapter, "find_partido"),
-    ("/partidos/P-001/eventos", neo4j_adapter, "find_eventos"),
+    ("/partidos/P-001/eventos", mongo_adapter, "find_eventos"),
     ("/sesiones/SES-EXPIRED", redis_adapter, "get_sesion"),
     ("/objetos/partidos/1", iris_adapter, "find_partido"),
 ])
