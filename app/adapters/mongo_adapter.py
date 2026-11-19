@@ -167,6 +167,19 @@ class MongoAdapter(BaseAdapter):
             filtro, {"$set": cambios}).matched_count == 1)
 
     @observe("MongoDB")
+    def find_estadisticas(self, codigo: str):
+        return self._execute(lambda: self.db["partidos"].find_one({"_id": codigo}))
+
+    @observe("MongoDB")
+    def guardar_estadisticas(self, codigo: str, anterior: dict, cambios: dict) -> bool:
+        """CAS: nunca publica un resumen o avance sobre entradas deportivas distintas."""
+        fields = ("fecha_hora", "actualizado_en", "estado", "resultado", "eventos", "reloj", "local",
+                  "visitante", "estadisticas_control", "estadisticas_finales")
+        filtro = {"_id": codigo, **{k: anterior.get(k) for k in fields}}
+        return self._execute(lambda: self.db["partidos"].update_one(
+            filtro, {"$set": cambios}).matched_count == 1)
+
+    @observe("MongoDB")
     def find_alineaciones(self, codigo: str):
         return self._execute(lambda: self.db["partidos"].find_one(
             {"_id": codigo}, {"_id": 1, "alineaciones": 1}))

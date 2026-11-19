@@ -38,7 +38,7 @@ def obtener_partido(codigo: str) -> PartidoResponse:
 def _detalle_documento(documento: dict,
                        cuadro: Callable[[], PlayoffsResponse] = consultar_playoffs) -> PartidoResponse:
     codigo = documento["_id"]
-    datos = {k: v for k, v in documento.items() if k not in ("_id", "eventos", "actualizado_en")}
+    datos = {k: v for k, v in documento.items() if k in PartidoResponse.model_fields}
     datos["codigo"] = documento["_id"]
     if datos["fase"] != "Grupos":
         cruce = next((c for c in cuadro().items if c.codigo == codigo), None)

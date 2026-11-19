@@ -1479,7 +1479,7 @@
       "name": "Estadísticas",
       "item": [
         {
-          "name": "Estadísticas de un partido en un intervalo",
+          "name": "Comparación de equipos o serie temporal",
           "request": {
             "method": "GET",
             "header": [],
@@ -1496,35 +1496,35 @@
               "query": [
                 {
                   "key": "desde",
-                  "value": "",
-                  "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
-                  "disabled": false
+                  "value": "2030-06-24T20:00:00Z",
+                  "description": "Opcional; habilitar junto con hasta para consultar la serie temporal.",
+                  "disabled": true
                 },
                 {
                   "key": "hasta",
-                  "value": "",
-                  "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
-                  "disabled": false
+                  "value": "2030-06-24T20:05:00Z",
+                  "description": "Fin UTC exclusivo; requiere desde.",
+                  "disabled": true
                 },
                 {
                   "key": "equipo",
                   "value": "{{codigoEquipo}}",
-                  "description": null,
-                  "disabled": false
+                  "description": "Filtro opcional de la serie temporal; requiere fechas.",
+                  "disabled": true
                 },
                 {
                   "key": "ventana",
-                  "value": "",
-                  "description": null,
-                  "disabled": false
+                  "value": "1m",
+                  "description": "Agregación opcional 1m o 5m; requiere fechas.",
+                  "disabled": true
                 }
               ]
             },
-            "description": "Puntos cada 5 segundos por equipo en [`desde`, `hasta`). Sin `ventana`, el intervalo máximo es de 30 minutos; con `ventana` (`1m` o `5m`) es de 2 horas y cada medida se agrega según su tipo (promedio de posesión, máximo de tiros, suma de pases). Un intervalo sin puntos o un partido sin datos devuelve 200 con lista vacía.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE, INFLUXDB_AUTHENTICATION_FAILED, INFLUXDB_ACCESS_DENIED o INFLUXDB_CONTEXT_UNAVAILABLE; 500 INFLUXDB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+            "description": "Sin parámetros devuelve local y visitante con posesión, tiros, pases, goles y tarjetas. Estados: sin_datos, provisional, pendiente, completa. Métricas faltantes: null. Finales consolidados se leen desde MongoDB sin Influx ni Redis. En vivo una falla de Influx conserva las estadísticas deportivas con advertencia. Para serie temporal, habilitar desde y hasta juntos; equipo y ventana solo se aceptan con ambas fechas. Intervalo crudo máximo 30 min; con ventana 1m o 5m, máximo 2 h. Errores de MongoDB: 503/504. Serie temporal: errores de Influx 503/504/500. Comparación inexistente: 404; parámetros incompletos: 400."
           },
           "response": [
             {
-              "name": "INFLUXDB_TIMEOUT",
+              "name": "Comparación final consolidada (ejemplo ilustrativo)",
               "originalRequest": {
                 "method": "GET",
                 "header": [],
@@ -1541,31 +1541,89 @@
                   "query": [
                     {
                       "key": "desde",
-                      "value": "",
-                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "value": "2030-06-24T20:00:00Z",
+                      "description": "Opcional; habilitar junto con hasta para consultar la serie temporal.",
+                      "disabled": true
+                    },
+                    {
+                      "key": "hasta",
+                      "value": "2030-06-24T20:05:00Z",
+                      "description": "Fin UTC exclusivo; requiere desde.",
+                      "disabled": true
+                    },
+                    {
+                      "key": "equipo",
+                      "value": "{{codigoEquipo}}",
+                      "description": "Filtro opcional de la serie temporal; requiere fechas.",
+                      "disabled": true
+                    },
+                    {
+                      "key": "ventana",
+                      "value": "1m",
+                      "description": "Agregación opcional 1m o 5m; requiere fechas.",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Sin parámetros devuelve local y visitante con posesión, tiros, pases, goles y tarjetas. Estados: sin_datos, provisional, pendiente, completa. Métricas faltantes: null. Finales consolidados se leen desde MongoDB sin Influx ni Redis. En vivo una falla de Influx conserva las estadísticas deportivas con advertencia. Para serie temporal, habilitar desde y hasta juntos; equipo y ventana solo se aceptan con ambas fechas. Intervalo crudo máximo 30 min; con ventana 1m o 5m, máximo 2 h. Errores de MongoDB: 503/504. Serie temporal: errores de Influx 503/504/500. Comparación inexistente: 404; parámetros incompletos: 400."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\n  \"partido\": \"P-002\",\n  \"estado\": \"finalizado\",\n  \"consolidacion\": \"completa\",\n  \"actualizado_en\": \"2030-06-24T21:30:00Z\",\n  \"reloj\": {\n    \"periodo\": \"segundo_tiempo\",\n    \"minuto\": 90,\n    \"adicional\": 0\n  },\n  \"local\": {\n    \"equipo\": {\n      \"codigo\": \"ARG\",\n      \"nombre\": \"Argentina\"\n    },\n    \"posesion_pct\": 55,\n    \"tiros\": 14,\n    \"pases\": 360,\n    \"goles\": 2,\n    \"tarjetas_amarillas\": 0,\n    \"tarjetas_rojas\": 0\n  },\n  \"visitante\": {\n    \"equipo\": {\n      \"codigo\": \"ESP\",\n      \"nombre\": \"España\"\n    },\n    \"posesion_pct\": 45,\n    \"tiros\": 7,\n    \"pases\": 270,\n    \"goles\": 0,\n    \"tarjetas_amarillas\": 1,\n    \"tarjetas_rojas\": 1\n  },\n  \"advertencias\": []\n}"
+            },
+            {
+              "name": "INFLUXDB_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "estadisticas"
+                  ],
+                  "query": [
+                    {
+                      "key": "desde",
+                      "value": "2030-06-24T20:00:00Z",
+                      "description": "Opcional; habilitar junto con hasta para consultar la serie temporal.",
                       "disabled": false
                     },
                     {
                       "key": "hasta",
-                      "value": "",
-                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "value": "2030-06-24T20:05:00Z",
+                      "description": "Fin UTC exclusivo; requiere desde.",
                       "disabled": false
                     },
                     {
                       "key": "equipo",
                       "value": "{{codigoEquipo}}",
-                      "description": null,
-                      "disabled": false
+                      "description": "Filtro opcional de la serie temporal; requiere fechas.",
+                      "disabled": true
                     },
                     {
                       "key": "ventana",
-                      "value": "",
-                      "description": null,
-                      "disabled": false
+                      "value": "1m",
+                      "description": "Agregación opcional 1m o 5m; requiere fechas.",
+                      "disabled": true
                     }
                   ]
                 },
-                "description": "Puntos cada 5 segundos por equipo en [`desde`, `hasta`). Sin `ventana`, el intervalo máximo es de 30 minutos; con `ventana` (`1m` o `5m`) es de 2 horas y cada medida se agrega según su tipo (promedio de posesión, máximo de tiros, suma de pases). Un intervalo sin puntos o un partido sin datos devuelve 200 con lista vacía.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE, INFLUXDB_AUTHENTICATION_FAILED, INFLUXDB_ACCESS_DENIED o INFLUXDB_CONTEXT_UNAVAILABLE; 500 INFLUXDB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+                "description": "Sin parámetros devuelve local y visitante con posesión, tiros, pases, goles y tarjetas. Estados: sin_datos, provisional, pendiente, completa. Métricas faltantes: null. Finales consolidados se leen desde MongoDB sin Influx ni Redis. En vivo una falla de Influx conserva las estadísticas deportivas con advertencia. Para serie temporal, habilitar desde y hasta juntos; equipo y ventana solo se aceptan con ambas fechas. Intervalo crudo máximo 30 min; con ventana 1m o 5m, máximo 2 h. Errores de MongoDB: 503/504. Serie temporal: errores de Influx 503/504/500. Comparación inexistente: 404; parámetros incompletos: 400."
               },
               "status": "Gateway Timeout",
               "code": 504,
@@ -1587,7 +1645,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/estadisticas",
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -1599,31 +1657,31 @@
                   "query": [
                     {
                       "key": "desde",
-                      "value": "",
-                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "value": "2030-06-24T20:00:00Z",
+                      "description": "Opcional; habilitar junto con hasta para consultar la serie temporal.",
                       "disabled": false
                     },
                     {
                       "key": "hasta",
-                      "value": "",
-                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "value": "2030-06-24T20:05:00Z",
+                      "description": "Fin UTC exclusivo; requiere desde.",
                       "disabled": false
                     },
                     {
                       "key": "equipo",
                       "value": "{{codigoEquipo}}",
-                      "description": null,
-                      "disabled": false
+                      "description": "Filtro opcional de la serie temporal; requiere fechas.",
+                      "disabled": true
                     },
                     {
                       "key": "ventana",
-                      "value": "",
-                      "description": null,
-                      "disabled": false
+                      "value": "1m",
+                      "description": "Agregación opcional 1m o 5m; requiere fechas.",
+                      "disabled": true
                     }
                   ]
                 },
-                "description": "Puntos cada 5 segundos por equipo en [`desde`, `hasta`). Sin `ventana`, el intervalo máximo es de 30 minutos; con `ventana` (`1m` o `5m`) es de 2 horas y cada medida se agrega según su tipo (promedio de posesión, máximo de tiros, suma de pases). Un intervalo sin puntos o un partido sin datos devuelve 200 con lista vacía.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE, INFLUXDB_AUTHENTICATION_FAILED, INFLUXDB_ACCESS_DENIED o INFLUXDB_CONTEXT_UNAVAILABLE; 500 INFLUXDB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+                "description": "Sin parámetros devuelve local y visitante con posesión, tiros, pases, goles y tarjetas. Estados: sin_datos, provisional, pendiente, completa. Métricas faltantes: null. Finales consolidados se leen desde MongoDB sin Influx ni Redis. En vivo una falla de Influx conserva las estadísticas deportivas con advertencia. Para serie temporal, habilitar desde y hasta juntos; equipo y ventana solo se aceptan con ambas fechas. Intervalo crudo máximo 30 min; con ventana 1m o 5m, máximo 2 h. Errores de MongoDB: 503/504. Serie temporal: errores de Influx 503/504/500. Comparación inexistente: 404; parámetros incompletos: 400."
               },
               "status": "Service Unavailable",
               "code": 503,
@@ -1645,7 +1703,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/estadisticas",
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -1657,31 +1715,31 @@
                   "query": [
                     {
                       "key": "desde",
-                      "value": "",
-                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "value": "2030-06-24T20:00:00Z",
+                      "description": "Opcional; habilitar junto con hasta para consultar la serie temporal.",
                       "disabled": false
                     },
                     {
                       "key": "hasta",
-                      "value": "",
-                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "value": "2030-06-24T20:05:00Z",
+                      "description": "Fin UTC exclusivo; requiere desde.",
                       "disabled": false
                     },
                     {
                       "key": "equipo",
                       "value": "{{codigoEquipo}}",
-                      "description": null,
-                      "disabled": false
+                      "description": "Filtro opcional de la serie temporal; requiere fechas.",
+                      "disabled": true
                     },
                     {
                       "key": "ventana",
-                      "value": "",
-                      "description": null,
-                      "disabled": false
+                      "value": "1m",
+                      "description": "Agregación opcional 1m o 5m; requiere fechas.",
+                      "disabled": true
                     }
                   ]
                 },
-                "description": "Puntos cada 5 segundos por equipo en [`desde`, `hasta`). Sin `ventana`, el intervalo máximo es de 30 minutos; con `ventana` (`1m` o `5m`) es de 2 horas y cada medida se agrega según su tipo (promedio de posesión, máximo de tiros, suma de pases). Un intervalo sin puntos o un partido sin datos devuelve 200 con lista vacía.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE, INFLUXDB_AUTHENTICATION_FAILED, INFLUXDB_ACCESS_DENIED o INFLUXDB_CONTEXT_UNAVAILABLE; 500 INFLUXDB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+                "description": "Sin parámetros devuelve local y visitante con posesión, tiros, pases, goles y tarjetas. Estados: sin_datos, provisional, pendiente, completa. Métricas faltantes: null. Finales consolidados se leen desde MongoDB sin Influx ni Redis. En vivo una falla de Influx conserva las estadísticas deportivas con advertencia. Para serie temporal, habilitar desde y hasta juntos; equipo y ventana solo se aceptan con ambas fechas. Intervalo crudo máximo 30 min; con ventana 1m o 5m, máximo 2 h. Errores de MongoDB: 503/504. Serie temporal: errores de Influx 503/504/500. Comparación inexistente: 404; parámetros incompletos: 400."
               },
               "status": "Service Unavailable",
               "code": 503,
@@ -1703,7 +1761,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/estadisticas",
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/estadisticas?desde=2030-06-24T20:00:00Z&hasta=2030-06-24T20:05:00Z",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -1715,31 +1773,31 @@
                   "query": [
                     {
                       "key": "desde",
-                      "value": "",
-                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "value": "2030-06-24T20:00:00Z",
+                      "description": "Opcional; habilitar junto con hasta para consultar la serie temporal.",
                       "disabled": false
                     },
                     {
                       "key": "hasta",
-                      "value": "",
-                      "description": "Hora UTC `AAAA-MM-DDThh:mm:ssZ`",
+                      "value": "2030-06-24T20:05:00Z",
+                      "description": "Fin UTC exclusivo; requiere desde.",
                       "disabled": false
                     },
                     {
                       "key": "equipo",
                       "value": "{{codigoEquipo}}",
-                      "description": null,
-                      "disabled": false
+                      "description": "Filtro opcional de la serie temporal; requiere fechas.",
+                      "disabled": true
                     },
                     {
                       "key": "ventana",
-                      "value": "",
-                      "description": null,
-                      "disabled": false
+                      "value": "1m",
+                      "description": "Agregación opcional 1m o 5m; requiere fechas.",
+                      "disabled": true
                     }
                   ]
                 },
-                "description": "Puntos cada 5 segundos por equipo en [`desde`, `hasta`). Sin `ventana`, el intervalo máximo es de 30 minutos; con `ventana` (`1m` o `5m`) es de 2 horas y cada medida se agrega según su tipo (promedio de posesión, máximo de tiros, suma de pases). Un intervalo sin puntos o un partido sin datos devuelve 200 con lista vacía.\nErrores de dependencia: 504 INFLUXDB_TIMEOUT; 503 INFLUXDB_UNAVAILABLE, INFLUXDB_AUTHENTICATION_FAILED, INFLUXDB_ACCESS_DENIED o INFLUXDB_CONTEXT_UNAVAILABLE; 500 INFLUXDB_QUERY_FAILED. Nunca se devuelven credenciales ni mensajes del driver."
+                "description": "Sin parámetros devuelve local y visitante con posesión, tiros, pases, goles y tarjetas. Estados: sin_datos, provisional, pendiente, completa. Métricas faltantes: null. Finales consolidados se leen desde MongoDB sin Influx ni Redis. En vivo una falla de Influx conserva las estadísticas deportivas con advertencia. Para serie temporal, habilitar desde y hasta juntos; equipo y ventana solo se aceptan con ambas fechas. Intervalo crudo máximo 30 min; con ventana 1m o 5m, máximo 2 h. Errores de MongoDB: 503/504. Serie temporal: errores de Influx 503/504/500. Comparación inexistente: 404; parámetros incompletos: 400."
               },
               "status": "Service Unavailable",
               "code": 503,

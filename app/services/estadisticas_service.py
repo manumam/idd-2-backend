@@ -1,4 +1,4 @@
-"""Caso de uso 11: estadísticas de un partido en un intervalo (InfluxDB)."""
+"""Serie temporal del caso 8: estadísticas de un partido en un intervalo (InfluxDB)."""
 
 from collections import defaultdict
 from datetime import datetime, timedelta
