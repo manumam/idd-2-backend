@@ -25,6 +25,7 @@ Confederacion = Annotated[
     Query(description="Confederación del equipo del goleador"),
 ]
 LimitEventos = Annotated[int, Query(ge=1, le=200, description="Máximo de eventos a devolver")]
+SkipEventos = Annotated[int, Query(ge=0, description="Eventos a omitir en orden cronológico")]
 LimitGoleadores = Annotated[int, Query(ge=1, le=100, description="Máximo de goles a devolver")]
 
 FechaHora = Annotated[

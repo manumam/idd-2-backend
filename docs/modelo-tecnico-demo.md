@@ -159,7 +159,7 @@ Los filtros son opcionales salvo donde se indica. Todos los endpoints leen Redis
 | Playoffs | `GET /playoffs` | MongoDB: cruces y partidos. |
 | Detalle | `GET /partidos/{id}` | MongoDB. |
 | Alineaciones | `GET /partidos/{id}/alineaciones` | MongoDB. |
-| Eventos | `GET /partidos/{id}/eventos` | MongoDB. |
+| Eventos | `GET /partidos/{id}/eventos?limit=50&skip=0` | Implementado: eventos embebidos en MongoDB y Redis opcional versionado. Snapshot de marcador, estado y reloj. Ver [eventos](eventos.md). |
 | Estadísticas de equipos | `GET /partidos/{id}/estadisticas` | En vivo: MongoDB + InfluxDB. Finales: MongoDB. |
 | Jugador en un partido | `GET /partidos/{id}/jugadores/{jugador_id}/estadisticas` | En vivo: MongoDB + InfluxDB. Finales: MongoDB. |
 | Totales de jugador | `GET /jugadores/{id}/estadisticas` | MongoDB; acumulado del jugador en el Mundial 2030. |

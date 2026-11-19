@@ -124,6 +124,22 @@ class MongoAdapter(BaseAdapter):
         return self._execute(lambda: self.db["partidos"].find_one({"_id": codigo}, projection))
 
     @observe("MongoDB")
+    def find_eventos(self, codigo: str):
+        """Una instantánea con eventos, marcador y referencias del encuentro."""
+        fields = ("_id", "fecha_hora", "fase", "grupo", "local", "visitante", "estado",
+                  "resultado", "sede", "reloj", "eventos", "actualizado_en")
+        return self._execute(lambda: self.db["partidos"].find_one(
+            {"_id": codigo}, {field: 1 for field in fields}))
+
+    @observe("MongoDB")
+    def guardar_seguimiento(self, codigo: str, anterior: dict, cambios: dict) -> bool:
+        # CAS simple: evita pisar otra actualización y no reemplaza el documento.
+        filtro = {"_id": codigo, **{k: anterior.get(k) for k in
+                  ("actualizado_en", "estado", "resultado", "eventos", "local", "visitante")}}
+        return self._execute(lambda: self.db["partidos"].update_one(
+            filtro, {"$set": cambios}).matched_count == 1)
+
+    @observe("MongoDB")
     def find_alineaciones(self, codigo: str):
         return self._execute(lambda: self.db["partidos"].find_one(
             {"_id": codigo}, {"_id": 1, "alineaciones": 1}))

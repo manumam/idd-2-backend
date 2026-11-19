@@ -988,8 +988,11 @@ paths:
       tags:
       - Partidos y eventos
       summary: Eventos de un partido con sus protagonistas
-      description: Ordenados por minuto. Un partido sin eventos devuelve 200 con lista
-        vacía.
+      description: 'Cronología desde MongoDB con Redis opcional versionado. Orden
+        por minuto, adicional y código; paginación limit/skip con total y siguiente_skip.
+        Incluye equipo, protagonistas y una instantánea consistente del estado, resultado
+        y reloj. Sin eventos: 200 vacío; partido inexistente: 404. No incluye tandas.
+        Plazas obsoletas no heredan eventos.'
       operationId: listar_eventos_partidos__codigo__eventos_get
       parameters:
       - name: codigo
@@ -1014,6 +1017,16 @@ paths:
           default: 50
           title: Limit
         description: Máximo de eventos a devolver
+      - name: skip
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Eventos a omitir en orden cronológico
+          default: 0
+          title: Skip
+        description: Eventos a omitir en orden cronológico
       responses:
         '200':
           description: Successful Response
@@ -1027,7 +1040,7 @@ paths:
               schema:
                 type: string
         '500':
-          description: Error interno
+          description: Eventos persistidos inválidos; requieren revisión
           content:
             application/json:
               schema:
@@ -1771,6 +1784,22 @@ components:
       - siguiente
       - requiere_revision
       title: CruceResuelto
+    EquipoEvento:
+      properties:
+        codigo:
+          type: string
+          pattern: ^[A-Z]{3}$
+          title: Codigo
+        nombre:
+          type: string
+          minLength: 1
+          title: Nombre
+      additionalProperties: false
+      type: object
+      required:
+      - codigo
+      - nombre
+      title: EquipoEvento
     EquipoRef:
       properties:
         codigo:
@@ -1907,23 +1936,46 @@ components:
       properties:
         codigo:
           type: string
+          maxLength: 80
+          minLength: 1
+          pattern: ^[A-Za-z0-9_-]+$
           title: Codigo
         tipo:
           type: string
+          enum:
+          - gol
+          - autogol
+          - tarjeta_amarilla
+          - tarjeta_roja
+          - cambio
           title: Tipo
         minuto:
           type: integer
+          maximum: 120.0
+          minimum: 0.0
           title: Minuto
+        adicional:
+          type: integer
+          maximum: 30.0
+          minimum: 0.0
+          title: Adicional
+          default: 0
+        equipo:
+          $ref: '#/components/schemas/EquipoEvento'
         protagonistas:
           items:
             $ref: '#/components/schemas/Protagonista'
           type: array
+          maxItems: 2
+          minItems: 1
           title: Protagonistas
+      additionalProperties: false
       type: object
       required:
       - codigo
       - tipo
       - minuto
+      - equipo
       - protagonistas
       title: EventoResponse
     EventosResponse:
@@ -1936,10 +1988,38 @@ components:
             $ref: '#/components/schemas/EventoResponse'
           type: array
           title: Items
+        total:
+          type: integer
+          title: Total
+        siguiente_skip:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Siguiente Skip
+        estado:
+          type: string
+          enum:
+          - proximo
+          - en_vivo
+          - finalizado
+          title: Estado
+        resultado:
+          anyOf:
+          - $ref: '#/components/schemas/ResultadoFixture'
+          - type: 'null'
+        reloj:
+          anyOf:
+          - $ref: '#/components/schemas/RelojPartido'
+          - type: 'null'
       type: object
       required:
       - partido
       - items
+      - total
+      - siguiente_skip
+      - estado
+      - resultado
+      - reloj
       title: EventosResponse
     FixtureResponse:
       properties:
@@ -2132,6 +2212,22 @@ components:
       - equipo
       - fechaNacimiento
       title: JugadorDetalle
+    JugadorEvento:
+      properties:
+        codigo:
+          type: string
+          pattern: ^[A-Z]{3}-([1-9]|[1-9][0-9])$
+          title: Codigo
+        nombre:
+          type: string
+          minLength: 1
+          title: Nombre
+      additionalProperties: false
+      type: object
+      required:
+      - codigo
+      - nombre
+      title: JugadorEvento
     JugadorRef:
       properties:
         codigo:
@@ -2541,10 +2637,16 @@ components:
     Protagonista:
       properties:
         jugador:
-          $ref: '#/components/schemas/JugadorRef'
+          $ref: '#/components/schemas/JugadorEvento'
         rol:
           type: string
+          enum:
+          - autor
+          - asistente
+          - entra
+          - sale
           title: Rol
+      additionalProperties: false
       type: object
       required:
       - jugador

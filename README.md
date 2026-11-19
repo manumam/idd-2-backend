@@ -324,3 +324,16 @@ y no se ejecuta durante el arranque. Ver [instrucciones](docs/alineaciones.md).
 Las alineaciones admiten una formación opcional con arquero y líneas de titulares.
 La página muestra el esquema sobre una cancha y permite alternar equipo. El seed
 de Argentina incorpora un 4–3–3 simulado; ver [modelo y orientación](docs/alineaciones.md).
+
+## Cronología del partido (caso 7)
+
+`GET /partidos/{codigo}/eventos?limit=50&skip=0` lee eventos embebidos en MongoDB,
+con caché Redis opcional versionada; ya no depende de Neo4j. Devuelve goles,
+autogoles, tarjetas y cambios con equipo, minuto/adicional y protagonistas,
+además de `total`, `siguiente_skip`, `estado`, `resultado` y `reloj`. El frontend
+actualiza cronología y marcador cada cinco segundos y conserva el histórico al
+finalizar, con Nothing Design oscuro.
+
+El simulador `scripts/simular_partido.py` genera planes desde catálogos existentes
+y los reproduce únicamente mediante ejecución explícita. No carga datos al
+arrancar ni reinicia escenarios. Ver [contrato, uso y límites](docs/eventos.md).

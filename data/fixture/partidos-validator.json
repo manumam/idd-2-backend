@@ -454,6 +454,107 @@
                 }
               }
             }
+          },
+          "eventos": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "object",
+              "additionalProperties": false,
+              "required": [
+                "codigo",
+                "tipo",
+                "minuto",
+                "adicional",
+                "equipo",
+                "protagonistas"
+              ],
+              "properties": {
+                "codigo": {
+                  "bsonType": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "tipo": {
+                  "enum": [
+                    "gol",
+                    "autogol",
+                    "tarjeta_amarilla",
+                    "tarjeta_roja",
+                    "cambio"
+                  ]
+                },
+                "minuto": {
+                  "bsonType": "int",
+                  "minimum": 0,
+                  "maximum": 120
+                },
+                "adicional": {
+                  "bsonType": "int",
+                  "minimum": 0,
+                  "maximum": 30
+                },
+                "equipo": {
+                  "bsonType": "object",
+                  "required": [
+                    "codigo",
+                    "nombre"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "codigo": {
+                      "bsonType": "string",
+                      "pattern": "^[A-Z]{3}$"
+                    },
+                    "nombre": {
+                      "bsonType": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "protagonistas": {
+                  "bsonType": "array",
+                  "minItems": 1,
+                  "maxItems": 2,
+                  "items": {
+                    "bsonType": "object",
+                    "required": [
+                      "jugador",
+                      "rol"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "jugador": {
+                        "bsonType": "object",
+                        "required": [
+                          "codigo",
+                          "nombre"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                          "codigo": {
+                            "bsonType": "string",
+                            "pattern": "^[A-Z]{3}-([1-9]|[1-9][0-9])$"
+                          },
+                          "nombre": {
+                            "bsonType": "string",
+                            "minLength": 1
+                          }
+                        }
+                      },
+                      "rol": {
+                        "enum": [
+                          "autor",
+                          "asistente",
+                          "entra",
+                          "sale"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

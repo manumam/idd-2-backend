@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validat
 
 from app.schemas.equipos import EquipoRef
 from app.schemas.fixture import PartidoFixture
+from app.schemas.fixture import ResultadoFixture
 
 
 class SedeRef(BaseModel):
@@ -47,21 +48,56 @@ class PartidoResponse(PartidoFixture):
         return self
 
 
+class JugadorEvento(JugadorRef):
+    model_config = ConfigDict(extra="forbid")
+    codigo: str = Field(pattern=r"^[A-Z]{3}-([1-9]|[1-9][0-9])$")
+    nombre: str = Field(min_length=1)
+
+
+class EquipoEvento(EquipoRef):
+    model_config = ConfigDict(extra="forbid")
+    codigo: str = Field(pattern=r"^[A-Z]{3}$")
+    nombre: str = Field(min_length=1)
+
+
 class Protagonista(BaseModel):
-    jugador: JugadorRef
-    rol: str
+    model_config = ConfigDict(extra="forbid")
+    jugador: JugadorEvento
+    rol: Literal["autor", "asistente", "entra", "sale"]
 
 
 class EventoResponse(BaseModel):
-    codigo: str
-    tipo: str
-    minuto: int
-    protagonistas: List[Protagonista]
+    model_config = ConfigDict(extra="forbid")
+    codigo: str = Field(min_length=1, max_length=80, pattern=r"^[A-Za-z0-9_-]+$")
+    tipo: Literal["gol", "autogol", "tarjeta_amarilla", "tarjeta_roja", "cambio"]
+    minuto: int = Field(ge=0, le=120, strict=True)
+    adicional: int = Field(default=0, ge=0, le=30, strict=True)
+    equipo: EquipoEvento
+    protagonistas: List[Protagonista] = Field(min_length=1, max_length=2)
+
+    @model_validator(mode="after")
+    def participantes_validos(self):
+        roles = sorted(p.rol for p in self.protagonistas)
+        permitidos = [["entra", "sale"]] if self.tipo == "cambio" else (
+            [["autor"], ["asistente", "autor"]] if self.tipo == "gol" else [["autor"]])
+        if roles not in permitidos:
+            raise ValueError("Roles inválidos para el tipo de evento")
+        codigos = [p.jugador.codigo for p in self.protagonistas]
+        if len(set(codigos)) != len(codigos):
+            raise ValueError("Un jugador no puede ocupar ambos roles")
+        if any(not codigo.startswith(self.equipo.codigo + "-") for codigo in codigos):
+            raise ValueError("Los jugadores deben pertenecer a la selección del evento")
+        return self
 
 
 class EventosResponse(BaseModel):
     partido: str
     items: List[EventoResponse]
+    total: int
+    siguiente_skip: int | None
+    estado: Literal["proximo", "en_vivo", "finalizado"]
+    resultado: ResultadoFixture | None
+    reloj: RelojPartido | None
 
 
 class GolResponse(BaseModel):

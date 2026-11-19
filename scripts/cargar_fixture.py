@@ -126,6 +126,7 @@ def cargar(db, docs, reiniciar=False):
         initial['reloj'] = doc.get('reloj')
         if reiniciar:
             calendar.update(initial)
+            calendar['eventos'] = []
             initial = {}
         calendar['actualizado_en'] = now
         update = {'$set': calendar}
