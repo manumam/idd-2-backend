@@ -48,6 +48,10 @@ def clave_mapa_calor(partido: str, jugador: str, desde: Optional[str] = None, ha
     return f"mapa_calor:v2:{partido}:{jugador}:{desde or RANGO_COMPLETO}:{hasta or RANGO_COMPLETO}"
 
 
+def patron_mapa_calor(partido: str) -> str:
+    return f"mapa_calor:v2:{partido}:*"
+
+
 def leer_cache(key: str, modelo: type[Modelo]) -> Optional[Modelo]:
     namespace = key.split(":", 1)[0]
     funcionalidad = FUNCIONALIDAD_POR_NAMESPACE[namespace]

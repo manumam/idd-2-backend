@@ -60,3 +60,40 @@ mismos puntos (misma serie y timestamp), sin duplicarlos.
 Con los datos versionados: 127 partidos, 1.961.280 puntos y 1.176 series
 (33 de jugadores en 3 partidos, 127 de pelota, 254 de estadísticas y 762 de
 audiencia).
+
+## Ocupación por celda y minuto
+
+`scripts/materializar_ocupacion.py` resume `tracking_jugador` (crudo de 1 s,
+vence a los 7 días) en `ocupacion_jugador_minuto`, que queda en
+`fixture2030_resumen` sin vencimiento y alimenta el mapa de calor histórico.
+Es un comando explícito: no se ejecuta al iniciar la API.
+
+| Tabla | Base | Tags | Fields | Tiempo |
+| --- | --- | --- | --- | --- |
+| `ocupacion_jugador_minuto` | `fixture2030_resumen` (sin vencimiento) | `partido_id`, `equipo_id`, `jugador_id`, `celda` (`columna_fila`, p. ej. `7_2`) | `muestras` (entero) | Comienzo de la ventana de 1 minuto, precisión en segundos |
+
+La celda la calcula InfluxDB con una sola consulta SQL por partido sobre
+`fixture2030_en_vivo`: `date_bin` agrupa por minuto, `FLOOR` y `LEAST` llevan
+`x_m`/`y_m` a la grilla de 5 × 5 m de `app/services/grilla_cancha.py` (21 × 14
+celdas; el borde lejano cae en la última celda) y se descartan las muestras
+fuera de la cancha. Funciones en la documentación de InfluxDB 3 Core:
+[date_bin](https://docs.influxdata.com/influxdb3/core/reference/sql/functions/time-and-date/#date_bin),
+[floor](https://docs.influxdata.com/influxdb3/core/reference/sql/functions/math/#floor),
+[least](https://docs.influxdata.com/influxdb3/core/reference/sql/functions/conditional/#least).
+
+```bash
+# Solo lectura: puntos, series y si la suma de ventanas da el total del partido por celda
+.venv/bin/python scripts/materializar_ocupacion.py --partido P-002 --solo-validar
+
+# Escribe en fixture2030_resumen y borra mapa_calor:v2:{partido}:* de Redis (SCAN)
+.venv/bin/python scripts/materializar_ocupacion.py --partido P-002
+.venv/bin/python scripts/materializar_ocupacion.py --todos   # partidos con tracking_jugador
+```
+
+Ejecutarlo después de cada partido y antes de que venza su crudo (7 días). La
+escritura reutiliza los lotes y reintentos de `cargar_influx.py`; si queda alguna
+línea rechazada termina con código 1. Reprocesar escribe el mismo valor en la
+misma serie y timestamp, sin sumar. Un punto de una celda que ya no tiene
+muestras no se borra (el script solo escribe): `--solo-validar`
+informa esos `puntos_obsoletos`. Con el crudo determinístico no aparecen. Si
+Redis no responde, solo advierte y la caché vence por TTL.
