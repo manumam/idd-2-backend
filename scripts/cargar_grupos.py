@@ -50,7 +50,7 @@ def main():
     from app.services.cache_partidos import borrar_cache_derivada, conectar_cache
     with MongoClient(settings.mongo_uri, serverSelectionTimeoutMS=5000, socketTimeoutMS=5000) as client:
         db = client[settings.mongo_database]
-        grupos = preparar(list(db.equipos.find({'_id': 1, 'nombre': 1, 'grupo': 1})))
+        grupos = preparar(list(db.equipos.find({}, {'_id': 1, 'nombre': 1, 'grupo': 1})))
         try:
             result = cargar(db, grupos)
         finally:
