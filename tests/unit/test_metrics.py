@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from prometheus_client import REGISTRY, CollectorRegistry, generate_latest
@@ -159,3 +159,59 @@ def test_dependencia_up_solo_reevalua_fuentes_vencidas():
     ahora[0] += 1
     assert registry.get_sample_value("api_dependencia_up", {"fuente": "mongodb"}) == 1.0
     assert evaluar.call_count == 2
+
+
+def test_pool_mongodb_cuenta_conexiones_tomadas_y_devueltas():
+    from app.adapters.mongo_adapter import ConexionesEnUsoListener
+    listener = ConexionesEnUsoListener()
+    antes = valor("api_pool_conexiones_en_uso", {"fuente": "mongodb"})
+
+    listener.connection_checked_out(Mock())
+    listener.connection_checked_out(Mock())
+    assert valor("api_pool_conexiones_en_uso", {"fuente": "mongodb"}) == antes + 2
+    listener.connection_checked_in(Mock())
+    listener.pool_cleared(Mock())
+
+    assert valor("api_pool_conexiones_en_uso", {"fuente": "mongodb"}) == antes + 1
+    listener.connection_checked_in(Mock())
+
+
+def test_cliente_mongodb_registra_listener_del_pool(monkeypatch):
+    import sys
+    from app.adapters.mongo_adapter import ConexionesEnUsoListener, MongoAdapter
+    cliente = MagicMock()
+    monkeypatch.setattr(sys.modules["app.adapters.mongo_adapter"], "MongoClient", cliente)
+
+    MongoAdapter().connect()
+
+    listeners = cliente.call_args.kwargs["event_listeners"]
+    assert [type(listener) for listener in listeners] == [ConexionesEnUsoListener]
+
+
+def test_operaciones_en_curso_suben_durante_la_llamada_y_bajan_al_terminar():
+    from app.core.observability import observe
+    observado = {}
+
+    @observe("Redis")
+    def operacion():
+        observado["durante"] = valor("api_dependencia_en_curso", {"fuente": "redis"})
+
+    antes = valor("api_dependencia_en_curso", {"fuente": "redis"})
+    operacion()
+
+    assert observado["durante"] == antes + 1
+    assert valor("api_dependencia_en_curso", {"fuente": "redis"}) == antes
+
+
+def test_operaciones_en_curso_bajan_aunque_la_operacion_falle():
+    from app.core.observability import observe
+
+    @observe("InfluxDB")
+    def operacion():
+        raise NetworkTimeout("timeout")
+
+    antes = valor("api_dependencia_en_curso", {"fuente": "influxdb"})
+    with pytest.raises(NetworkTimeout):
+        operacion()
+
+    assert valor("api_dependencia_en_curso", {"fuente": "influxdb"}) == antes

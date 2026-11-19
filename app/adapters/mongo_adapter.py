@@ -5,7 +5,7 @@ Encapsula MongoClient, selección de base de datos y control de timeouts (RF3, R
 
 import logging
 from typing import Any, Callable, Dict, List, Optional
-from pymongo import MongoClient
+from pymongo import MongoClient, monitoring
 from pymongo.database import Database
 from pymongo.errors import PyMongoError, ServerSelectionTimeoutError
 
@@ -13,6 +13,7 @@ from app.adapters.base import BaseAdapter
 from app.core.observability import observe
 from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
+from app.core.metrics import pool_conexiones_en_uso
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,25 @@ _PROYECCION_JUGADOR = {
     "nombre": 1, "apellido": 1, "dorsal": 1, "posicion": 1,
     "fecha_nacimiento": 1, "club": 1, "capitan": 1, "equipo._id": 1, "equipo.nombre": 1,
 }
+
+
+# encontrado en documentación de pymongo (CMAP: ConnectionCheckedOutEvent / ConnectionCheckedInEvent)
+class ConexionesEnUsoListener(monitoring.ConnectionPoolListener):
+    def __init__(self):
+        self._en_uso = pool_conexiones_en_uso.labels(fuente="mongodb")
+
+    def connection_checked_out(self, event: monitoring.ConnectionCheckedOutEvent) -> None:
+        self._en_uso.inc()
+
+    def connection_checked_in(self, event: monitoring.ConnectionCheckedInEvent) -> None:
+        self._en_uso.dec()
+
+    def _ignorar(self, event) -> None:
+        pass
+
+    pool_created = pool_ready = pool_cleared = pool_closed = _ignorar
+    connection_created = connection_ready = connection_closed = _ignorar
+    connection_check_out_started = connection_check_out_failed = _ignorar
 
 
 class MongoAdapter(BaseAdapter):
@@ -40,6 +60,7 @@ class MongoAdapter(BaseAdapter):
                     serverSelectionTimeoutMS=timeout_ms,
                     connectTimeoutMS=timeout_ms,
                     socketTimeoutMS=timeout_ms,
+                    event_listeners=[ConexionesEnUsoListener()],
                 )
                 self._db = self._client[settings.mongo_database]
             except Exception as e:

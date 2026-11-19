@@ -5,7 +5,7 @@ import time
 from typing import Callable, Iterable
 
 # encontrado en documentación de prometheus_client
-from prometheus_client import Counter, Histogram
+from prometheus_client import Counter, Gauge, Histogram
 from prometheus_client.core import GaugeMetricFamily
 from prometheus_client.registry import Collector
 
@@ -44,6 +44,18 @@ dependencia_errores_total = Counter(
     "api_dependencia_errores_total",
     "Fallas de operaciones de adaptador por fuente y categoría.",
     ["fuente", "categoria"],
+)
+
+dependencia_en_curso = Gauge(
+    "api_dependencia_en_curso",
+    "Operaciones de adaptador en curso por fuente.",
+    ["fuente"],
+)
+
+pool_conexiones_en_uso = Gauge(
+    "api_pool_conexiones_en_uso",
+    "Conexiones tomadas del pool del adaptador y todavía no devueltas.",
+    ["fuente"],
 )
 
 
