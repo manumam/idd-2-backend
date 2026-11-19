@@ -54,7 +54,7 @@ el primer goleador debe ser titular y quien entra debe ser suplente de campo.
 Sin alineaciones usa dos jugadores distintos del plantel como participantes
 implícitos del guion, sin inventar ni guardar una convocatoria. El primer goleador
 sale en el cambio y el segundo gol lo marca quien entró. Si faltan candidatos,
-informa el problema en lugar de elegir un arquero. No genera muestras de Influx ni estadísticas del caso 8.
+informa el problema en lugar de elegir un arquero. Este script no genera muestras de Influx; para el caso 8 usar el plan combinado de [estadísticas](estadisticas.md), que incluye los mismos eventos y su serie temporal.
 El archivo de salida debe ser nuevo; no reemplaza planes existentes.
 
 | Minuto simulado | Acción |

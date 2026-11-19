@@ -355,3 +355,28 @@ finalizar, con Nothing Design oscuro.
 El simulador `scripts/simular_partido.py` genera planes desde catálogos existentes
 y los reproduce únicamente mediante ejecución explícita. No carga datos al
 arrancar ni reinicia escenarios. Ver [contrato, uso y límites](docs/eventos.md).
+
+## Comparación de equipos (caso 8)
+
+`GET /partidos/{codigo}/estadisticas` sin fechas compara posesión, tiros, pases,
+goles y tarjetas. Combina MongoDB e Influx en vivo y lee los finales consolidados
+desde MongoDB, con caché Redis opcional y estados explícitos. Con `desde` y `hasta`
+conserva la serie temporal histórica. El detalle del frontend incorpora «Cara a cara»
+con actualización cada cinco segundos y Nothing Design oscuro.
+
+El plan de `scripts/simular_estadisticas.py` permite seed final o reproducción
+acelerada de un partido próximo: usa catálogos existentes, cinco eventos ficticios
+y 2.162 muestras temporales; termina 2–0 para el local. Crear/validar el plan no
+cambia datos deportivos. Ejecutarlo requiere autorizar el partido concreto; no
+reinicia encuentros ni borra datos. Ver [comandos, límites y cierre](docs/estadisticas.md).
+El seed final autorizado de P-001 fue verificado con MongoDB e Influx propios
+y a través del proxy del frontend: 2–0, cinco eventos y estadísticas completas.
+La lectura final funcionó con Influx detenido y Redis inaccesible en un lector
+aislado. La reproducción en vivo se cubre con adaptadores en memoria; no se
+presenta como ejecución real.
+
+Influx del caso 8 puede iniciarse sin `idd-2-tp` con
+`docker compose -f docker-compose.estadisticas.yaml up -d` y
+`.venv/bin/python scripts/preparar_influx_local.py`. Usa volumen propio y token
+local, conserva la configuración anterior en una copia privada y no carga datos
+deportivos. Ver [configuración y verificación](docs/estadisticas.md).
