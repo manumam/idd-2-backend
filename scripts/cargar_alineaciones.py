@@ -80,6 +80,8 @@ def main(archivo_default=None):
         return
     from app.config.settings import settings
     from pymongo import MongoClient
+    from redis.exceptions import RedisError
+    from app.services.cache_partidos import clave_alineaciones, conectar_cache
     with MongoClient(settings.mongo_uri, serverSelectionTimeoutMS=5000, connectTimeoutMS=5000, socketTimeoutMS=5000) as client:
         db = client[settings.mongo_database]
         docs = preparar(lote, list(db.partidos.find({}, {'_id': 1, 'local': 1, 'visitante': 1})),
@@ -87,7 +89,15 @@ def main(archivo_default=None):
         # Aplicación explícita del validador compatible con alineaciones.
         validator = json.loads((ROOT / 'data/fixture/partidos-validator.json').read_text())
         db.command('collMod', 'partidos', validator=validator, validationLevel='strict', validationAction='error')
-        print(json.dumps(cargar(db, docs, args.reemplazar)))
+        try:
+            result = cargar(db, docs, args.reemplazar)
+        finally:
+            try:
+                with conectar_cache(settings) as cache:
+                    cache.delete(*(clave_alineaciones(d.partido) for d in docs))
+            except RedisError:
+                print('Advertencia: no se pudo invalidar la caché; esperar su TTL.', file=sys.stderr)
+        print(json.dumps(result))
 
 
 if __name__ == '__main__':

@@ -1,0 +1,52 @@
+# Prometheus local. Modo prueba: docker compose --env-file ../.env up -d (desde observabilidad/).
+name: fixture2030-observabilidad
+
+# Las bases se alcanzan por host.docker.internal y su puerto publicado (MONGO_PORT, REDIS_PORT
+# del .env del backend): funciona aunque cada base se haya levantado con otro compose/red.
+x-host-docker: &host-docker
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: fixture2030-prometheus
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9090:9090"
+    # La API corre en el host, no en Docker.
+    <<: *host-docker
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # Token de InfluxDB (copiar_token_influx.py); se monta también en modo demo.
+      - ./secretos:/etc/prometheus/secretos:ro
+      - prometheus_data:/prometheus
+
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.47.1
+    container_name: fixture2030-mongodb-exporter
+    restart: unless-stopped
+    <<: *host-docker
+    command:
+      - "--mongodb.uri=mongodb://host.docker.internal:${MONGO_PORT:-27018}/?directConnection=true"
+      # serverStatus: conexiones y operaciones. Prometheus descarta el resto (metric_relabel_configs).
+      - "--collector.diagnosticdata"
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.74.0
+    container_name: fixture2030-redis-exporter
+    restart: unless-stopped
+    <<: *host-docker
+    environment:
+      REDIS_ADDR: "redis://host.docker.internal:${REDIS_PORT:-6380}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
+
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: fixture2030-node-exporter
+    restart: unless-stopped
+    # /proc ya refleja la máquina completa (en macOS, la VM de Docker); montar / con rslave falla en Docker Desktop.
+    pid: host
+
+volumes:
+  prometheus_data:

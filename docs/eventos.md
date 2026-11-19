@@ -20,8 +20,8 @@ Las tandas quedan fuera de esta cronología.
   de playoffs sigue la ficha central; resultados obsoletos no muestran eventos heredados.
 - Sin eventos: 200 con lista vacía; partido inexistente: 404; parámetros inválidos: 400;
   eventos persistidos inválidos: 500 `EVENTOS_INVALIDOS`; MongoDB caído: 503/504.
-- Redis es opcional. Las claves incluyen paginación y contenido efectivo, con el TTL
-  existente del fixture. Una escritura cambia la clave; no se sirve la versión anterior.
+- Redis es opcional: Cache-Aside con clave `eventos:v2:{codigo}:{limit}:{skip}` y el TTL
+  del fixture. Cada tick borra todas las páginas del partido con `SCAN` + `DEL`.
 
 El frontend consulta cada cinco segundos mientras el partido no esté finalizado,
 pausa las consultas automáticas con la pestaña oculta y refresca al volver.
@@ -93,8 +93,9 @@ el resultado final. El mismo plan no sirve para cambiar otro partido: su código
 y las referencias a sus selecciones y jugadores están dentro del archivo.
 
 Cada tick escribe conjuntamente eventos nuevos, marcador, estado, reloj y
-`actualizado_en`. Invalida el fixture; detalle, cronología, grupos y playoffs usan
-claves versionadas. El script aplica explícitamente el validador actualizado
+`actualizado_en`. Después invalida el fixture, el detalle, las alineaciones y todas
+las páginas de eventos del partido, las posiciones de su grupo, el cuadro y los cruces
+eliminatorios. El script aplica explícitamente el validador actualizado
 `data/fixture/partidos-validator.json` a la colección existente antes de escribir.
 No crea la colección si falta. No reinicia partidos, no reemplaza resultados
 existentes ni borra eventos: suma los goles nuevos al marcador actual.

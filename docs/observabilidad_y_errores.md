@@ -41,6 +41,9 @@ para personas. No se exponen credenciales, consultas ni trazas del servidor.
 | 503 | Dependencia inaccesible o configuración rechazada | `<FUENTE>_UNAVAILABLE`, `_AUTHENTICATION_FAILED`, `_ACCESS_DENIED` o `_CONTEXT_UNAVAILABLE` |
 | 504 | Tiempo de espera de una dependencia agotado | `<FUENTE>_TIMEOUT` |
 
+`<FUENTE>` es `MONGODB` o `INFLUXDB`. Redis es caché opcional: sus fallas se
+registran y la respuesta se obtiene de MongoDB, sin devolver códigos `REDIS_*`.
+
 La identidad o los permisos rechazados por una base generan 503, no un error de
 login del visitante. La clasificación usa tipos y códigos del driver; no publica
 sus mensajes. Un timeout no identifica por sí solo si la causa es red, DNS o carga.
@@ -56,7 +59,8 @@ resiliencia de la funcionalidad; por ejemplo, Redis es opcional para el fixture.
 - **Operación de adaptador:** `request_id`, dependencia, operación, resultado
   (`ok` o `error`) y `duration_ms`.
 - **Falla de dependencia:** identificador, fuente, categoría y tipo de excepción.
-- **Caché del fixture:** `fixture_cache=hit` o `fixture_cache=miss`.
+- **Caché:** `<funcionalidad>_cache=hit` o `<funcionalidad>_cache=miss` (por ejemplo,
+  `fixture_cache=miss`); una caché caída o inválida registra una advertencia.
 
 Las duraciones HTTP y de adaptador miden tramos distintos; no deben sumarse como
 si fueran operaciones independientes. Los logs no incluyen cuerpos, parámetros
@@ -68,22 +72,55 @@ registran su tipo, sin devolver el detalle al consumidor.
 | Ruta | Comprobación actual | Respuesta |
 | --- | --- | --- |
 | `/live` | Proceso, sin consultar bases | 200 con `{estado: alive}` |
-| `/ready` | Ping de las dependencias configuradas | `{listo, estado}`; 200 si todas responden, 503 si alguna falla |
-| `/health` | Estado individual de las dependencias | 200 con `{estado: {...}}`, incluso con fuentes `down` |
+| `/ready` | Ping de MongoDB e InfluxDB | `{listo, estado}`; 200 si ambas responden, 503 si alguna falla |
+| `/health` | Estado individual de MongoDB, Redis e InfluxDB | 200 con `{estado: {...}}`, incluso con fuentes `down` |
 
 El 503 de `/ready` usa su schema de salud, no el cuerpo de error de negocio.
 Un ping correcto no acredita esquemas ni datos; verificar también la ruta funcional.
-Actualmente `/ready` y `/health` todavía comprueban las seis fuentes históricas.
-Adaptarlos a MongoDB, Redis e InfluxDB es parte del trabajo pendiente del MVP.
+Redis no participa de `/ready`: es caché opcional y, si cae, la API sigue respondiendo desde MongoDB.
+
+## Métricas Prometheus
+
+`GET /metrics` expone las métricas en formato Prometheus; no forma parte del
+contrato OpenAPI y no se cuenta a sí misma. Las etiquetas usan conjuntos acotados:
+nunca códigos de partido, claves de caché ni rutas sin plantilla.
+
+| Métrica | Tipo | Etiquetas | Qué mide |
+| --- | --- | --- | --- |
+| `api_http_requests_total` | Counter | `ruta`, `metodo`, `status` | Requests atendidos; `ruta` es la plantilla (`/equipos/{codigo}`) o `sin_ruta` |
+| `api_latency_seconds` | Histogram | `ruta` | Duración del request; incluye el bucket de 0,1 s del objetivo P95 |
+| `api_cache_total` | Counter | `funcionalidad`, `resultado` | Lecturas de caché. `funcionalidad`: `fixture`, `partido`, `eventos`, `alineaciones`, `posiciones`, `playoffs`. `resultado`: `hit`, `miss` o `error` (Redis caído o contenido inválido; se responde desde MongoDB) |
+| `api_dependencia_seconds` | Histogram | `fuente`, `operacion` | Duración de cada operación de adaptador; `operacion` es el método del adaptador |
+| `api_dependencia_errores_total` | Counter | `fuente`, `categoria` | Fallas de adaptador, una por operación, con la categoría de la tabla de errores (`timeout`, `authentication`, `authorization`, `context`, `query`, `resolution`, `connection_refused`, `unavailable`) |
+| `api_dependencia_up` | Gauge | `fuente` | 1 si el último ping respondió, 0 si no |
+| `api_dependencia_en_curso` | Gauge | `fuente` | Operaciones de adaptador en curso; sube al empezar y baja al terminar, aunque falle |
+| `api_pool_conexiones_en_uso` | Gauge | `fuente` | Conexiones tomadas del pool y no devueltas; solo `mongodb` |
+
+`fuente` es `mongodb`, `redis` o `influxdb`. Las fallas de Redis absorbidas por la
+caché también se cuentan en `api_dependencia_errores_total`, aunque no lleguen al cliente.
+
+`api_dependencia_up` reutiliza el resultado de `/health` y `/ready`. Al hacer
+scrape solo se hace ping a las fuentes cuyo último resultado tiene más de 15 s,
+para que la frecuencia de scrape no genere una tormenta de conexiones.
+
+`api_pool_conexiones_en_uso` usa los eventos de monitoreo del pool de pymongo.
+Un valor sostenido cerca del máximo del pool indica requests esperando conexión
+aunque la CPU esté baja. Redis e InfluxDB no tienen esta métrica: sus clientes no
+exponen las conexiones en uso con una API pública en las versiones soportadas. Para
+las tres fuentes, `api_dependencia_en_curso` muestra cuántas operaciones usan o
+esperan cada base: si se mantiene alta mientras sube el P99, esa base es el cuello
+de botella.
 
 ## Pendiente respecto del MVP
 
-Los logs y los chequeos de salud no completan la observabilidad propuesta.
-Todavía falta exponer `/metrics`, integrar Prometheus y Grafana y sus exporters,
-y medir latencia por percentiles, solicitudes por región, aciertos y fallos de
-caché, antigüedad de datos y recursos según los lineamientos.
+Prometheus hace scrape de la API, de los exporters de MongoDB, Redis y node y del
+`/metrics` de InfluxDB, y envía las series a Grafana Cloud con la etiqueta `entorno`.
+El dashboard War Room calcula los percentiles a partir de los histogramas (ver
+[observabilidad](../observabilidad/README.md)). Todavía faltan, según los lineamientos:
+solicitudes por región, antigüedad del dato servido y la prueba con MongoDB detenido.
 
-Los objetivos de disponibilidad, latencia y concurrencia son metas del diseño;
-no son resultados demostrados por los logs actuales. Los procedimientos de carga
-y la evidencia de evaluación se conservan fuera de `docs/`, en
+La corrida de carga en entorno `prueba` (30 usuarios, 10 req/s) dio 0 errores y P95 de
+16 ms ([resultados](../carga/resultados/prueba-20261119-1648/resumen.md)). Es una carga
+modesta: confirma el SLO de latencia a ese nivel, no demuestra la concurrencia objetivo
+del diseño. Procedimientos y evidencia anteriores siguen en
 [laboratorio](../laboratorio/README.md) y [hito-12](../hito-12/README.md).

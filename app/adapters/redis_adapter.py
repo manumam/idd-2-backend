@@ -1,10 +1,10 @@
-"""Adaptador para Redis (Módulo Clave/Valor: Sesiones y Caché).
+"""Adaptador para Redis (Módulo Clave/Valor: Caché).
 
 Encapsula cliente Redis con pool de conexiones y timeouts (RF6, RNF5, RNF8).
 """
 
 import logging
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 import redis
 from redis.backoff import NoBackoff
 from redis.retry import Retry
@@ -16,6 +16,13 @@ from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
 
 logger = logging.getLogger(__name__)
+
+
+def borrar_por_patron(client: redis.Redis, pattern: str) -> None:
+    # SCAN recorre por partes; KEYS bloquearía Redis mientras revisa todo el keyspace.
+    claves = list(client.scan_iter(match=pattern, count=100))
+    if claves:
+        client.delete(*claves)
 
 
 class RedisAdapter(BaseAdapter):
@@ -57,37 +64,6 @@ class RedisAdapter(BaseAdapter):
             raise DatabaseUnavailableError("Redis", e) from e
 
     @observe("Redis")
-    def get_sesion(self, sesion_id: str) -> Optional[Dict[str, Any]]:
-        """Lee la sesión y su TTL restante; None si no existe o expiró.
-
-        Devuelve los datos ya normalizados, sin los nombres internos del hash.
-        """
-        clave = f"sesion:{sesion_id}"
-
-        def lectura() -> Optional[Dict[str, Any]]:
-            campos = self.client.hgetall(clave)
-            ttl = self.client.ttl(clave)
-            if not campos or ttl == -2:  # -2: la clave venció entre las dos lecturas
-                return None
-            acciones = campos.get("acciones", "")
-            return {
-                "usuario_id": campos.get("usuario_id"),
-                "nombre_usuario": campos.get("nombre_usuario"),
-                "rol": campos.get("rol"),
-                "idioma": campos.get("idioma"),
-                "ultimo_acceso": campos.get("ultimo_acceso"),
-                "acciones": int(acciones) if acciones.isdecimal() else None,
-                "ttl_segundos": ttl if ttl >= 0 else None,  # -1: sin vencimiento
-            }
-
-        return self._execute(lectura)
-
-    @observe("Redis")
-    def delete_sesion(self, sesion_id: str) -> None:
-        """Invalida la sesión. Es idempotente: borrar una clave ausente no falla."""
-        self._execute(lambda: self.client.delete(f"sesion:{sesion_id}"))
-
-    @observe("Redis")
     def get_cache(self, key: str) -> Optional[str]:
         return self._execute(lambda: self.client.get(key))
 
@@ -98,6 +74,10 @@ class RedisAdapter(BaseAdapter):
     @observe("Redis")
     def delete_cache(self, key: str) -> None:
         self._execute(lambda: self.client.delete(key))
+
+    @observe("Redis")
+    def delete_cache_matching(self, pattern: str) -> None:
+        self._execute(lambda: borrar_por_patron(self.client, pattern))
 
     @observe("Redis")
     def ping(self) -> bool:

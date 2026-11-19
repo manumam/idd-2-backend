@@ -1,15 +1,9 @@
 """Clasificación sin acumulaciones: corregir un resultado reemplaza la tabla."""
-import hashlib
-import logging
-from pydantic import ValidationError
-from app.adapters import mongo_adapter, redis_adapter
-from app.config.settings import settings
+from app.adapters import mongo_adapter
 from app.core.exceptions import ResourceNotFoundError
-from app.core.exceptions import DatabaseUnavailableError
 from app.schemas.grupos import Grupo, GruposResponse, PosicionGrupo, PosicionesResponse
 from app.schemas.fixture import PartidoFixture
-
-logger = logging.getLogger(__name__)
+from app.services.cache_partidos import clave_posiciones, guardar_cache, leer_cache
 
 
 def listar_grupos() -> GruposResponse:
@@ -61,25 +55,16 @@ def calcular_posiciones(grupo: Grupo, partidos: list[PartidoFixture]) -> Posicio
 
 
 def consultar_posiciones(codigo: str) -> PosicionesResponse:
+    key = clave_posiciones(codigo)
+    cached = leer_cache(key, PosicionesResponse)
+    if cached is not None:
+        return cached
     documento = mongo_adapter.find_grupo(codigo)
     if documento is None:
         raise ResourceNotFoundError('GRUPO_NO_ENCONTRADO', 'No existe el grupo solicitado.')
     grupo = Grupo(codigo=documento['_id'], **{k: v for k, v in documento.items() if k != '_id'})
     partidos = [PartidoFixture(codigo=d['_id'], **{k: v for k, v in d.items() if k != '_id'})
                 for d in mongo_adapter.list_partidos_grupo(codigo)]
-    # La clave depende de TODAS las entradas. Un cierre, corrección o cambio de
-    # reglas deja de referenciar la versión anterior incluso con escritores externos.
-    payload = grupo.model_dump_json() + ''.join(p.model_dump_json() for p in partidos)
-    key = f'grupos:v1:{codigo}:{hashlib.sha256(payload.encode()).hexdigest()}'
-    try:
-        cached = redis_adapter.get_cache(key)
-        if cached is not None:
-            return PosicionesResponse.model_validate_json(cached)
-    except (DatabaseUnavailableError, ValidationError, UnicodeError):
-        logger.warning('Caché de posiciones no disponible o inválida')
     respuesta = calcular_posiciones(grupo, partidos)
-    try:
-        redis_adapter.set_cache(key, respuesta.model_dump_json(), settings.fixture_cache_ttl_seconds)
-    except DatabaseUnavailableError:
-        logger.warning('No se pudo cachear la clasificación')
+    guardar_cache(key, respuesta)
     return respuesta

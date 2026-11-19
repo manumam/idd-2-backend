@@ -72,12 +72,10 @@ compatibles con el fixture existente. `data/fixture/grupos.json` fija el orden
 explícito de desempate de la demo. `scripts/cargar_grupos.py` valida los equipos
 persistidos e inserta solo grupos ausentes, sin modificar resultados.
 
-La agregación se ejecuta en el servicio desde documentos MongoDB. La caché de
-Redis incluye un hash del grupo, sus reglas y todos sus partidos: cierres y
-correcciones dejan de referenciar la versión anterior de inmediato. Las claves
-anteriores vencen con `FIXTURE_CACHE_TTL_SECONDS`. Esta decisión requiere leer
-MongoDB en cada consulta, incluso con caché disponible; evita servir una tabla
-anterior ante escrituras externas sin protocolo de invalidación. Redis es opcional.
+La agregación se ejecuta en el servicio desde documentos MongoDB. Redis guarda la
+tabla con Cache-Aside en `grupos:v2:{id}` y `FIXTURE_CACHE_TTL_SECONDS`: un hit no
+lee MongoDB. Cierres y correcciones del simulador y la carga de grupos borran la
+clave; una escritura externa sin invalidación se ve al vencer el TTL. Redis es opcional.
 La resolución y propagación de plazas se implementan en el caso 4 mediante `/playoffs`.
 
 - Cada grupo referencia las selecciones participantes y sus partidos.
@@ -113,10 +111,10 @@ marcador regular desigual, también bloquea la propagación. El escritor de
 resultados debe registrar los participantes junto al marcador; una corrección
 que cambia participantes exige revisar los encuentros posteriores.
 
-Redis es opcional y usa un hash de cruces, grupos, reglas y todos los partidos,
-igual que posiciones. Cada consulta lee MongoDB para detectar también escrituras
-externas: cierres y correcciones dejan de referenciar las versiones anteriores,
-que vencen por TTL. Redis caído o corrupto no impide calcular el cuadro.
+Redis es opcional, con Cache-Aside en `playoffs:v2:todos`. Cualquier resultado
+confirmado y las cargas de fixture, grupos o cuadro borran esa clave y las de los
+cruces eliminatorios; una escritura externa sin invalidación se ve al vencer el TTL.
+Redis caído o corrupto no impide calcular el cuadro.
 
 El frontend ofrece `/playoffs.html`, rondas, enlaces entre cruces y una vista
 resumida de cada encuentro mediante `?partido=P-097`. Esta vista no reemplaza
@@ -159,7 +157,7 @@ Los filtros son opcionales salvo donde se indica. Todos los endpoints leen Redis
 | Playoffs | `GET /playoffs` | MongoDB: cruces y partidos. |
 | Detalle | `GET /partidos/{id}` | MongoDB. |
 | Alineaciones | `GET /partidos/{id}/alineaciones` | MongoDB. |
-| Eventos | `GET /partidos/{id}/eventos?limit=50&skip=0` | Implementado: eventos embebidos en MongoDB y Redis opcional versionado. Snapshot de marcador, estado y reloj. Ver [eventos](eventos.md). |
+| Eventos | `GET /partidos/{id}/eventos?limit=50&skip=0` | Implementado: eventos embebidos en MongoDB y Cache-Aside opcional en Redis. Snapshot de marcador, estado y reloj. Ver [eventos](eventos.md). |
 | Estadísticas de equipos | `GET /partidos/{id}/estadisticas` | En vivo: MongoDB + InfluxDB. Finales: MongoDB. |
 | Jugador en un partido | `GET /partidos/{id}/jugadores/{jugador_id}/estadisticas` | En vivo: MongoDB + InfluxDB. Finales: MongoDB. |
 | Totales de jugador | `GET /jugadores/{id}/estadisticas` | MongoDB; acumulado del jugador en el Mundial 2030. |

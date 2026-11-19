@@ -162,7 +162,7 @@ Origen sin login: sale de la IP. En la simulación, el generador de carga manda 
 - La evidencia sale de una prueba de carga con las fases A a E de la Clase 13.
 - Los logs no van a Influx: quedan como logs de la API con identificador de request (Hito 10). La Clase 14 los asigna a Loki o ELK, fuera de nuestro alcance.
 
-**Sin confirmar en el material:** si InfluxDB 3 expone métricas para Prometheus, y por cuánto tiempo retiene datos Prometheus.
+**Confirmado:** InfluxDB 3 expone `/metrics` con token y Prometheus lo lee. Las métricas se envían a Grafana Cloud Free, que las retiene 14 días.
 
 ## Cambios concretos
 
@@ -203,8 +203,9 @@ La mayor parte reutiliza lo construido: se mantienen las bases existentes, se am
 
 ### Observabilidad
 
-- Docker Compose con Prometheus, Grafana y los exporters.
-- Dashboard y capturas durante la prueba de carga (la Clase 14 pide la carpeta `/hito-13`).
+- Hecho: Prometheus y los exporters en [`observabilidad/`](../observabilidad/README.md), con envío a Grafana Cloud separado por la etiqueta `entorno`, y el dashboard War Room versionado en `observabilidad/grafana/`.
+- Hecho: prueba de carga que imita el polling del front en [`carga/`](../carga/README.md), con la primera corrida en `carga/resultados/`.
+- Pendiente: capturas del dashboard durante la corrida.
 
 ### Documentación
 
@@ -218,6 +219,4 @@ La mayor parte reutiliza lo construido: se mantienen las bases existentes, se am
 - TTL de cada clave de caché, en vivo y para partidos terminados.
 - Validar e implementar la grilla propuesta de 5 × 5 m y la ocupación por minuto en la edición instalada de InfluxDB.
 - Cargar las reglas de clasificación y la asignación de cruces del dataset de la demo; no asumir reglamento oficial de 2030.
-- Verificar si InfluxDB 3 expone métricas para Prometheus y cuánto retiene Prometheus.
 - Cómo documentamos que cada usuario queda fijo a su región.
-- Estructura de carpetas de la entrega final (la Clase 14 menciona `/hito-13`).

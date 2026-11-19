@@ -5,8 +5,6 @@ caché e InfluxDB para series temporales. Los [lineamientos](docs/lineamientos-e
 [casos de uso](docs/casos-de-uso-fixture.md) y [modelo técnico](docs/modelo-tecnico-demo.md)
 definen el alcance; el [seguimiento](docs/casos_de_uso.md) registra lo implementado y pendiente.
 
-La API actual todavía conserva adaptadores y rutas de Neo4j, Cassandra, sesiones
-e IRIS que deben migrarse o retirarse. Su existencia no modifica el alcance del MVP.
 Consultar el [índice de documentación](docs/README.md).
 
 El arranque de la aplicación, los tests habituales y las evaluaciones de hitos son
@@ -47,9 +45,11 @@ MongoDB se publica solo en loopback en `MONGO_PORT` (27018 por defecto);
 `fixture2030_fixture2030_data`. Redis usa `REDIS_PORT` (6380 por defecto).
 Estas dos bases no requieren otro clon ni ejecutan cargas de datos al iniciar.
 
-Los montajes para importar MongoDB son opcionales, mediante
-`docker-compose.imports.yaml` y `TP_DATA_DIR` (por defecto `../idd-2-tp`).
-Los otros motores todavía usan scripts y datos del repositorio de hitos anteriores.
+`docker-compose.yaml` define MongoDB, Redis e InfluxDB. Los montajes para importar
+MongoDB son opcionales, mediante `docker-compose.imports.yaml` y `TP_DATA_DIR`
+(por defecto `../idd-2-tp`). InfluxDB todavía monta scripts del repositorio de hitos
+anteriores. Los volúmenes locales de Neo4j y Cassandra que ya existan no se borran;
+pueden eliminarse manualmente si ya no se necesitan.
 
 ### Configuración local
 
@@ -89,8 +89,7 @@ probar fuentes reales, seleccionar explícitamente `tests/integration` y usar ba
 dedicadas para pruebas, con datos representativos:
 
 ```bash
-LIVE_MODULES=mongodb,neo4j,cassandra,redis,influxdb,iris IRIS_TEST_ID=1 \
-  python -m pytest tests/integration -v
+LIVE_MODULES=mongodb,influxdb python -m pytest tests/integration -v
 ```
 
 Se puede seleccionar un subconjunto en `LIVE_MODULES`. Los tests habilitados fallan
@@ -100,12 +99,10 @@ si la fuente cae o no devuelve los datos esperados. Ver [tests/README.md](tests/
 
 - [Seguimiento de los casos del MVP](docs/casos_de_uso.md).
 - [Observabilidad y errores](docs/observabilidad_y_errores.md).
+- [Monitoreo con Prometheus y Grafana Cloud](observabilidad/README.md).
 - [Pruebas y evidencia disponible](laboratorio/pruebas_y_evidencia.md).
 
-Cassandra vuelve a exponer el feed de comentarios de solo lectura. IRIS recupera la vista de partidos y eventos por ID persistente (`/objetos/partidos/{id}`). Ver `tests/fixtures/README.md` para cargar sus esquemas. IRIS se levanta por separado; sus credenciales y namespace se configuran con `IRIS_*`.
-La única mutación HTTP es invalidar una sesión (DELETE idempotente).
-
-`/live` comprueba el proceso sin consultar motores. `/ready` devuelve 200 si todas las fuentes responden a su ping o 503 si alguna falla. `/health` devuelve 200 con `up/down` por fuente aun si alguna está caída. Los endpoints
+`/live` comprueba el proceso sin consultar motores. `/ready` devuelve 200 si MongoDB e InfluxDB responden a su ping o 503 si alguno falla; Redis es caché opcional y no se evalúa. `/health` devuelve 200 con `up/down` para MongoDB, Redis e InfluxDB aun si alguna está caída. Los endpoints
 de datos responden 503 ante una dependencia inaccesible o con identidad/permisos/contexto rechazados, y 504 ante timeout. Los detalles del driver no
 se publican en respuestas ni logs.
 
@@ -126,8 +123,7 @@ La práctica de laboratorio y su evidencia están en [laboratorio/](laboratorio/
 
 `GET /fixture` lista los partidos por fecha/hora UTC y código, con equipos, fase,
 estado y resultado. Usa MongoDB `partidos` y Redis opcional, con
-`FIXTURE_CACHE_TTL_SECONDS=5`. No requiere que Neo4j o Influx estén disponibles.
-`/ready` continúa comprobando las seis fuentes del Hito 11.
+`FIXTURE_CACHE_TTL_SECONDS=5`. No requiere que InfluxDB esté disponible.
 
 El dataset de 127 partidos y el escenario de tres estados están incluidos en
 `data/fixture/`: CSV, calendario UTC, escenario y validador. Los datos son sintéticos.
@@ -142,11 +138,10 @@ playoffs y se actualiza cada 15 s mientras está visible, hasta finalizar.
 Los cruces reutilizan la resolución del cuadro; los resultados con participantes
 obsoletos no se muestran como propios y llevan `requiere_revision`.
 
-La caché `partido:v1:{codigo}:{hash}` incluye todas las entradas efectivas:
-se consulta MongoDB y, en eliminatorias, el cuadro antes de elegir la clave.
-Una corrección invalida lógicamente la copia anterior; Redis elimina claves viejas
-por `FIXTURE_CACHE_TTL_SECONDS`. Redis caído o contenido inválido no bloquean la lectura.
-MongoDB sigue siendo necesario incluso con caché. No se agregan escrituras a los GET.
+El detalle usa Cache-Aside con clave `partido:v2:{codigo}`: lee Redis primero; ante
+miss consulta MongoDB (y el cuadro en eliminatorias) y guarda con
+`FIXTURE_CACHE_TTL_SECONDS`. Un hit no consulta MongoDB. Redis caído o contenido
+inválido no bloquean la lectura. Ver [invalidación](#invalidación-de-partido-eventos-alineaciones-posiciones-y-cuadro).
 El validador de `data/fixture/partidos-validator.json` admite `reloj` opcional.
 La carga explícita de fixture aplica ese validador y conserva reloj/estado/resultado
 existentes; solo `--reiniciar-escenario` los reemplaza. No se migra ni carga al arrancar.
@@ -164,6 +159,29 @@ Los cargadores intentan invalidar la caché. La futura ingesta debe invocar
 `app.services.fixture_service.invalidar_fixture` después de confirmar cambios.
 El TTL limita la antigüedad cuando falla la invalidación; no hay transacción
 distribuida ni garantía de lectura monótona.
+
+### Invalidación de partido, eventos, alineaciones, posiciones y cuadro
+
+Detalle, eventos, alineaciones, posiciones y cuadro usan el mismo Cache-Aside y TTL
+del fixture, con claves derivadas solo de la solicitud:
+
+| Ruta | Clave |
+| --- | --- |
+| `GET /partidos/{codigo}` | `partido:v2:{codigo}` |
+| `GET /partidos/{codigo}/eventos` | `eventos:v2:{codigo}:{limit}:{skip}` |
+| `GET /partidos/{codigo}/alineaciones` | `alineaciones:v2:{codigo}` |
+| `GET /grupos/{id}/posiciones` | `grupos:v2:{id}` |
+| `GET /playoffs` | `playoffs:v2:todos` |
+
+Redis no sabe qué cambió en MongoDB: la aplicación borra las claves después de cada
+escritura confirmada. Un tick del simulador (`aplicar_tick`) invalida el fixture y
+`cache_partidos.invalidar_resultado`: detalle, alineaciones y todas las páginas de
+eventos del partido (`SCAN` con `eventos:v2:{codigo}:*` + `DEL`), posiciones de su
+grupo, el cuadro y las claves de todos los cruces eliminatorios, porque un resultado
+puede cambiar sus participantes. Las cargas de fixture, grupos y cuadro borran con
+`SCAN` los cinco namespaces; la de alineaciones borra las claves de sus partidos.
+Las claves `v1` anteriores vencen por TTL. Una escritura directa en MongoDB, sin
+estos escritores, se ve recién al vencer el TTL.
 
 ## Catálogo para consultar planteles
 
@@ -252,8 +270,8 @@ PJ, PG, PE, PP, GF, GC, DG, puntos, orden y partidos del grupo. Solo cuentan
 resultados finalizados; los goles de tanda se excluyen. Desempates de la demo:
 puntos, diferencia de gol, goles a favor y orden explícito del dataset.
 `completa` requiere todos los cruces entre participantes finalizados.
-Redis es opcional; la clave versionada por contenido evita reutilizar tablas
-anteriores después de cierres, correcciones o cambios de reglas.
+Redis es opcional, con Cache-Aside en `grupos:v2:{id}`; cierres, correcciones y
+cargas de grupos invalidan la tabla ([detalle](#invalidación-de-partido-eventos-alineaciones-posiciones-y-cuadro)).
 
 La sección **Grupos** del frontend permite seleccionar un grupo y desplegar sus
 partidos, con actualización cada 15 segundos y estados de carga, vacío y error.
@@ -294,8 +312,8 @@ La carga es explícita y aditiva; no se ejecuta al arrancar ni modifica partidos
 
 Las reglas de `data/fixture/cruces.json` clasifican los dos primeros de cada grupo,
 con cruces A1–B2, B1–A2, etc.; no representan un reglamento oficial de 2030.
-El cuadro se recalcula desde MongoDB y se cachea por versión de todas sus entradas
-en Redis opcional. Los grupos incompletos conservan la descripción de sus plazas.
+El cuadro se calcula desde MongoDB ante un miss y se cachea en `playoffs:v2:todos`
+con Redis opcional; cualquier resultado o carga lo invalida. Los grupos incompletos conservan la descripción de sus plazas.
 Los resultados con participantes obsoletos o sin desempate válido requieren revisión
 y no propagan ganador. El escritor de resultados debe registrar ambos equipos;
 GET no sobrescribe resultados ni asigna participantes en el fixture persistido.
@@ -311,7 +329,7 @@ La validación con motores reales requiere `.env` apuntando al MongoDB del proye
 ## Alineaciones (caso 6)
 
 `GET /partidos/{codigo}/alineaciones` consulta titulares y suplentes desde MongoDB,
-con Redis opcional. El frontend las muestra dentro del partido y conserva el contexto
+con Redis opcional (`alineaciones:v2:{codigo}`). El frontend las muestra dentro del partido y conserva el contexto
 al abrir una ficha de jugador. La carga por encuentro es explícita y conserva las
 convocatorias existentes salvo `--reemplazar`; no se ejecuta durante el arranque.
 Ver [contrato, carga y límites con el caso 9](docs/alineaciones.md).
@@ -328,7 +346,7 @@ de Argentina incorpora un 4–3–3 simulado; ver [modelo y orientación](docs/a
 ## Cronología del partido (caso 7)
 
 `GET /partidos/{codigo}/eventos?limit=50&skip=0` lee eventos embebidos en MongoDB,
-con caché Redis opcional versionada; ya no depende de Neo4j. Devuelve goles,
+con caché Redis opcional (`eventos:v2:{codigo}:{limit}:{skip}`); ya no depende de Neo4j. Devuelve goles,
 autogoles, tarjetas y cambios con equipo, minuto/adicional y protagonistas,
 además de `total`, `siguiente_skip`, `estado`, `resultado` y `reloj`. El frontend
 actualiza cronología y marcador cada cinco segundos y conserva el histórico al

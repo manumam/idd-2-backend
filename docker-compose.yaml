@@ -19,35 +19,6 @@ services:
       retries: 10
       start_period: 20s
 
-  neo4j:
-    image: neo4j:latest
-    container_name: fixture2030-neo4j
-    restart: unless-stopped
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    environment:
-      NEO4J_AUTH: "neo4j/${NEO4J_PASSWORD:?Configurar NEO4J_PASSWORD en .env}"
-    volumes:
-      - neo4j_data:/data
-      - neo4j_logs:/logs
-      - ../idd-2-tp/fixture2030-neo4j/import:/var/lib/neo4j/import
-
-  cassandra:
-    image: cassandra:latest
-    container_name: fixture2030-cassandra
-    restart: unless-stopped
-    environment:
-      CASSANDRA_CLUSTER_NAME: Fixture2030_Cassandra
-      CASSANDRA_DC: datacenter1
-      CASSANDRA_RACK: rack1
-      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
-    ports:
-      - "9042:9042"
-    volumes:
-      - ${HOME}/docker/data/cassandra:/var/lib/cassandra
-      - ../idd-2-tp/fixture2030-cassandra/scripts:/scripts:ro
-
   redis:
     image: redis:7.4-alpine
     container_name: fixture2030-redis
@@ -107,10 +78,6 @@ services:
 volumes:
   fixture2030_data:
     name: fixture2030_fixture2030_data
-  neo4j_data:
-    name: fixture2030-neo4j_neo4j_data
-  neo4j_logs:
-    name: fixture2030-neo4j_neo4j_logs
   redis_data:
     external: true
     name: fixture2030-redis_redis_data

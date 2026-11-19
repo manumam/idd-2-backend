@@ -1,0 +1,50 @@
+global:
+  scrape_interval: 15s
+
+# Un job por fuente. Cada target lleva `entorno` (prueba | demo) para separar
+# los datos de prueba de los de la demo en Grafana Cloud.
+scrape_configs:
+  - job_name: api
+    metrics_path: /metrics
+    static_configs:
+      # Puerto = API_PORT del .env del backend (default 8000).
+      - targets: ["host.docker.internal:8000"]
+        labels:
+          entorno: prueba
+
+  - job_name: mongodb
+    static_configs:
+      - targets: ["mongodb-exporter:9216"]
+        labels:
+          entorno: prueba
+    # diagnosticdata expone ~2400 series; solo se guardan las del panel (límite de 10k en Grafana Cloud Free).
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "mongodb_(up|ss_connections|ss_opcounters|ss_mem_resident|ss_uptime)"
+        action: keep
+
+  - job_name: redis
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+        labels:
+          entorno: prueba
+
+  - job_name: node
+    static_configs:
+      - targets: ["node-exporter:9100"]
+        labels:
+          entorno: prueba
+
+  - job_name: influxdb
+    # encontrado en documentación de InfluxDB: /metrics exige token (Bearer) salvo --disable-authz metrics.
+    authorization:
+      credentials_file: /etc/prometheus/secretos/influxdb_token
+    static_configs:
+      - targets: ["host.docker.internal:8181"]
+        labels:
+          entorno: prueba
+    # Casi todas las series son histogramas internos de almacenamiento; solo se guardan requests y latencia HTTP.
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "http_requests_total|http_request_duration_seconds_(bucket|sum|count)"
+        action: keep

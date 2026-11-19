@@ -5,8 +5,10 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.adapters import mongo_adapter
 from app.schemas.partidos import EventoResponse, RelojPartido
+from app.services.cache_partidos import invalidar_resultado
 from app.services.fixture_service import invalidar_fixture
 from app.services.partidos_service import _detalle_documento, _partido_no_encontrado
+from app.services.playoffs_service import calcular_playoffs
 
 
 class TickPartido(BaseModel):
@@ -21,7 +23,8 @@ def aplicar_tick(codigo: str, tick: TickPartido) -> bool:
     documento = mongo_adapter.find_eventos(codigo)
     if documento is None:
         raise _partido_no_encontrado(codigo)
-    partido = _detalle_documento(documento)
+    # Valida contra MongoDB: una copia en caché podría no reflejar el cuadro vigente.
+    partido = _detalle_documento(documento, cuadro=calcular_playoffs)
     if partido.requiere_revision or not partido.local or not partido.visitante:
         raise ValueError("El partido necesita participantes definidos y un resultado válido")
     for lado in ("local", "visitante"):
@@ -82,7 +85,7 @@ def aplicar_tick(codigo: str, tick: TickPartido) -> bool:
         actualizado_en=datetime.now(timezone.utc))
     if not mongo_adapter.guardar_seguimiento(codigo, documento, cambios):
         raise ValueError("El partido cambió durante el tick; volver a consultar antes de continuar")
-    # Detalle/eventos/grupos/playoffs ya versionan sus claves por las entradas actuales.
     # Las estadísticas temporales del caso 8 siguen separadas y todavía no cachean eventos.
     invalidar_fixture()
+    invalidar_resultado(codigo, documento.get("grupo") if documento["fase"] == "Grupos" else None)
     return True

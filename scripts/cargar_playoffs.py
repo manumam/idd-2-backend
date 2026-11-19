@@ -47,10 +47,19 @@ def main():
         return
     from app.config.settings import settings
     from pymongo import MongoClient
+    from redis.exceptions import RedisError
+    from app.services.cache_partidos import borrar_cache_derivada, conectar_cache
     with MongoClient(settings.mongo_uri, serverSelectionTimeoutMS=5000, socketTimeoutMS=5000) as client:
         db = client[settings.mongo_database]
         docs = preparar(list(db.partidos.find()), list(db.grupos.find()))
-        result = cargar(db, docs)
+        try:
+            result = cargar(db, docs)
+        finally:
+            try:
+                with conectar_cache(settings) as cache:
+                    borrar_cache_derivada(cache)
+            except RedisError:
+                print('Advertencia: no se pudo invalidar la caché; esperar su TTL.', file=sys.stderr)
         print(json.dumps(dict(insertados=result.upserted_count)))
 
 

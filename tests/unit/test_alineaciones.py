@@ -17,17 +17,14 @@ def equipo(codigo='ARG'):
 
 
 @pytest.fixture
-def fuentes(monkeypatch):
+def fuentes(monkeypatch, cache_redis):
     doc = dict(_id='P-001', alineaciones=dict(local=equipo(), visitante=equipo('ESP')))
     detalle = dict(_id='P-001', fase='Grupos', grupo='A', fecha_hora='2030-06-09T12:00:00Z',
                    local=doc['alineaciones']['local']['equipo'], visitante=doc['alineaciones']['visitante']['equipo'],
                    estado='proximo', resultado=None)
     monkeypatch.setattr(mongo_adapter, 'find_partido', Mock(return_value=detalle))
     monkeypatch.setattr(mongo_adapter, 'find_alineaciones', Mock(return_value=doc))
-    cache = {}
-    monkeypatch.setattr(redis_adapter, 'get_cache', lambda key: cache.get(key))
-    monkeypatch.setattr(redis_adapter, 'set_cache', lambda key, value, ttl: cache.update({key: value}))
-    return doc, detalle, cache
+    return doc, detalle, cache_redis
 
 
 def test_http_convocatorias_correcciones_y_cache(client, fuentes):
@@ -38,17 +35,21 @@ def test_http_convocatorias_correcciones_y_cache(client, fuentes):
     assert len(data['local']['titulares']) == 11
     assert data['visitante']['suplentes'][0]['codigo'] == 'ESP-12'
     assert client.get(url).json() == data
+    mongo_adapter.find_alineaciones.assert_called_once_with('P-001')
     doc['alineaciones']['local']['titulares'][0]['posicion'] = 'Defensor'
+    assert client.get(url).json() == data
+    del cache['alineaciones:v2:P-001']
     assert client.get(url).json()['local']['titulares'][0]['posicion'] == 'Defensor'
-    assert len([k for k in cache if k.startswith('alineaciones:')]) == 2
+    assert set(cache) == {'alineaciones:v2:P-001', 'partido:v2:P-001'}
 
 
 def test_pendientes_y_plaza_obsoleta(client, fuentes):
-    doc, detalle, _ = fuentes
+    doc, detalle, cache = fuentes
     doc.pop('alineaciones')
     assert client.get('/partidos/P-001/alineaciones').json() == dict(partido='P-001', local=None, visitante=None)
     doc['alineaciones'] = dict(local=equipo(), visitante=None)
     detalle['local'] = dict(codigo='URU', nombre='Uruguay')
+    cache.clear()
     assert client.get('/partidos/P-001/alineaciones').json()['local'] is None
 
 
@@ -67,6 +68,7 @@ def test_redis_opcional_cache_corrupta_y_datos_invalidos(client, fuentes, monkey
     assert client.get('/partidos/P-001/alineaciones').status_code == 200
     monkeypatch.setattr(redis_adapter, 'get_cache', Mock(side_effect=DatabaseUnavailableError('Redis')))
     assert client.get('/partidos/P-001/alineaciones').status_code == 200
+    assert mongo_adapter.find_alineaciones.call_count == 2
     fuentes[0]['alineaciones']['local']['titulares'].pop()
     response = client.get('/partidos/P-001/alineaciones')
     assert response.status_code == 500 and response.json()['code'] == 'ALINEACIONES_INVALIDAS'
@@ -116,9 +118,13 @@ def test_datos_corruptos_no_parecen_pendientes(client, fuentes, raw):
     assert client.get('/partidos/P-001/alineaciones').json()['code'] == 'ALINEACIONES_INVALIDAS'
 
 
-def test_cache_no_oculta_borrado_o_timeout_de_alineaciones(client, fuentes, monkeypatch):
+def test_hit_no_consulta_mongo_y_miss_informa_borrado_o_timeout(client, fuentes, monkeypatch):
     from pymongo.errors import NetworkTimeout
+    cache = fuentes[2]
     assert client.get('/partidos/P-001/alineaciones').status_code == 200
+    monkeypatch.setattr(mongo_adapter, 'find_alineaciones', Mock(side_effect=AssertionError('Hit sin MongoDB')))
+    assert client.get('/partidos/P-001/alineaciones').status_code == 200
+    cache.clear()
     monkeypatch.setattr(mongo_adapter, 'find_alineaciones', Mock(return_value=None))
     assert client.get('/partidos/P-001/alineaciones').status_code == 404
     monkeypatch.setattr(mongo_adapter, 'find_alineaciones', Mock(side_effect=DatabaseUnavailableError('MongoDB', NetworkTimeout('secreto'))))
@@ -154,12 +160,14 @@ def formacion_valida():
 
 
 def test_formacion_http_correcciones_y_compatibilidad(client, fuentes):
-    a = fuentes[0]['alineaciones']['local']
+    a, cache = fuentes[0]['alineaciones']['local'], fuentes[2]
     assert client.get('/partidos/P-001/alineaciones').json()['local']['formacion'] is None
     a['formacion'] = formacion_valida()
+    cache.clear()
     data = client.get('/partidos/P-001/alineaciones').json()
     assert data['local']['formacion'] == a['formacion']
     a['formacion']['lineas'][0].reverse()
+    cache.clear()
     assert client.get('/partidos/P-001/alineaciones').json()['local']['formacion'] == a['formacion']
 
 
@@ -175,3 +183,18 @@ def test_formacion_rechaza_disposiciones_invalidas(error):
     if error == 'muchas_lineas': f['lineas'] = [[f'ARG-{i}'] for i in range(2, 12)]
     if error == 'desconocido': f['lineas'][0][0] = 'OTRO'
     with pytest.raises(ValidationError): AlineacionEquipo.model_validate(a)
+
+
+def test_carga_invalida_alineaciones_de_los_partidos_cargados(monkeypatch, tmp_path):
+    import scripts.cargar_alineaciones as script
+    from app.services import cache_partidos
+    archivo = tmp_path / 'lote.json'
+    archivo.write_text(Lote.model_validate(dict(partidos=[dict(partido='P-001', alineaciones=dict(local=equipo()))])).model_dump_json())
+    cliente = MagicMock()
+    monkeypatch.setattr(cache_partidos, 'conectar_cache', Mock(return_value=cliente))
+    monkeypatch.setattr('pymongo.MongoClient', MagicMock())
+    monkeypatch.setattr(script, 'preparar', lambda lote, *_: lote.partidos)
+    monkeypatch.setattr(script, 'cargar', Mock(return_value={'actualizados': 1, 'conservados': 0}))
+    monkeypatch.setattr('sys.argv', ['cargar_alineaciones.py', str(archivo)])
+    script.main()
+    cliente.__enter__.return_value.delete.assert_called_once_with('alineaciones:v2:P-001')

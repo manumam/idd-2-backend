@@ -82,9 +82,9 @@ def main():
 
     # Inyección en el límite del driver: pasa por adaptador, servicio, handler y middleware reales.
     simulations = [
-        ('timeout', redis_adapter, 'get_client', RedisTimeout('dato-sensible'), '/sesiones/SES-DEMO', 504, 'REDIS_TIMEOUT', 'redis'),
-        ('autenticacion', redis_adapter, 'get_client', AuthenticationError('dato-sensible'), '/sesiones/SES-DEMO', 503, 'REDIS_AUTHENTICATION_FAILED', 'redis'),
-        ('autorizacion', redis_adapter, 'get_client', AuthorizationError('dato-sensible'), '/sesiones/SES-DEMO', 503, 'REDIS_ACCESS_DENIED', 'redis'),
+        ('redis_timeout_cae_a_mongodb', redis_adapter, 'get_client', RedisTimeout('dato-sensible'), '/fixture', 200, None, 'redis'),
+        ('redis_autenticacion_cae_a_mongodb', redis_adapter, 'get_client', AuthenticationError('dato-sensible'), '/fixture', 200, None, 'redis'),
+        ('redis_autorizacion_cae_a_mongodb', redis_adapter, 'get_client', AuthorizationError('dato-sensible'), '/fixture', 200, None, 'redis'),
         ('contexto', mongo_adapter, 'connect', OperationFailure('dato-sensible', code=26), '/equipos/ARG', 503, 'MONGODB_CONTEXT_UNAVAILABLE', 'mongodb'),
         ('consulta_invalida', mongo_adapter, 'connect', OperationFailure('dato-sensible', code=2), '/equipos/ARG', 500, 'MONGODB_QUERY_FAILED', 'mongodb'),
         ('error_interno', mongo_adapter, 'connect', RuntimeError('dato-sensible'), '/equipos/ARG', 500, 'ERROR_INTERNO', 'mongodb'),

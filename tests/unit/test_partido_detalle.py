@@ -5,24 +5,23 @@ from unittest.mock import Mock, MagicMock
 import pytest
 from pymongo.errors import NetworkTimeout
 
-from app.adapters import mongo_adapter, redis_adapter, neo4j_adapter
+from app.adapters import mongo_adapter, redis_adapter
 from app.adapters.mongo_adapter import MongoAdapter
+from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
 from app.schemas.fixture import PartidoFixture
+from app.services.cache_partidos import clave_partido, invalidar_resultado
 from scripts.cargar_fixture import cargar
 
 
 @pytest.fixture
-def fuentes(monkeypatch):
+def fuentes(monkeypatch, cache_redis):
     documento = dict(_id='P-001', fecha_hora=datetime(2030, 6, 9, 1, 30), fase='Grupos', grupo='A',
                      local=dict(codigo='URU', nombre='Uruguay'), visitante=dict(codigo='ESP', nombre='España'),
                      sede=dict(codigo='S-01', nombre='Centenario', ciudad='Montevideo'), estado='proximo', resultado=None)
     monkeypatch.setattr(mongo_adapter, 'find_partido', Mock(side_effect=lambda _: documento))
-    monkeypatch.setattr(neo4j_adapter, 'find_partido', Mock(side_effect=AssertionError('No usar Neo4j')))
-    cache = {}
-    monkeypatch.setattr(redis_adapter, 'get_cache', Mock(side_effect=lambda k: cache.get(k)))
-    monkeypatch.setattr(redis_adapter, 'set_cache', Mock(side_effect=lambda k, v, t: cache.update({k: v})))
-    return documento, cache
+    monkeypatch.setattr(mongo_adapter, 'list_cruces', Mock(return_value=[]))
+    return documento, cache_redis
 
 
 def test_proximo_datos_completos_y_cache(client, fuentes):
@@ -35,30 +34,48 @@ def test_proximo_datos_completos_y_cache(client, fuentes):
     assert data['estado'] == 'proximo' and data['resultado'] is None and data['reloj'] is None
     cached = client.get('/partidos/P-001', headers={'X-Request-Id': 'dos'})
     assert cached.json() == data and cached.headers['X-Request-Id'] == 'dos'
-    assert len(cache) == 1 and 'requestId' not in next(iter(cache.values()))
+    assert list(cache) == [clave_partido('P-001')] and 'requestId' not in cache[clave_partido('P-001')]
+    mongo_adapter.find_partido.assert_called_once_with('P-001')
+    key, _, ttl = redis_adapter.set_cache.call_args.args
+    assert key == 'partido:v2:P-001' and ttl == settings.fixture_cache_ttl_seconds
+    redis_adapter.set_cache.assert_called_once()
 
 
-def test_reloj_pausas_cierre_y_correccion_invalidan_cache(client, fuentes):
+def test_hit_responde_desde_redis_hasta_invalidar(client, fuentes):
+    doc, _ = fuentes
+    client.get('/partidos/P-001')
+    doc.update(estado='en_vivo', resultado=dict(goles_local=1, goles_visitante=0))
+    assert client.get('/partidos/P-001').json()['estado'] == 'proximo'
+    assert invalidar_resultado('P-001', 'A')
+    assert client.get('/partidos/P-001').json()['estado'] == 'en_vivo'
+    assert mongo_adapter.find_partido.call_count == 2
+
+
+def test_reloj_pausas_cierre_y_correccion_tras_invalidar(client, fuentes):
     doc, cache = fuentes
     client.get('/partidos/P-001')
     for periodo, minuto, adicional in [('primer_tiempo', 45, 2), ('entretiempo', 45, 0),
                                        ('segundo_tiempo', 62, 0), ('pausa', 62, 0)]:
         doc.update(estado='en_vivo', resultado=dict(goles_local=1, goles_visitante=1),
                    reloj=dict(periodo=periodo, minuto=minuto, adicional=adicional))
+        invalidar_resultado('P-001', 'A')
         data = client.get('/partidos/P-001').json()
         assert data['reloj'] == doc['reloj']
     doc.update(estado='finalizado', resultado=dict(goles_local=1, goles_visitante=1,
                penales=dict(goles_local=4, goles_visitante=3)))
+    invalidar_resultado('P-001', 'A')
     assert client.get('/partidos/P-001').json()['resultado']['penales']['goles_local'] == 4
     doc['resultado']['penales']['goles_local'] = 5
+    invalidar_resultado('P-001', 'A')
     assert client.get('/partidos/P-001').json()['resultado']['penales']['goles_local'] == 5
-    assert len(cache) == 7
+    assert len(cache) == 1
 
 
 @pytest.mark.parametrize('cached', ['invalid', '{}', '[]', '{"codigo":"P-001"}'])
 def test_cache_invalida_reconstruida(client, fuentes, monkeypatch, cached):
     monkeypatch.setattr(redis_adapter, 'get_cache', Mock(return_value=cached))
     assert client.get('/partidos/P-001').status_code == 200
+    mongo_adapter.find_partido.assert_called_once()
     redis_adapter.set_cache.assert_called_once()
 
 
@@ -68,12 +85,19 @@ def test_redis_opcional_y_minuto_desconocido(client, fuentes, monkeypatch):
     for method in ('get_cache', 'set_cache'):
         monkeypatch.setattr(redis_adapter, method, Mock(side_effect=DatabaseUnavailableError('Redis')))
     assert client.get('/partidos/P-001').json()['reloj'] is None
+    assert client.get('/partidos/P-001').status_code == 200
+    assert mongo_adapter.find_partido.call_count == 2
 
 
-def test_no_ocultar_borrados_ni_caidas_con_cache(client, fuentes, monkeypatch):
+def test_hit_no_consulta_mongo_y_miss_informa_borrados_y_caidas(client, fuentes, monkeypatch):
+    _, cache = fuentes
     client.get('/partidos/P-001')
+    monkeypatch.setattr(mongo_adapter, 'find_partido', Mock(side_effect=AssertionError('Hit sin MongoDB')))
+    assert client.get('/partidos/P-001').status_code == 200
+    cache.clear()
     monkeypatch.setattr(mongo_adapter, 'find_partido', Mock(return_value=None))
     assert client.get('/partidos/P-001').status_code == 404
+    assert cache == {}
     monkeypatch.setattr(mongo_adapter, 'find_partido', Mock(side_effect=DatabaseUnavailableError('MongoDB', NetworkTimeout('secret'))))
     response = client.get('/partidos/P-001')
     assert response.status_code == 504 and response.json()['code'] == 'MONGODB_TIMEOUT'
@@ -86,20 +110,22 @@ def test_codigo_invalido_no_consulta(client, fuentes):
 
 
 def test_detalle_reutiliza_plazas_y_revoca_resultado_obsoleto(client, fuentes, monkeypatch):
-    doc, _ = fuentes
+    doc, cache = fuentes
     doc.update(fase='Final', grupo=None)
     cruce = dict(_id='P-001', fase='Final', orden=1,
                  local=dict(tipo='equipo', equipo=doc['local'].copy()),
                  visitante=dict(tipo='equipo', equipo=doc['visitante'].copy()))
-    monkeypatch.setattr(mongo_adapter, 'list_cruces', lambda: [cruce])
+    monkeypatch.setattr(mongo_adapter, 'list_cruces', Mock(return_value=[cruce]))
     monkeypatch.setattr(mongo_adapter, 'list_grupos', lambda: [])
     monkeypatch.setattr(mongo_adapter, 'list_fixture', lambda: [{k: v for k, v in doc.items() if k in PartidoFixture.model_fields or k == '_id'}])
     data = client.get('/partidos/P-001').json()
     assert data['local']['codigo'] == 'URU' and data['origen_local'] == 'Uruguay'
     doc.update(estado='finalizado', resultado=dict(goles_local=2, goles_visitante=1),
                reloj=dict(periodo='segundo_tiempo', minuto=90))
+    invalidar_resultado('P-001', None)
     assert client.get('/partidos/P-001').json()['resultado']['goles_local'] == 2
     cruce['local']['equipo'] = dict(codigo='ARG', nombre='Argentina')
+    cache.clear()
     data = client.get('/partidos/P-001').json()
     assert data['local']['codigo'] == 'ARG' and data['requiere_revision']
     assert data['estado'] == 'proximo' and data['resultado'] is None and data['reloj'] is None

@@ -1,0 +1,21 @@
+{
+  "api_url": "http://127.0.0.1:8000",
+  "partido": "P-002",
+  "grupo": "A",
+  "rampa_s": 30,
+  "sostenimiento_s": 300,
+  "timeout_ms": 10000,
+  "usuarios": {
+    "partido": 20,
+    "fixture": 6,
+    "grupos": 2,
+    "playoffs": 2
+  },
+  "intervalos_ms": {
+    "partido": 5000,
+    "alineaciones": 15000,
+    "fixture": 15000,
+    "grupos": 15000,
+    "playoffs": 15000
+  }
+}
