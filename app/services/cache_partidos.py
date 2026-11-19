@@ -17,8 +17,11 @@ PLAYOFFS_CACHE_KEY = "playoffs:v2:todos"
 PATRONES_DERIVADOS = ("partido:v2:*", "eventos:v2:*", "alineaciones:v2:*", "grupos:v2:*", PLAYOFFS_CACHE_KEY)
 FUNCIONALIDAD_POR_NAMESPACE = {
     "partido": "partido", "eventos": "eventos", "alineaciones": "alineaciones",
-    "grupos": "posiciones", "playoffs": "playoffs",
+    "grupos": "posiciones", "playoffs": "playoffs", "mapa_calor": "mapa_calor",
 }
+TTL_MINIMO_SEGUNDOS = 1
+TTL_MAXIMO_SEGUNDOS = 3600
+RANGO_COMPLETO = "todo"
 
 
 def clave_partido(codigo: str) -> str:
@@ -41,6 +44,10 @@ def clave_posiciones(grupo: str) -> str:
     return f"grupos:v2:{grupo}"
 
 
+def clave_mapa_calor(partido: str, jugador: str, desde: Optional[str] = None, hasta: Optional[str] = None) -> str:
+    return f"mapa_calor:v2:{partido}:{jugador}:{desde or RANGO_COMPLETO}:{hasta or RANGO_COMPLETO}"
+
+
 def leer_cache(key: str, modelo: type[Modelo]) -> Optional[Modelo]:
     namespace = key.split(":", 1)[0]
     funcionalidad = FUNCIONALIDAD_POR_NAMESPACE[namespace]
@@ -60,10 +67,19 @@ def leer_cache(key: str, modelo: type[Modelo]) -> Optional[Modelo]:
     return None
 
 
-def guardar_cache(key: str, respuesta: BaseModel) -> None:
+def _validar_ttl(ttl_segundos: int) -> int:
+    es_entero = isinstance(ttl_segundos, int) and not isinstance(ttl_segundos, bool)
+    if not es_entero or not TTL_MINIMO_SEGUNDOS <= ttl_segundos <= TTL_MAXIMO_SEGUNDOS:
+        raise ValueError(f"TTL de caché inválido: {ttl_segundos!r}")
+    return ttl_segundos
+
+
+def guardar_cache(key: str, respuesta: BaseModel, ttl_segundos: Optional[int] = None) -> None:
+    # El TTL es una decisión de negocio por dato: acota la antigüedad, no reemplaza la invalidación.
+    ttl = settings.fixture_cache_ttl_seconds if ttl_segundos is None else _validar_ttl(ttl_segundos)
     payload = respuesta.model_dump_json(exclude=set(type(respuesta).model_computed_fields))
     try:
-        redis_adapter.set_cache(key, payload, settings.fixture_cache_ttl_seconds)
+        redis_adapter.set_cache(key, payload, ttl)
     except DatabaseUnavailableError:
         logger.warning("No se pudo guardar la caché %s", key.split(":", 1)[0])
 
