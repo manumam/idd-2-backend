@@ -61,7 +61,7 @@ el frontend debe usar el mismo destino en `API_PROXY_TARGET`.
 | --- | --- |
 | `MONGO_URI`, `MONGO_DATABASE` | `mongodb://127.0.0.1:27018`, `fixture2030` |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB` | `127.0.0.1`, `6380`, `0` |
-| `INFLUX_URL`, `INFLUX_DATABASE` | `http://127.0.0.1:8181`, `fixture2030_resumen` |
+| `INFLUX_URL`, `INFLUX_DATABASE`, `INFLUX_DATABASE_EN_VIVO` | `http://127.0.0.1:8181`, `fixture2030_resumen`, `fixture2030_en_vivo` |
 | `DB_TIMEOUT_SECONDS` | `5` |
 
 Los puertos deben coincidir con `.env` y los mappings de Compose. Influx admite

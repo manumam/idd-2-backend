@@ -15,7 +15,9 @@ ejecuta al iniciar la API ni durante los tests.
 | `actividad_usuarios` | `fixture2030_resumen` (sin vencimiento) | `partido_id`, `region` | `usuarios_conectados` (entero) | 5 s |
 
 Line Protocol con timestamps en segundos y 90 minutos por partido. La API lee
-`estadisticas_partido` de `INFLUX_DATABASE` (por defecto `fixture2030_resumen`).
+`estadisticas_partido` de `INFLUX_DATABASE` (por defecto `fixture2030_resumen`) y
+el tracking crudo de `INFLUX_DATABASE_EN_VIVO` (por defecto `fixture2030_en_vivo`).
+Las consultas solo aceptan estas dos bases configuradas.
 
 ## Fuentes
 

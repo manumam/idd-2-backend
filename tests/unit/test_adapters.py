@@ -8,6 +8,7 @@ import requests
 from app.adapters.mongo_adapter import MongoAdapter
 from app.adapters.redis_adapter import RedisAdapter
 from app.adapters.influx_adapter import InfluxAdapter
+from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
 
 
@@ -35,6 +36,33 @@ def test_influx_parameters_and_failure(monkeypatch):
     assert payload["params"] == dict(partido="P-001", desde="start", hasta="end", equipo="ARG")
     assert "P-001" not in payload["q"]
     assert session.post.call_args.kwargs["timeout"] > 0
+    assert payload["db"] == settings.influx_database
+
+
+def _adapter_con_respuesta(monkeypatch):
+    adapter = InfluxAdapter()
+    session = Mock()
+    session.post.return_value = Mock(status_code=200, json=Mock(return_value=[]))
+    monkeypatch.setattr(adapter, "get_session", lambda: session)
+    monkeypatch.setattr(adapter, "_resolve_token", lambda: None)
+    return adapter, session
+
+
+def test_influx_consulta_en_base_en_vivo(monkeypatch):
+    adapter, session = _adapter_con_respuesta(monkeypatch)
+    adapter.query_sql("SELECT x_m FROM tracking_jugador WHERE partido_id = $p", {"p": "P-001"},
+                      database=settings.influx_database_en_vivo)
+    payload = session.post.call_args.kwargs["json"]
+    assert payload["db"] == settings.influx_database_en_vivo
+    assert payload["params"] == {"p": "P-001"}
+    assert "P-001" not in payload["q"]
+
+
+def test_influx_rechaza_base_no_configurada(monkeypatch):
+    adapter, session = _adapter_con_respuesta(monkeypatch)
+    with pytest.raises(ValueError):
+        adapter.query_sql("SELECT 1", database="otra_base")
+    session.post.assert_not_called()
 
 
 def test_redis_borrado_por_patron_usa_scan():

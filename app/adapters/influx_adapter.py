@@ -97,12 +97,20 @@ class InfluxAdapter(BaseAdapter):
             logger.warning("Fallo en ping InfluxDB: %s", e.__class__.__name__)
             raise DatabaseUnavailableError("InfluxDB", e)
 
-    def query_sql(self, query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-        """Ejecuta una consulta SQL parametrizada contra la base temporal configurada.
+    def query_sql(
+        self, query: str, params: Optional[Dict[str, Any]] = None, database: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """Ejecuta una consulta SQL parametrizada contra una base temporal configurada.
+
+        `database` debe ser una de las bases de settings; por defecto, INFLUX_DATABASE.
 
         Solo los fallos de disponibilidad (conexión, timeout, 5xx, credenciales) dan
         'fuente no disponible'; una consulta rechazada (4xx) es un error de la aplicación.
         """
+        database = database or settings.influx_database
+        if database not in (settings.influx_database, settings.influx_database_en_vivo):
+            raise ValueError("Base de InfluxDB no configurada")
+
         token = self._resolve_token()
         headers = {
             "Accept": "application/json",
@@ -113,7 +121,7 @@ class InfluxAdapter(BaseAdapter):
 
         url = f"{settings.influx_url.rstrip('/')}/api/v3/query_sql"
         payload = {
-            "db": settings.influx_database,
+            "db": database,
             "q": query,
             "params": params or {},
         }
