@@ -1,0 +1,32 @@
+# Influx propio del caso 8. No usa idd-2-tp ni los volúmenes históricos/laboratorios.
+# docker compose -f docker-compose.estadisticas.yaml up -d
+name: fixture2030-estadisticas
+services:
+  influxdb-token-init:
+    image: influxdb:3-core
+    restart: "no"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - "if [ ! -s /var/lib/influxdb3/admin_token.json ]; then influxdb3 create token --admin --offline --output-file /var/lib/influxdb3/admin_token.json >/dev/null; fi"
+    volumes:
+      - influx_estadisticas_data:/var/lib/influxdb3
+  influxdb:
+    image: influxdb:3-core
+    container_name: fixture2030-estadisticas-influxdb
+    restart: unless-stopped
+    depends_on:
+      influxdb-token-init:
+        condition: service_completed_successfully
+    environment:
+      INFLUXDB3_NODE_ID: caso8
+      INFLUXDB3_OBJECT_STORE: file
+      INFLUXDB3_DATA_DIR: /var/lib/influxdb3
+      INFLUXDB3_ADMIN_TOKEN_FILE: /var/lib/influxdb3/admin_token.json
+      INFLUXDB3_QUERY_FILE_LIMIT: "50000"
+    ports:
+      - "127.0.0.1:${INFLUX_ESTADISTICAS_PORT:-8181}:8181"
+    volumes:
+      - influx_estadisticas_data:/var/lib/influxdb3
+volumes:
+  influx_estadisticas_data:
+    name: fixture2030-estadisticas-influxdb-data

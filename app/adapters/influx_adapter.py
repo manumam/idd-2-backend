@@ -78,6 +78,35 @@ class InfluxAdapter(BaseAdapter):
         return self.query_sql(sql, params)
 
     @observe("InfluxDB")
+    def find_muestras(self, partido: str, desde: str, hasta: str):
+        tablas = self.query_sql("SELECT table_name FROM information_schema.tables WHERE table_name = 'estadisticas_partido'")
+        if not tablas:
+            return []
+        columnas = self.query_sql("SELECT column_name FROM information_schema.columns WHERE table_name = 'estadisticas_partido'")
+        duracion = "duracion_s" if any(c["column_name"] == "duracion_s" for c in columnas) else "NULL AS duracion_s"
+        return self.query_sql(
+            f"SELECT time, equipo_id, posesion_pct, tiros_acumulados, pases_intervalo, {duracion} "
+            "FROM estadisticas_partido WHERE partido_id = $partido AND time >= $desde "
+            "AND time <= $hasta ORDER BY time, equipo_id LIMIT 10001",
+            {"partido": partido, "desde": desde, "hasta": hasta})
+
+    @observe("InfluxDB")
+    def escribir_muestras(self, lineas: str) -> None:
+        """Line protocol construido exclusivamente desde el plan validado."""
+        headers = {"Content-Type": "text/plain; charset=utf-8"}
+        token = self._resolve_token()
+        if token:
+            headers["Authorization"] = "Bearer " + token
+        try:
+            response = self.get_session().post(
+                f"{settings.influx_url.rstrip('/')}/api/v3/write_lp",
+                params={"db": settings.influx_database, "precision": "second", "accept_partial": "false", "no_sync": "false"},
+                headers=headers, data=lineas.encode(), timeout=settings.db_timeout_seconds)
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            raise DatabaseUnavailableError("InfluxDB", exc) from exc
+
+    @observe("InfluxDB")
     def ping(self) -> bool:
         """Verifica la conectividad llamando al endpoint /health de InfluxDB 3."""
         try:

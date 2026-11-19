@@ -555,6 +555,76 @@
                 }
               }
             }
+          },
+          "estadisticas_control": {
+            "bsonType": "object",
+            "additionalProperties": false,
+            "required": [
+              "plan",
+              "inicio",
+              "hasta",
+              "muestras",
+              "tick",
+              "completa"
+            ],
+            "properties": {
+              "plan": {
+                "bsonType": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "inicio": {
+                "bsonType": "string"
+              },
+              "hasta": {
+                "bsonType": "string"
+              },
+              "muestras": {
+                "bsonType": "int",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "tick": {
+                "bsonType": "int",
+                "minimum": -1,
+                "maximum": 8
+              },
+              "completa": {
+                "bsonType": "bool"
+              }
+            }
+          },
+          "estadisticas_finales": {
+            "bsonType": "object",
+            "additionalProperties": false,
+            "required": [
+              "huella",
+              "resumen"
+            ],
+            "properties": {
+              "huella": {
+                "bsonType": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "resumen": {
+                "bsonType": "object",
+                "required": [
+                  "partido",
+                  "estado",
+                  "consolidacion",
+                  "local",
+                  "visitante",
+                  "actualizado_en",
+                  "advertencias"
+                ],
+                "properties": {
+                  "consolidacion": {
+                    "enum": [
+                      "completa"
+                    ]
+                  }
+                }
+              }
+            }
           }
         }
       }

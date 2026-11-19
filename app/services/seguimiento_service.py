@@ -85,7 +85,7 @@ def aplicar_tick(codigo: str, tick: TickPartido) -> bool:
         actualizado_en=datetime.now(timezone.utc))
     if not mongo_adapter.guardar_seguimiento(codigo, documento, cambios):
         raise ValueError("El partido cambió durante el tick; volver a consultar antes de continuar")
-    # Las estadísticas temporales del caso 8 siguen separadas y todavía no cachean eventos.
+    # Estadísticas versiona su caché y resumen por eventos/reloj/control de ingesta.
     invalidar_fixture()
     invalidar_resultado(codigo, documento.get("grupo") if documento["fase"] == "Grupos" else None)
     return True
