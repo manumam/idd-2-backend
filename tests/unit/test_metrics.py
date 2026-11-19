@@ -1,10 +1,22 @@
 from unittest.mock import Mock
 
-from prometheus_client import REGISTRY, generate_latest
+import pytest
+from prometheus_client import REGISTRY, CollectorRegistry, generate_latest
+from pymongo.errors import NetworkTimeout
 
 from app.adapters import mongo_adapter, redis_adapter
 from app.core.exceptions import DatabaseUnavailableError
+from app.core.metrics import EstadoFuentesCollector
 from app.main import app
+from app.services.health_service import FUENTES
+
+
+@pytest.fixture(autouse=True)
+def pings(monkeypatch):
+    mocks = {nombre: Mock(return_value=nombre != "redis") for nombre in FUENTES}
+    for nombre, adapter in FUENTES.items():
+        monkeypatch.setattr(adapter, "ping", mocks[nombre])
+    return mocks
 
 
 def requests_contados(ruta: str) -> float:
@@ -97,3 +109,53 @@ def test_cache_por_funcionalidad_sin_codigos_en_etiquetas(monkeypatch):
     assert lecturas_cache("posiciones", "error") == antes["error"] + 2
     assert lecturas_cache("posiciones", "hit") == antes["hit"]
     assert "grupos:v2:A" not in generate_latest().decode()
+
+
+def valor(nombre: str, etiquetas: dict) -> float:
+    return REGISTRY.get_sample_value(nombre, etiquetas) or 0.0
+
+
+def test_falla_de_dependencia_registra_latencia_y_un_solo_error(client, monkeypatch):
+    monkeypatch.setattr(redis_adapter, "get_cache", Mock(return_value=None))
+    monkeypatch.setattr(mongo_adapter, "connect", Mock(side_effect=DatabaseUnavailableError("MongoDB", NetworkTimeout())))
+    latencia = {"fuente": "mongodb", "operacion": "find_equipo"}
+    error = {"fuente": "mongodb", "categoria": "timeout"}
+    latencias, errores = valor("api_dependencia_seconds_count", latencia), valor("api_dependencia_errores_total", error)
+
+    assert client.get("/equipos/ARG").status_code == 504
+
+    assert valor("api_dependencia_seconds_count", latencia) == latencias + 1
+    assert valor("api_dependencia_errores_total", error) == errores + 1
+    texto = client.get("/metrics").text
+    assert "api_dependencia_seconds_bucket" in texto and "api_dependencia_errores_total" in texto
+
+
+def test_dependencia_up_reutiliza_health_sin_nuevo_ping(client, pings):
+    client.get("/health")
+
+    assert valor("api_dependencia_up", {"fuente": "mongodb"}) == 1.0
+    assert valor("api_dependencia_up", {"fuente": "redis"}) == 0.0
+    assert valor("api_dependencia_up", {"fuente": "influxdb"}) == 1.0
+    for ping in pings.values():
+        ping.assert_called_once()
+
+
+def test_dependencia_up_solo_reevalua_fuentes_vencidas():
+    ahora = [100.0]
+    evaluar = Mock(side_effect=lambda fuentes: {f: "up" for f in fuentes})
+    collector = EstadoFuentesCollector(evaluar, ("mongodb", "redis"), 15, reloj=lambda: ahora[0])
+    registry = CollectorRegistry()
+    registry.register(collector)
+    evaluar.assert_not_called()
+
+    collector.registrar({"mongodb": "down"})
+    assert registry.get_sample_value("api_dependencia_up", {"fuente": "mongodb"}) == 0.0
+    evaluar.assert_called_once_with(("redis",))
+
+    ahora[0] += 14
+    registry.get_sample_value("api_dependencia_up", {"fuente": "mongodb"})
+    evaluar.assert_called_once()
+
+    ahora[0] += 1
+    assert registry.get_sample_value("api_dependencia_up", {"fuente": "mongodb"}) == 1.0
+    assert evaluar.call_count == 2
