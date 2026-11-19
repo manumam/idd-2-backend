@@ -68,13 +68,12 @@ registran su tipo, sin devolver el detalle al consumidor.
 | Ruta | Comprobación actual | Respuesta |
 | --- | --- | --- |
 | `/live` | Proceso, sin consultar bases | 200 con `{estado: alive}` |
-| `/ready` | Ping de las dependencias configuradas | `{listo, estado}`; 200 si todas responden, 503 si alguna falla |
-| `/health` | Estado individual de las dependencias | 200 con `{estado: {...}}`, incluso con fuentes `down` |
+| `/ready` | Ping de MongoDB e InfluxDB | `{listo, estado}`; 200 si ambas responden, 503 si alguna falla |
+| `/health` | Estado individual de MongoDB, Redis e InfluxDB | 200 con `{estado: {...}}`, incluso con fuentes `down` |
 
 El 503 de `/ready` usa su schema de salud, no el cuerpo de error de negocio.
 Un ping correcto no acredita esquemas ni datos; verificar también la ruta funcional.
-Actualmente `/ready` y `/health` todavía comprueban las seis fuentes históricas.
-Adaptarlos a MongoDB, Redis e InfluxDB es parte del trabajo pendiente del MVP.
+Redis no participa de `/ready`: es caché opcional y, si cae, la API sigue respondiendo desde MongoDB.
 
 ## Pendiente respecto del MVP
 

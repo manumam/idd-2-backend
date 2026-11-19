@@ -154,10 +154,10 @@ def test_delete_idempotent(client, monkeypatch):
 def test_health_all_sources(client, monkeypatch):
     from app.services.health_service import FUENTES
     for name, adapter in FUENTES.items():
-        monkeypatch.setattr(adapter, "ping", Mock(side_effect=DatabaseUnavailableError(name)) if name == "iris" else Mock(return_value=True))
+        monkeypatch.setattr(adapter, "ping", Mock(side_effect=DatabaseUnavailableError(name)) if name == "redis" else Mock(return_value=True))
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json()["estado"] == dict(mongodb="up", neo4j="up", cassandra="up", redis="up", influxdb="up", iris="down")
+    assert response.json()["estado"] == dict(mongodb="up", redis="down", influxdb="up")
 
 
 def test_openapi_matches_export(client):

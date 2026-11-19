@@ -12,7 +12,8 @@ paths:
       tags:
       - Sistema
       summary: Estado de las dependencias
-      description: 'Responde 200 aunque una fuente esté caída: la marca como `down`.'
+      description: 'Consulta en paralelo MongoDB, Redis e InfluxDB. Responde 200 aunque
+        una fuente esté caída: la marca como `down`.'
       operationId: health_health_get
       responses:
         '200':
@@ -72,8 +73,8 @@ paths:
       tags:
       - Sistema
       summary: Readiness de conectividad
-      description: 200 si pasan los pings de las cuatro dependencias requeridas; 503
-        si alguna falla. No certifica datos de dominio.
+      description: 200 si pasan los pings de MongoDB e InfluxDB; 503 si alguno falla.
+        Redis es caché opcional y no se evalúa. No certifica datos de dominio.
       operationId: ready_ready_get
       responses:
         '200':
@@ -99,7 +100,7 @@ paths:
               schema:
                 type: string
         '503':
-          description: Una o más dependencias no están disponibles
+          description: MongoDB o InfluxDB no están disponibles
           content:
             application/json:
               schema:

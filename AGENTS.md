@@ -24,7 +24,7 @@
   el pedido de arranque por sí solo no autoriza esa carga.
 - Sin autorización explícita, no cargar seeds, reiniciar escenarios ni reemplazar datos como parte del arranque.
   Usar `GET /live` para comprobar el proceso y las rutas de la funcionalidad para
-  verificar los datos; `/ready` requiere las seis fuentes y puede estar degradado.
+  verificar los datos; `/ready` requiere MongoDB e InfluxDB y puede estar degradado.
 
 ## Ofrecer la simulación de partidos
 

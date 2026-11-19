@@ -24,7 +24,7 @@
               ],
               "query": []
             },
-            "description": "Responde 200 aunque una fuente esté caída: la marca como `down`."
+            "description": "Consulta en paralelo MongoDB, Redis e InfluxDB. Responde 200 aunque una fuente esté caída: la marca como `down`."
           },
           "response": []
         },
@@ -62,7 +62,7 @@
               ],
               "query": []
             },
-            "description": "Consulta pings de seis dependencias en paralelo; 200 listo=true o 503 listo=false. No certifica datos de dominio."
+            "description": "Consulta en paralelo los pings de MongoDB e InfluxDB; 200 listo=true o 503 listo=false. Redis es caché opcional y no se evalúa. No certifica datos de dominio."
           },
           "response": []
         }

@@ -55,7 +55,6 @@ casos conservan las brechas detalladas abajo.
 
 - Retirar Neo4j, Cassandra, IRIS y sesiones del runtime y del contrato público
   cuando se implemente la migración; hoy siguen expuestos.
-- Adaptar `/ready` y `/health` al stack de tres bases; hoy comprueban seis fuentes.
 - Completar simulación temporal de Influx y consolidación estadística. El caso 7 ya incluye simulador deportivo e ingesta validada por consola; no ejecuta cargas al arrancar.
 - Completar cachés por funcionalidad y observabilidad Prometheus/Grafana.
 - Validar los contratos propuestos antes de implementarlos. OpenAPI y Postman

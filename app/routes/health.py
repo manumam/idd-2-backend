@@ -10,7 +10,7 @@ router = APIRouter(tags=["Sistema"])
     "/health",
     response_model=HealthResponse,
     summary="Estado de las dependencias",
-    description="Responde 200 aunque una fuente esté caída: la marca como `down`.",
+    description="Consulta en paralelo MongoDB, Redis e InfluxDB. Responde 200 aunque una fuente esté caída: la marca como `down`.",
 )
 def health() -> HealthResponse:
     return HealthResponse(estado=health_service.estado_dependencias())
@@ -23,10 +23,9 @@ def live() -> LivenessResponse:
 
 
 @router.get('/ready', response_model=ReadinessResponse, summary='Readiness de conectividad',
-            description='200 si pasan los pings de las cuatro dependencias requeridas; 503 si alguna falla. No certifica datos de dominio.',
-            responses={503: {'model': ReadinessResponse, 'description': 'Una o más dependencias no están disponibles'}})
+            description='200 si pasan los pings de MongoDB e InfluxDB; 503 si alguno falla. Redis es caché opcional y no se evalúa. No certifica datos de dominio.',
+            responses={503: {'model': ReadinessResponse, 'description': 'MongoDB o InfluxDB no están disponibles'}})
 def ready(response: Response) -> ReadinessResponse:
-    estados = health_service.estado_dependencias()
-    listo = all(estado == 'up' for estado in estados.values())
+    estados, listo = health_service.estado_readiness()
     response.status_code = 200 if listo else 503
     return ReadinessResponse(estado=estados, listo=listo)

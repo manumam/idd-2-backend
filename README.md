@@ -105,7 +105,7 @@ si la fuente cae o no devuelve los datos esperados. Ver [tests/README.md](tests/
 Cassandra vuelve a exponer el feed de comentarios de solo lectura. IRIS recupera la vista de partidos y eventos por ID persistente (`/objetos/partidos/{id}`). Ver `tests/fixtures/README.md` para cargar sus esquemas. IRIS se levanta por separado; sus credenciales y namespace se configuran con `IRIS_*`.
 La única mutación HTTP es invalidar una sesión (DELETE idempotente).
 
-`/live` comprueba el proceso sin consultar motores. `/ready` devuelve 200 si todas las fuentes responden a su ping o 503 si alguna falla. `/health` devuelve 200 con `up/down` por fuente aun si alguna está caída. Los endpoints
+`/live` comprueba el proceso sin consultar motores. `/ready` devuelve 200 si MongoDB e InfluxDB responden a su ping o 503 si alguno falla; Redis es caché opcional y no se evalúa. `/health` devuelve 200 con `up/down` para MongoDB, Redis e InfluxDB aun si alguna está caída. Los endpoints
 de datos responden 503 ante una dependencia inaccesible o con identidad/permisos/contexto rechazados, y 504 ante timeout. Los detalles del driver no
 se publican en respuestas ni logs.
 
@@ -127,7 +127,6 @@ La práctica de laboratorio y su evidencia están en [laboratorio/](laboratorio/
 `GET /fixture` lista los partidos por fecha/hora UTC y código, con equipos, fase,
 estado y resultado. Usa MongoDB `partidos` y Redis opcional, con
 `FIXTURE_CACHE_TTL_SECONDS=5`. No requiere que Neo4j o Influx estén disponibles.
-`/ready` continúa comprobando las seis fuentes del Hito 11.
 
 El dataset de 127 partidos y el escenario de tres estados están incluidos en
 `data/fixture/`: CSV, calendario UTC, escenario y validador. Los datos son sintéticos.
