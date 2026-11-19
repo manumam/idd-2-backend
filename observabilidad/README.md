@@ -28,17 +28,24 @@ levanta con `--env-file ../.env`.
 | `mongodb` | `percona/mongodb_exporter` | `mongodb_up`, conexiones (`mongodb_ss_connections`), operaciones por tipo (`mongodb_ss_opcounters`), memoria y uptime | Salud de MongoDB |
 | `redis` | `oliver006/redis_exporter` | `redis_up`, `keyspace_hits/misses` (tasa de aciertos de caché), `evicted_keys`, `memory_used_bytes`, clientes conectados | Salud de Redis / caché |
 | `node` | `prom/node-exporter` | CPU, memoria, disco y red de la máquina | Recursos del host |
+| `influxdb` | ninguno: `/metrics` propio de InfluxDB 3 (`:8181`) | `http_requests_total` y latencia HTTP (el resto, histogramas internos de almacenamiento, se descarta) | Salud de InfluxDB |
 
 Del exporter de MongoDB solo se guardan las métricas de la tabla (`metric_relabel_configs`):
 el resto son ~2400 series y Grafana Cloud Free admite 10k activas.
 
 En macOS, `node-exporter` mide la VM de Docker Desktop, no la Mac.
 
+InfluxDB exige token también en `/metrics`. Prometheus lo lee de `secretos/influxdb_token`
+(ignorado por git), que se genera con `python3 copiar_token_influx.py`: toma el token igual
+que la API (`INFLUX_TOKEN` o `.influxdb3-token`) o, si no, el `admin_token.json` del compose
+de la raíz. Sin ese archivo solo el job `influxdb` queda `DOWN`.
+
 ## Modo prueba (local, sin envío a Grafana Cloud)
 
 ```bash
 bash scripts/iniciar_api.sh                     # desde la raíz del backend
 cd observabilidad
+python3 copiar_token_influx.py                  # una vez, o si cambia el token
 docker compose --env-file ../.env up -d
 ```
 

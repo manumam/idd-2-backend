@@ -18,6 +18,8 @@ services:
     <<: *host-docker
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # Token de InfluxDB (copiar_token_influx.py); se monta también en modo demo.
+      - ./secretos:/etc/prometheus/secretos:ro
       - prometheus_data:/prometheus
 
   mongodb-exporter:

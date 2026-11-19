@@ -34,3 +34,17 @@ scrape_configs:
       - targets: ["node-exporter:9100"]
         labels:
           entorno: prueba
+
+  - job_name: influxdb
+    # encontrado en documentación de InfluxDB: /metrics exige token (Bearer) salvo --disable-authz metrics.
+    authorization:
+      credentials_file: /etc/prometheus/secretos/influxdb_token
+    static_configs:
+      - targets: ["host.docker.internal:8181"]
+        labels:
+          entorno: prueba
+    # Casi todas las series son histogramas internos de almacenamiento; solo se guardan requests y latencia HTTP.
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "http_requests_total|http_request_duration_seconds_(bucket|sum|count)"
+        action: keep
