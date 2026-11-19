@@ -70,6 +70,15 @@ reiniciar Prometheus (`docker compose ... restart prometheus`).
 En Grafana Cloud Free una serie cuenta como activa si recibió datos en los últimos
 20 minutos. Prueba y demo corriendo a la vez duplican las series; por separado no se suman.
 
+## Dashboard
+
+`grafana/war-room.json` es el dashboard "Fixture 2030 — War Room" (uid `fixture2030-war-room`)
+publicado en Grafana Cloud. Usa el datasource `grafanacloud-prom` y la variable `entorno`
+para mostrar solo `prueba` o solo `demo`. Secciones: disponibilidad y salud por base,
+latencia (P50/P95/P99 contra el SLO de 100 ms) y throughput, errores, caché, saturación
+(operaciones en curso por base, pool de MongoDB, CPU y memoria) y estado de MongoDB e
+InfluxDB. Para recrearlo en otro stack: Dashboards → New → Import y pegar el JSON.
+
 ## Solo local (sin credenciales ni envío)
 
 ```bash
