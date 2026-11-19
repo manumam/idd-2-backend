@@ -14,7 +14,9 @@ expone `GET /metrics`. Desde el contenedor la API se alcanza como
 | Exporters (mongodb, redis, node) | este compose | solo red interna |
 
 Cada fuente es un job en `scrape_configs`; cada target lleva la etiqueta
-`entorno` (`prueba` o `demo`) para que los datos de prueba no se mezclen con los de la demo.
+`entorno` (`prueba` o `demo`). Las pruebas y la demo se envían a Grafana Cloud y los
+dashboards filtran por `entorno`: Grafana Cloud no permite borrar series, así que la
+etiqueta es lo que mantiene la vista de la demo limpia.
 
 ## Exporters
 
@@ -40,23 +42,7 @@ InfluxDB exige token también en `/metrics`. Prometheus lo lee de `secretos/infl
 que la API (`INFLUX_TOKEN` o `.influxdb3-token`) o, si no, el `admin_token.json` del compose
 de la raíz. Sin ese archivo solo el job `influxdb` queda `DOWN`.
 
-## Modo prueba (local, sin envío a Grafana Cloud)
-
-```bash
-bash scripts/iniciar_api.sh                     # desde la raíz del backend
-cd observabilidad
-python3 copiar_token_influx.py                  # una vez, o si cambia el token
-docker compose --env-file ../.env up -d
-```
-
-Revisar targets en http://localhost:9090/targets: todos los jobs tienen que figurar `UP`
-(`api` solo si la API está corriendo).
-Un target `UP` solo indica que el scrape funcionó, no que el sistema funcione: eso se
-evalúa con las métricas (errores, latencia, etc.).
-
-Para apagar: `docker compose down` (los datos quedan en el volumen `prometheus_data`).
-
-## Modo demo (entorno=demo + envío a Grafana Cloud)
+## Enviar a Grafana Cloud (prueba o demo)
 
 1. Agregar al `.env` del backend (o exportar) los datos del stack de Grafana Cloud:
 
@@ -66,19 +52,39 @@ Para apagar: `docker compose down` (los datos quedan en el volumen `prometheus_d
    GRAFANA_CLOUD_PROM_TOKEN=   # token de acceso con permiso de escritura de métricas
    ```
 
-2. Generar la config y levantar con el override:
+2. Generar la config con el entorno y levantar con el override:
 
    ```bash
+   bash scripts/iniciar_api.sh                     # desde la raíz del backend
    cd observabilidad
-   docker compose down                              # si estaba en modo prueba
-   python3 generar_config_demo.py
-   docker compose --env-file ../.env -f docker-compose.yaml -f docker-compose.demo.yaml up -d
+   python3 copiar_token_influx.py                  # una vez, o si cambia el token
+   python3 generar_config.py --entorno prueba      # o --entorno demo para la corrida de la demo
+   docker compose --env-file ../.env -f docker-compose.yaml -f docker-compose.nube.yaml up -d
    ```
 
-`generar_config_demo.py` copia `prometheus/prometheus.yml` cambiando `entorno: prueba`
-por `entorno: demo`, agrega `remote_write` y escribe el token en un archivo aparte
-(`password_file`). Todo queda en `generado/`, ignorado por git. El modo demo usa el
-volumen `prometheus_demo_data`, separado del de prueba.
+`generar_config.py` copia `prometheus/prometheus.yml` con el `entorno` elegido, agrega
+`remote_write` y escribe el token en un archivo aparte (`password_file`). Todo queda en
+`generado/`, ignorado por git. Para cambiar de entorno: volver a generar la config y
+reiniciar Prometheus (`docker compose ... restart prometheus`).
 
-Para volver a prueba: `docker compose -f docker-compose.yaml -f docker-compose.demo.yaml down`
-y `docker compose --env-file ../.env up -d`.
+En Grafana Cloud Free una serie cuenta como activa si recibió datos en los últimos
+20 minutos. Prueba y demo corriendo a la vez duplican las series; por separado no se suman.
+
+## Solo local (sin credenciales ni envío)
+
+```bash
+cd observabilidad
+docker compose --env-file ../.env up -d
+```
+
+Usa `prometheus/prometheus.yml` tal cual (`entorno: prueba`, sin `remote_write`).
+
+## Verificar y apagar
+
+Revisar targets en http://localhost:9090/targets: todos los jobs tienen que figurar `UP`
+(`api` solo si la API está corriendo).
+Un target `UP` solo indica que el scrape funcionó, no que el sistema funcione: eso se
+evalúa con las métricas (errores, latencia, etc.).
+
+Para apagar, el mismo comando con `down` en lugar de `up -d`. Los datos locales quedan
+en los volúmenes `prometheus_data` (solo local) y `prometheus_nube_data` (con envío).

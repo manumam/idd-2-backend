@@ -9,7 +9,7 @@ import os
 import sys
 from pathlib import Path
 
-from generar_config_demo import ENV_BACKEND, leer_env
+from generar_config import ENV_BACKEND, leer_env
 
 AQUI = Path(__file__).resolve().parent
 BACKEND = AQUI.parent
