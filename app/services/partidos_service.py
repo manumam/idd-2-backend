@@ -9,6 +9,8 @@ from app.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
 from app.services.playoffs_service import consultar_playoffs
 from app.core.exceptions import ResourceNotFoundError
+from app.schemas.alineaciones import Alineaciones, AlineacionesResponse
+from app.core.exceptions import BaseAppException
 from app.schemas.equipos import EquipoRef
 from app.schemas.partidos import (
     EventoResponse,
@@ -97,3 +99,37 @@ def listar_goleadores(sede: str, confederacion: str, limit: int) -> GoleadoresRe
         for g in goles
     ]
     return GoleadoresResponse(sede=sede, confederacion=confederacion, items=items)
+
+
+def obtener_alineaciones(codigo: str) -> AlineacionesResponse:
+    # Reutiliza las plazas efectivas: una corrección del cuadro no debe mostrar
+    # la convocatoria de la selección que ocupaba antes esa plaza.
+    partido = obtener_partido(codigo)
+    documento = mongo_adapter.find_alineaciones(codigo)
+    if documento is None:
+        raise _partido_no_encontrado(codigo)
+    try:
+        raw = documento.get("alineaciones")
+        alineaciones = Alineaciones.model_validate({} if raw is None else raw)
+    except ValidationError as exc:
+        raise BaseAppException("ALINEACIONES_INVALIDAS", "Las alineaciones requieren revisión.") from exc
+    datos = alineaciones.model_dump()
+    for lado in ("local", "visitante"):
+        equipo = getattr(partido, lado)
+        if datos[lado] and (equipo is None or datos[lado]["equipo"]["codigo"] != equipo.codigo):
+            datos[lado] = None
+    respuesta = AlineacionesResponse(partido=codigo, **datos)
+    key = "alineaciones:v1:" + codigo + ":" + hashlib.sha256(respuesta.model_dump_json().encode()).hexdigest()
+    try:
+        cached = redis_adapter.get_cache(key)
+        if cached is not None:
+            value = AlineacionesResponse.model_validate_json(cached)
+            if value == respuesta:
+                return value
+    except (DatabaseUnavailableError, ValidationError, ValueError, TypeError):
+        logger.warning("Caché de alineaciones no disponible o inválida")
+    try:
+        redis_adapter.set_cache(key, respuesta.model_dump_json(), settings.fixture_cache_ttl_seconds)
+    except DatabaseUnavailableError:
+        logger.warning("No se pudieron cachear las alineaciones")
+    return respuesta

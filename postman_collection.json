@@ -1770,6 +1770,115 @@
               "body": "{\"code\": \"NEO4J_CONTEXT_UNAVAILABLE\", \"message\": \"El contexto de datos no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
             }
           ]
+        },
+        {
+          "name": "Alineaciones de un partido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/alineaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "partidos",
+                "{{codigoPartido}}",
+                "alineaciones"
+              ],
+              "query": []
+            },
+            "description": "Titulares y suplentes de ambos equipos con código, nombre completo, dorsal y posición. Lado null si no fue informado o corresponde a una plaza obsoleta. Partido inexistente: 404. Redis opcional; MongoDB es la fuente. Incluye formacion opcional: arquero y lineas desde defensa hacia ataque, con jugadores ordenados de izquierda a derecha al mirar al arco rival. La formación contiene exactamente los once titulares; no es tracking."
+          },
+          "response": [
+            {
+              "name": "Alineaciones todavía no informadas",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/alineaciones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "alineaciones"
+                  ],
+                  "query": []
+                },
+                "description": "Titulares y suplentes de ambos equipos con código, nombre completo, dorsal y posición. Lado null si no fue informado o corresponde a una plaza obsoleta. Partido inexistente: 404. Redis opcional; MongoDB es la fuente."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"partido\": \"P-001\",\n  \"local\": null,\n  \"visitante\": null\n}"
+            },
+            {
+              "name": "Timeout de MongoDB",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/alineaciones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "alineaciones"
+                  ],
+                  "query": []
+                },
+                "description": "Titulares y suplentes de ambos equipos con código, nombre completo, dorsal y posición. Lado null si no fue informado o corresponde a una plaza obsoleta. Partido inexistente: 404. Redis opcional; MongoDB es la fuente."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"code\": \"MONGODB_TIMEOUT\",\n  \"message\": \"La dependencia excedió el tiempo de espera.\",\n  \"requestId\": \"ejemplo-timeout\"\n}"
+            },
+            {
+              "name": "Argentina con formación 4-3-3",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/P-002/alineaciones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "P-002",
+                    "alineaciones"
+                  ],
+                  "query": []
+                },
+                "description": "Titulares y suplentes de ambos equipos con código, nombre completo, dorsal y posición. Lado null si no fue informado o corresponde a una plaza obsoleta. Partido inexistente: 404. Redis opcional; MongoDB es la fuente. Incluye formacion opcional: arquero y lineas desde defensa hacia ataque, con jugadores ordenados de izquierda a derecha al mirar al arco rival. La formación contiene exactamente los once titulares; no es tracking."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"partido\": \"P-002\",\n  \"local\": {\n    \"equipo\": {\n      \"codigo\": \"ARG\",\n      \"nombre\": \"Argentina\"\n    },\n    \"titulares\": [\n      {\n        \"codigo\": \"ARG-23\",\n        \"nombre\": \"Damián Emiliano MARTÍNEZ\",\n        \"dorsal\": 23,\n        \"posicion\": \"Arquero\"\n      },\n      {\n        \"codigo\": \"ARG-26\",\n        \"nombre\": \"Nahuel MOLINA LUCERO\",\n        \"dorsal\": 26,\n        \"posicion\": \"Defensor\"\n      },\n      {\n        \"codigo\": \"ARG-13\",\n        \"nombre\": \"Cristian Gabriel ROMERO\",\n        \"dorsal\": 13,\n        \"posicion\": \"Defensor\"\n      },\n      {\n        \"codigo\": \"ARG-19\",\n        \"nombre\": \"Nicolas Hernan Gonzalo OTAMENDI\",\n        \"dorsal\": 19,\n        \"posicion\": \"Defensor\"\n      },\n      {\n        \"codigo\": \"ARG-3\",\n        \"nombre\": \"Nicolás Alejandro TAGLIAFICO\",\n        \"dorsal\": 3,\n        \"posicion\": \"Defensor\"\n      },\n      {\n        \"codigo\": \"ARG-7\",\n        \"nombre\": \"Rodrigo Javier DE PAUL\",\n        \"dorsal\": 7,\n        \"posicion\": \"Mediocampista\"\n      },\n      {\n        \"codigo\": \"ARG-24\",\n        \"nombre\": \"Enzo Jeremías FERNÁNDEZ\",\n        \"dorsal\": 24,\n        \"posicion\": \"Mediocampista\"\n      },\n      {\n        \"codigo\": \"ARG-20\",\n        \"nombre\": \"Alexis MAC ALLISTER\",\n        \"dorsal\": 20,\n        \"posicion\": \"Mediocampista\"\n      },\n      {\n        \"codigo\": \"ARG-10\",\n        \"nombre\": \"Lionel Andrés MESSI\",\n        \"dorsal\": 10,\n        \"posicion\": \"Delantero\"\n      },\n      {\n        \"codigo\": \"ARG-9\",\n        \"nombre\": \"Julián ÁLVAREZ\",\n        \"dorsal\": 9,\n        \"posicion\": \"Delantero\"\n      },\n      {\n        \"codigo\": \"ARG-22\",\n        \"nombre\": \"Lautaro Javier MARTÍNEZ\",\n        \"dorsal\": 22,\n        \"posicion\": \"Delantero\"\n      }\n    ],\n    \"suplentes\": [\n      {\n        \"codigo\": \"ARG-1\",\n        \"nombre\": \"Juan Agustín MUSSO\",\n        \"dorsal\": 1,\n        \"posicion\": \"Arquero\"\n      },\n      {\n        \"codigo\": \"ARG-2\",\n        \"nombre\": \"Leonardo Julián BALERDI ROSA\",\n        \"dorsal\": 2,\n        \"posicion\": \"Defensor\"\n      },\n      {\n        \"codigo\": \"ARG-4\",\n        \"nombre\": \"Gonzalo Ariel MONTIEL\",\n        \"dorsal\": 4,\n        \"posicion\": \"Defensor\"\n      },\n      {\n        \"codigo\": \"ARG-5\",\n        \"nombre\": \"Leandro Daniel PAREDES\",\n        \"dorsal\": 5,\n        \"posicion\": \"Mediocampista\"\n      },\n      {\n        \"codigo\": \"ARG-6\",\n        \"nombre\": \"Lisandro MARTÍNEZ\",\n        \"dorsal\": 6,\n        \"posicion\": \"Defensor\"\n      },\n      {\n        \"codigo\": \"ARG-8\",\n        \"nombre\": \"Valentin BARCO\",\n        \"dorsal\": 8,\n        \"posicion\": \"Mediocampista\"\n      },\n      {\n        \"codigo\": \"ARG-11\",\n        \"nombre\": \"Giovani LO CELSO\",\n        \"dorsal\": 11,\n        \"posicion\": \"Mediocampista\"\n      },\n      {\n        \"codigo\": \"ARG-12\",\n        \"nombre\": \"Geronimo RULLI\",\n        \"dorsal\": 12,\n        \"posicion\": \"Arquero\"\n      },\n      {\n        \"codigo\": \"ARG-14\",\n        \"nombre\": \"Exequiel Alejandro PALACIOS\",\n        \"dorsal\": 14,\n        \"posicion\": \"Mediocampista\"\n      },\n      {\n        \"codigo\": \"ARG-15\",\n        \"nombre\": \"Nicolas Ivan GONZALEZ\",\n        \"dorsal\": 15,\n        \"posicion\": \"Mediocampista\"\n      },\n      {\n        \"codigo\": \"ARG-16\",\n        \"nombre\": \"Thiago Ezequiel ALMADA\",\n        \"dorsal\": 16,\n        \"posicion\": \"Delantero\"\n      },\n      {\n        \"codigo\": \"ARG-17\",\n        \"nombre\": \"Giuliano SIMEONE\",\n        \"dorsal\": 17,\n        \"posicion\": \"Delantero\"\n      },\n      {\n        \"codigo\": \"ARG-18\",\n        \"nombre\": \"Nicolas PAZ MARTÍNEZ\",\n        \"dorsal\": 18,\n        \"posicion\": \"Delantero\"\n      },\n      {\n        \"codigo\": \"ARG-21\",\n        \"nombre\": \"Jose Manuel Alberto LOPEZ\",\n        \"dorsal\": 21,\n        \"posicion\": \"Delantero\"\n      },\n      {\n        \"codigo\": \"ARG-25\",\n        \"nombre\": \"Facundo Axel MEDINA\",\n        \"dorsal\": 25,\n        \"posicion\": \"Defensor\"\n      }\n    ],\n    \"formacion\": {\n      \"arquero\": \"ARG-23\",\n      \"lineas\": [\n        [\n          \"ARG-26\",\n          \"ARG-13\",\n          \"ARG-19\",\n          \"ARG-3\"\n        ],\n        [\n          \"ARG-7\",\n          \"ARG-24\",\n          \"ARG-20\"\n        ],\n        [\n          \"ARG-10\",\n          \"ARG-9\",\n          \"ARG-22\"\n        ]\n      ]\n    }\n  },\n  \"visitante\": null\n}"
+            }
+          ]
         }
       ]
     },
