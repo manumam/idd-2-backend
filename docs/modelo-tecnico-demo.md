@@ -24,7 +24,7 @@ Los nombres son contratos propuestos, no colecciones ya implementadas.
 | `grupos` | Código, equipos participantes y orden de desempate del dataset cuando sea necesario. | Código único. |
 | `partidos` | Fase, grupo o cruce, fecha, sede, local, visitante, estado, reloj de juego, resultado, alineaciones, eventos, estadísticas finales y estado de consolidación. | Índices por `fecha`, `grupo_id`, `(local_id, fecha)`, `(visitante_id, fecha)` y sobre `eventos.jugador_id`. |
 | `cruces` | Fase, orden visual y origen de cada plaza. `_id` referencia el partido. Equipos y ganador derivados al consultar. | Único `(fase, orden)` y `_id` por partido. |
-| `estadisticas_jugador_partido` | Partido, jugador, equipo, goles, asistencias, tarjetas, distancia total, velocidad máxima y fecha de actualización. | Único `(partido_id, jugador_id)`; índice por `jugador_id`. |
+| `estadisticas_jugador_partido` | Implementado: partido, jugador, generación y resumen con equipo, goles, asistencias, tarjetas, distancia, velocidad máxima y actualización. Solo se lee la generación publicada en `partidos.jugadores_finales`. | `_id` único `partido:generación:jugador`; índice `(jugador_id, partido_id)`. |
 
 Cada evento incluye `evento_id`, tipo, tiempo de juego, equipo y jugadores involucrados. Su identificador evita que reenviar un evento duplique un gol. Los eventos conservan el detalle que permite reconstruir las estadísticas deportivas.
 
@@ -52,6 +52,14 @@ No se presupone una transacción distribuida entre MongoDB e InfluxDB. Las escri
 7. Invalidar cachés de partido, jugador, fixture, grupos y playoffs. Recalcular la clasificación y resolver las plazas de cruces que correspondan.
 
 Si falta una fuente, conservar el resultado deportivo y marcar las estadísticas como pendientes; no sustituir datos faltantes por ceros. Reintentar el cierre. Una corrección de eventos vuelve a ejecutar el proceso y reemplaza los resúmenes, sin incrementar totales por segunda vez. Los agregados físicos finales deben persistirse antes del vencimiento del crudo: después de ese plazo no se promete recalcularlos con precisión de un segundo.
+
+Implementación del caso 9: el reemplazo lógico se realiza publicando generaciones
+inmutables mediante un manifiesto CAS en el partido. Solo una generación completa
+es visible; las escrituras parciales y generaciones anteriores no participan de los
+acumulados. La cobertura de tracking se registra explícitamente por participante e
+intervalo, con bases de odómetro y conteo de muestras a 1 Hz. El cierre individual
+todavía es una operación por consola, separada del simulador deportivo y del caso 8.
+Ver [rendimiento](rendimiento.md) para contratos, controles y límites verificados.
 
 ### Ejemplo: los goles de Messi
 

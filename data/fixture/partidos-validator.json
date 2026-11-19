@@ -625,6 +625,88 @@
                 }
               }
             }
+          },
+          "tracking_control": {
+            "bsonType": "object",
+            "additionalProperties": false,
+            "required": [
+              "revision",
+              "completa",
+              "jugadores"
+            ],
+            "properties": {
+              "revision": {
+                "bsonType": "string",
+                "minLength": 1,
+                "maxLength": 80,
+                "pattern": "^[A-Za-z0-9_-]+$"
+              },
+              "completa": {
+                "bsonType": "bool"
+              },
+              "jugadores": {
+                "bsonType": "object",
+                "minProperties": 1,
+                "maxProperties": 52,
+                "patternProperties": {
+                  "^[A-Z]{3}-[1-9][0-9]?$": {
+                    "bsonType": "array",
+                    "items": {
+                      "bsonType": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "desde",
+                        "hasta",
+                        "muestras"
+                      ],
+                      "properties": {
+                        "desde": {
+                          "bsonType": "string"
+                        },
+                        "hasta": {
+                          "bsonType": "string"
+                        },
+                        "muestras": {
+                          "bsonType": "int",
+                          "minimum": 1,
+                          "maximum": 14401
+                        }
+                      }
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "jugadores_finales": {
+            "bsonType": "object",
+            "additionalProperties": false,
+            "required": [
+              "huella",
+              "generacion",
+              "jugadores"
+            ],
+            "properties": {
+              "huella": {
+                "bsonType": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "generacion": {
+                "bsonType": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "jugadores": {
+                "bsonType": "array",
+                "minItems": 1,
+                "maxItems": 52,
+                "uniqueItems": true,
+                "items": {
+                  "bsonType": "string",
+                  "pattern": "^[A-Z]{3}-[1-9][0-9]?$"
+                }
+              }
+            }
           }
         }
       }

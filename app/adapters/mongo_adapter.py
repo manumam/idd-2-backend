@@ -171,6 +171,44 @@ class MongoAdapter(BaseAdapter):
         return self._execute(lambda: self.db["partidos"].find_one({"_id": codigo}))
 
     @observe("MongoDB")
+    def list_partidos_jugador(self, codigo: str):
+        # El catálogo no demuestra participación: convocatoria, eventos o tracking explícito.
+        return self._execute(lambda: list(self.db['partidos'].find({'$or': [
+            {'alineaciones.local.titulares.codigo': codigo},
+            {'alineaciones.local.suplentes.codigo': codigo},
+            {'alineaciones.visitante.titulares.codigo': codigo},
+            {'alineaciones.visitante.suplentes.codigo': codigo},
+            {'eventos.protagonistas.jugador.codigo': codigo},
+            {f'tracking_control.jugadores.{codigo}': {'$exists': True}},
+        ]}).sort([('fecha_hora', 1), ('_id', 1)])))
+
+    @observe("MongoDB")
+    def find_resumen_jugador(self, partido: str, generacion: str, jugador: str):
+        return self._execute(lambda: self.db['estadisticas_jugador_partido'].find_one(
+            {'_id': f'{partido}:{generacion}:{jugador}'}))
+
+    @observe("MongoDB")
+    def guardar_control_tracking(self, codigo: str, anterior: dict, control: dict) -> bool:
+        fields = ('fecha_hora', 'estado', 'resultado', 'eventos', 'reloj', 'local',
+                  'visitante', 'alineaciones', 'tracking_control')
+        filtro = {'_id': codigo, **{k: anterior.get(k) for k in fields}}
+        return self._execute(lambda: self.db['partidos'].update_one(
+            filtro, {'$set': {'tracking_control': control}}).matched_count == 1)
+
+    @observe("MongoDB")
+    def publicar_resumenes_jugadores(self, codigo: str, anterior: dict, manifiesto: dict, resumenes: list) -> bool:
+        """Generaciones inmutables + publicación CAS: un cierre parcial nunca es visible."""
+        def publicar():
+            coleccion = self.db['estadisticas_jugador_partido']
+            coleccion.create_index([('jugador_id', 1), ('partido_id', 1)])
+            coleccion.insert_many(resumenes, ordered=True)
+            fields = ('fecha_hora', 'actualizado_en', 'estado', 'resultado', 'eventos', 'reloj',
+                      'local', 'visitante', 'alineaciones', 'tracking_control', 'jugadores_finales')
+            filtro = {'_id': codigo, **{k: anterior.get(k) for k in fields}}
+            return self.db['partidos'].update_one(filtro, {'$set': {'jugadores_finales': manifiesto}}).matched_count == 1
+        return self._execute(publicar)
+
+    @observe("MongoDB")
     def guardar_estadisticas(self, codigo: str, anterior: dict, cambios: dict) -> bool:
         """CAS: nunca publica un resumen o avance sobre entradas deportivas distintas."""
         fields = ("fecha_hora", "actualizado_en", "estado", "resultado", "eventos", "reloj", "local",

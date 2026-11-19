@@ -188,6 +188,21 @@ class InfluxAdapter(BaseAdapter):
             logger.warning("Fallo en ping InfluxDB: %s", e.__class__.__name__)
             raise DatabaseUnavailableError("InfluxDB", e)
 
+    @observe("InfluxDB")
+    def find_tracking_jugador(self, partido: str, jugador: str, equipo: str, desde: str, hasta: str):
+        tablas = self.query_sql(
+            "SELECT table_name FROM information_schema.tables WHERE table_name = 'tracking_jugador'",
+            database=settings.influx_tracking_database)
+        if not tablas:
+            return []
+        return self.query_sql(
+            "SELECT time, equipo_id, jugador_id, distancia_acum_m, velocidad_kmh "
+            "FROM tracking_jugador WHERE partido_id = $partido AND jugador_id = $jugador "
+            "AND equipo_id = $equipo AND time >= $desde AND time <= $hasta "
+            "ORDER BY time LIMIT 14402",
+            dict(partido=partido, jugador=jugador, equipo=equipo, desde=desde, hasta=hasta),
+            database=settings.influx_tracking_database)
+
     def query_sql(
         self, query: str, params: Optional[Dict[str, Any]] = None, database: Optional[str] = None
     ) -> List[Dict[str, Any]]:
@@ -199,7 +214,7 @@ class InfluxAdapter(BaseAdapter):
         'fuente no disponible'; una consulta rechazada (4xx) es un error de la aplicación.
         """
         database = database or settings.influx_database
-        if database not in (settings.influx_database, settings.influx_database_en_vivo):
+        if database not in (settings.influx_database, settings.influx_database_en_vivo, settings.influx_tracking_database):
             raise ValueError("Base de InfluxDB no configurada")
 
         token = self._resolve_token()

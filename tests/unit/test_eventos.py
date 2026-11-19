@@ -67,7 +67,11 @@ def test_recorrido_completo_y_cierre(client, almacen):
     assert client.get('/partidos/P-001').json()['resultado'] == respuesta['resultado']
     assert doc['estado'] == 'finalizado'
     assert mongo_adapter.guardar_seguimiento.call_count == 6
-    assert redis_adapter.delete_cache_matching.call_count == 6
+    # Cada avance invalida cronología, rendimiento y acumulados del jugador.
+    from unittest.mock import call
+    assert redis_adapter.delete_cache_matching.call_args_list.count(call('eventos:v2:P-001:*')) == 6
+    assert redis_adapter.delete_cache_matching.call_args_list.count(call('rendimiento:v1:P-001:*')) == 6
+    assert redis_adapter.delete_cache_matching.call_args_list.count(call('acumulados:v1:*')) == 6
 
 
 def test_generador_y_reproduccion_del_guion_sin_motores(client, almacen, monkeypatch):

@@ -13,6 +13,7 @@ El frontend se incorpora por pedido posterior a los lineamientos de solo API.
 
 ## Consulta operativa
 
+- [Rendimiento individual y consolidación del caso 9](rendimiento.md).
 - [Observabilidad y errores](observabilidad_y_errores.md).
 - [Monitoreo con Prometheus y Grafana Cloud](../observabilidad/README.md) y
   [prueba de carga](../carga/README.md).

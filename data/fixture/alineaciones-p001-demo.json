@@ -1,0 +1,383 @@
+{
+  "partidos": [
+    {
+      "partido": "P-001",
+      "alineaciones": {
+        "local": {
+          "equipo": {
+            "codigo": "URU",
+            "nombre": "Uruguay"
+          },
+          "titulares": [
+            {
+              "codigo": "URU-1",
+              "nombre": "Sergio Ramón ROCHET ALVAREZ",
+              "dorsal": 1,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "URU-2",
+              "nombre": "José María GIMÉNEZ DE VARGAS",
+              "dorsal": 2,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "URU-3",
+              "nombre": "Sebastián Enzo CÁCERES RAMOS",
+              "dorsal": 3,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "URU-4",
+              "nombre": "Ronald Federico ARAÚJO DA SILVA",
+              "dorsal": 4,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "URU-13",
+              "nombre": "Guillermo VARELA OLIVERA",
+              "dorsal": 13,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "URU-5",
+              "nombre": "Manuel UGARTE RIBEIRO",
+              "dorsal": 5,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "URU-6",
+              "nombre": "Rodrigo BENTANCUR COLMÁN",
+              "dorsal": 6,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "URU-8",
+              "nombre": "Federico Santiago VALVERDE DIPETTA",
+              "dorsal": 8,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "URU-9",
+              "nombre": "Darwin Gabriel NUÑEZ RIBEIRO",
+              "dorsal": 9,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "URU-11",
+              "nombre": "Facundo PELLISTRI REBOLLO",
+              "dorsal": 11,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "URU-21",
+              "nombre": "Federico Sebastian VIÑAS BARBOZA",
+              "dorsal": 21,
+              "posicion": "Delantero"
+            }
+          ],
+          "suplentes": [
+            {
+              "codigo": "URU-7",
+              "nombre": "Diego Nicolás DE LA CRUZ ARCOSA",
+              "dorsal": 7,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "URU-10",
+              "nombre": "Giorgian Daniel DE ARRASCAETA BENEDETTI",
+              "dorsal": 10,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "URU-12",
+              "nombre": "Santiago Andres MELE CASTAÑERO",
+              "dorsal": 12,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "URU-14",
+              "nombre": "Agustin CANOBBIO",
+              "dorsal": 14,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "URU-15",
+              "nombre": "Emiliano MARTÍNEZ TORANZA",
+              "dorsal": 15,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "URU-16",
+              "nombre": "Mathías OLIVERA MIRAMONTES",
+              "dorsal": 16,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "URU-17",
+              "nombre": "Matías Nicolas VIÑA SUSPERREGUY",
+              "dorsal": 17,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "URU-18",
+              "nombre": "Paul Brian RODRÍGUEZ BRAVO",
+              "dorsal": 18,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "URU-19",
+              "nombre": "Rodrigo Sebastian AGUIRRE SOTO",
+              "dorsal": 19,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "URU-20",
+              "nombre": "Maximiliano Javier ARAÚJO VILCHES",
+              "dorsal": 20,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "URU-22",
+              "nombre": "Joaquin PIQUEREZ MOREIRA",
+              "dorsal": 22,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "URU-23",
+              "nombre": "Nestor Fernando MUSLERA MICOL",
+              "dorsal": 23,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "URU-24",
+              "nombre": "Santiago Ignacio BUENO SCIUTTO",
+              "dorsal": 24,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "URU-25",
+              "nombre": "Juan Manuel SANABRIA MAGOLÉ",
+              "dorsal": 25,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "URU-26",
+              "nombre": "Radrigo ZALAZAR MARTINEZ",
+              "dorsal": 26,
+              "posicion": "Mediocampista"
+            }
+          ],
+          "formacion": {
+            "arquero": "URU-1",
+            "lineas": [
+              [
+                "URU-2",
+                "URU-3",
+                "URU-4",
+                "URU-13"
+              ],
+              [
+                "URU-5",
+                "URU-6",
+                "URU-8"
+              ],
+              [
+                "URU-9",
+                "URU-11",
+                "URU-21"
+              ]
+            ]
+          }
+        },
+        "visitante": {
+          "equipo": {
+            "codigo": "KSA",
+            "nombre": "Arabia Saudita"
+          },
+          "titulares": [
+            {
+              "codigo": "KSA-1",
+              "nombre": "Nawaf Dhahi F ALAQIDI",
+              "dorsal": 1,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "KSA-2",
+              "nombre": "Ali Hassan M MAJRASHI",
+              "dorsal": 2,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "KSA-3",
+              "nombre": "Ali Mohammed A LAJAMI",
+              "dorsal": 3,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "KSA-4",
+              "nombre": "Abdulelah Ali A ALAMRI",
+              "dorsal": 4,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "KSA-5",
+              "nombre": "Hassan Mohammed O ALTAMBAKTI",
+              "dorsal": 5,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "KSA-6",
+              "nombre": "Nasser Essa S ALDAWSARI",
+              "dorsal": 6,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "KSA-7",
+              "nombre": "Musab Fahad Z ALJUWAYR",
+              "dorsal": 7,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "KSA-15",
+              "nombre": "Abdullah Mohammed H ALKHAIBARI",
+              "dorsal": 15,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "KSA-8",
+              "nombre": "Aiman Yahya Y AHMED",
+              "dorsal": 8,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "KSA-9",
+              "nombre": "Feras Tariq N ALBRIKAN",
+              "dorsal": 9,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "KSA-20",
+              "nombre": "Sultan Ahmed M MANDASH",
+              "dorsal": 20,
+              "posicion": "Delantero"
+            }
+          ],
+          "suplentes": [
+            {
+              "codigo": "KSA-10",
+              "nombre": "Salem Mohammed S ALDAWSARI",
+              "dorsal": 10,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "KSA-11",
+              "nombre": "Saleh Khalid M ALSHEHRI",
+              "dorsal": 11,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "KSA-12",
+              "nombre": "Saud Abdullah S ABDULHAMID",
+              "dorsal": 12,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "KSA-13",
+              "nombre": "Nawaf Meshari M BU WASHL",
+              "dorsal": 13,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "KSA-14",
+              "nombre": "Hassan Kadish Y MAHBUB",
+              "dorsal": 14,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "KSA-16",
+              "nombre": "Ziyad Mubarak E ALJOHANI",
+              "dorsal": 16,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "KSA-17",
+              "nombre": "Khalid Essa M ALGHANNAM",
+              "dorsal": 17,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "KSA-18",
+              "nombre": "Ala Mohsen A ALHAJJI",
+              "dorsal": 18,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "KSA-19",
+              "nombre": "Abdullah Abdulrahman A ALHAMDDAN",
+              "dorsal": 19,
+              "posicion": "Delantero"
+            },
+            {
+              "codigo": "KSA-21",
+              "nombre": "Mohammed Khalil I ALOWAIS",
+              "dorsal": 21,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "KSA-22",
+              "nombre": "Ahmed Ali H ALKASSAR",
+              "dorsal": 22,
+              "posicion": "Arquero"
+            },
+            {
+              "codigo": "KSA-23",
+              "nombre": "Mohamed Ibrahim A KANNO",
+              "dorsal": 23,
+              "posicion": "Mediocampista"
+            },
+            {
+              "codigo": "KSA-24",
+              "nombre": "Moteb Saad S ALHARBI",
+              "dorsal": 24,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "KSA-25",
+              "nombre": "Jehad Abdullatif A THIKRI",
+              "dorsal": 25,
+              "posicion": "Defensor"
+            },
+            {
+              "codigo": "KSA-26",
+              "nombre": "Mohammed Waheeb S ABU ALSHAMAT",
+              "dorsal": 26,
+              "posicion": "Defensor"
+            }
+          ],
+          "formacion": {
+            "arquero": "KSA-1",
+            "lineas": [
+              [
+                "KSA-2",
+                "KSA-3",
+                "KSA-4",
+                "KSA-5"
+              ],
+              [
+                "KSA-6",
+                "KSA-7",
+                "KSA-15"
+              ],
+              [
+                "KSA-8",
+                "KSA-9",
+                "KSA-20"
+              ]
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

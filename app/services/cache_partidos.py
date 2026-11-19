@@ -15,7 +15,7 @@ Modelo = TypeVar("Modelo", bound=BaseModel)
 
 PLAYOFFS_CACHE_KEY = "playoffs:v2:todos"
 PATRONES_DERIVADOS = ("partido:v2:*", "eventos:v2:*", "alineaciones:v2:*", "grupos:v2:*", PLAYOFFS_CACHE_KEY,
-                      "mapa_calor:v2:*")
+                      "mapa_calor:v2:*", "rendimiento:v1:*", "acumulados:v1:*")
 FUNCIONALIDAD_POR_NAMESPACE = {
     "partido": "partido", "eventos": "eventos", "alineaciones": "alineaciones",
     "grupos": "posiciones", "playoffs": "playoffs", "mapa_calor": "mapa_calor",
@@ -93,6 +93,8 @@ def _borrar_partido(codigo: str) -> None:
     redis_adapter.delete_cache(clave_partido(codigo))
     redis_adapter.delete_cache(clave_alineaciones(codigo))
     redis_adapter.delete_cache_matching(patron_eventos(codigo))
+    redis_adapter.delete_cache_matching(f'rendimiento:v1:{codigo}:*')
+    redis_adapter.delete_cache_matching('acumulados:v1:*')
 
 
 def invalidar_resultado(codigo: str, grupo: Optional[str]) -> bool:

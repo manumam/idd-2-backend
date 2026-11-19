@@ -82,8 +82,10 @@ visible y el partido no finalizó, conservando los últimos datos ante un error.
 
 Seleccionar un jugador abre su ficha personal con `partido=P-001`. El regreso
 conserva el encuentro y la sección de alineaciones; se valida el código de partido
-antes de construir el enlace. Las estadísticas individuales por encuentro son
-el caso 9, todavía pendiente: la ficha lo indica y no inventa valores deportivos.
+antes de construir el enlace. La ficha incorpora las estadísticas individuales
+del caso 9 y los acumulados del Mundial, con estados de cobertura explícitos.
+Ver [rendimiento, tracking y consolidación](rendimiento.md); no inventa valores
+deportivos ni sustituye tracking ausente por ceros.
 
 Las pruebas locales cubren contratos HTTP, referencias, duplicados, plazas
 obsoletas, correcciones, fallos de fuentes y navegación. No certifican la carga
@@ -108,6 +110,25 @@ Conserva cualquier alineación existente; no usa `--reemplazar` por defecto y no
 modifica resultados, estado ni reloj. No se ejecuta al iniciar la API. El script
 admite los mismos argumentos que el cargador genérico, incluido `--reemplazar`
 para una corrección explícita de las convocatorias de esos tres encuentros.
+
+## Propuesta simulada para P-001
+
+`data/fixture/alineaciones-p001-demo.json` prepara Uruguay–Arabia Saudita con
+once titulares, quince suplentes y formación 4–3–3 por selección. Usa los 52
+jugadores existentes del catálogo; la elección del once y las posiciones en cancha
+son ficticias. Mantiene la coherencia con los eventos existentes: URU-21 comienza
+como titular y URU-19 como suplente; KSA-20 figura entre los titulares.
+
+El archivo fue validado localmente y contrastado con los planteles leídos por API;
+su preparación no lo carga en MongoDB. Ejecutar solo tras autorizar esta carga:
+
+```bash
+.venv/bin/python scripts/cargar_alineaciones.py data/fixture/alineaciones-p001-demo.json --solo-validar
+# Carga explícita; conserva cualquier convocatoria existente y el resultado 2–0:
+.venv/bin/python scripts/cargar_alineaciones.py data/fixture/alineaciones-p001-demo.json
+```
+
+No modifica eventos, reloj, estado ni tracking; no reinicia el partido finalizado.
 
 ## Formación táctica
 
