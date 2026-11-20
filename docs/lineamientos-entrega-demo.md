@@ -187,7 +187,7 @@ La mayor parte reutiliza lo construido: se mantienen las bases existentes, se am
 ### Redis
 
 - Reemplazar las claves de sesión por las de caché de cada funcionalidad, con su TTL y su invalidación.
-- Revisar la política de memoria para claves de caché.
+- Política de memoria para claves de caché: `allkeys-lru` con `maxmemory 256mb` (justificación en el [README](../README.md#instalar-e-iniciar)).
 
 ### Simulador (módulo nuevo)
 

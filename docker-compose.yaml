@@ -36,8 +36,9 @@ services:
       - "1000"
       - --maxmemory
       - 256mb
+      # Instancia dedicada a caché reconstruible: desaloja las claves menos usadas, tengan o no TTL.
       - --maxmemory-policy
-      - volatile-ttl
+      - allkeys-lru
     volumes:
       - redis_data:/data
     healthcheck:

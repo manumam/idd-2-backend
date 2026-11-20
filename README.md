@@ -45,6 +45,17 @@ MongoDB se publica solo en loopback en `MONGO_PORT` (27018 por defecto);
 `fixture2030_fixture2030_data`. Redis usa `REDIS_PORT` (6380 por defecto).
 Estas dos bases no requieren otro clon ni ejecutan cargas de datos al iniciar.
 
+Redis es una instancia dedicada a caché: solo guarda copias reconstruibles desde
+MongoDB o InfluxDB. Por eso usa `--maxmemory 256mb` con `--maxmemory-policy allkeys-lru`:
+al llegar al límite desaloja (evicción) las claves usadas hace más tiempo, tengan o
+no TTL, y conserva las que se están leyendo, como las del partido en vivo. Las
+políticas `volatile-*` solo desalojan claves con TTL y, si no hay ninguna, se
+comportan como `noeviction` (rechazan escrituras nuevas). La expiración por TTL
+sigue acotando la antigüedad de cada clave; la evicción solo actúa por falta de
+memoria. La persistencia (AOF y snapshots) no cambia. El cambio de política se
+aplica al recrear el contenedor de Redis (`docker compose up -d redis`); un
+contenedor ya iniciado conserva la política anterior.
+
 `docker-compose.yaml` define MongoDB, Redis e InfluxDB. Los montajes para importar
 MongoDB son opcionales, mediante `docker-compose.imports.yaml` y `TP_DATA_DIR`
 (por defecto `../idd-2-tp`). InfluxDB todavía monta scripts del repositorio de hitos
