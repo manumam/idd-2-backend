@@ -15,7 +15,7 @@ from app.schemas.partidos import EventoResponse, JugadorRef
 from app.schemas.rendimiento import (
     AcumuladosJugadorResponse, ControlTracking, MetricasJugador, RendimientoResponse,
 )
-from app.services.comparacion_service import _base, instante
+from app.services.comparacion_service import _base, inicio_temporal, instante
 from app.services.partidos_service import _detalle_documento, _partido_no_encontrado
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ def participantes(doc, partido):
 
 def _control(doc, partido):
     control = ControlTracking.model_validate(doc['tracking_control'])
-    inicio = instante(doc['fecha_hora'])
+    inicio = inicio_temporal(doc['fecha_hora'], doc.get('inicio_tracking'))
     if not partido.reloj:
         raise ValueError('Sin reloj de ingesta')
     fin = inicio + timedelta(minutes=partido.reloj.minuto + partido.reloj.adicional)

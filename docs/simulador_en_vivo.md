@@ -104,9 +104,11 @@ estadísticas) **o elegir otro partido próximo**. El script no restaura ni borr
 - El reloj de MongoDB avanza en los nueve ticks del guion, no minuto a minuto.
 - Se siguen los once titulares durante los 90 minutos: el cambio y la expulsión
   del guion no modifican el tracking.
-- El caso 9 valida el tracking dentro de `fecha_hora` y el reloj; el tracking
-  anclado en `inicio_tracking` todavía no es consolidable por ese caso. Los campos
-  sí son compatibles: odómetro creciente sin huecos a 1 Hz y velocidad en km/h.
+- El caso 9 valida el tracking desde `inicio_tracking` más el reloj (la misma
+  regla de anclaje que el mapa de calor y el caso 8), y los campos son compatibles:
+  odómetro creciente sin huecos a 1 Hz y velocidad en km/h. El simulador no
+  registra `tracking_control`: consolidar el caso 9 sigue requiriendo registrarlo
+  con `scripts/consolidar_jugadores.py`, con intervalos desde `inicio_tracking`.
 - El crudo vence a los 7 días: materializar la ocupación con
   `scripts/materializar_ocupacion.py` para conservar el mapa de calor.
 

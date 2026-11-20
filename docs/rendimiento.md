@@ -66,7 +66,10 @@ odómetro, que puede ser distinta de cero. Ejemplo de archivo de control:
 
 El ejemplo es ilustrativo: adaptar fechas, códigos y cobertura a los datos
 existentes y declarar a todos los convocados y protagonistas conocidos.
-Los intervalos deben estar dentro del tiempo confirmado por fecha/reloj, sin
+Los intervalos deben estar dentro del tiempo confirmado: desde el inicio temporal
+del partido (`inicio_tracking` si lo registró la simulación en vivo, si no
+`fecha_hora`; la misma regla que el mapa de calor y el caso 8) hasta ese inicio
+más el reloj, sin
 superponerse, con zona horaria, precisión de segundo y cantidad exacta de muestras.
 Se comprueban identidad de jugador/equipo, continuidad a 1 Hz, duplicados,
 valores finitos no negativos y odómetro monótono. Distancia = último contador

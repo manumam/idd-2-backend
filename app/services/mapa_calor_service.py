@@ -1,5 +1,5 @@
 """Caso de uso 10: mapa de calor de un jugador en un partido (InfluxDB)."""
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Optional
 
 from app.adapters import influx_adapter, mongo_adapter
@@ -8,6 +8,7 @@ from app.schemas.mapa_calor import CeldaMapa, GrillaCancha, IntervaloMinutos, Ma
 from app.schemas.partidos import PartidoResponse
 from app.services import partidos_service
 from app.services.cache_partidos import clave_mapa_calor, guardar_cache, leer_cache
+from app.services.comparacion_service import inicio_temporal
 from app.services.grilla_cancha import (
     COLUMNAS, FILAS, Celda, celda_desde_id, celdas_con_intensidad, parametros_grilla)
 
@@ -47,12 +48,7 @@ def _minuto_transcurrido(partido: PartidoResponse) -> int:
 def _inicio_tracking(partido: PartidoResponse) -> datetime:
     # El simulador registra inicio_tracking al empezar; los datos precargados arrancan en fecha_hora.
     # Anclar en uno solo evita mezclar muestras simuladas con las precargadas del mismo partido.
-    inicio = mongo_adapter.find_inicio_tracking(partido.codigo)
-    if inicio is None:
-        return partido.fecha_hora
-    inicio = inicio.replace(tzinfo=timezone.utc) if inicio.tzinfo is None else inicio.astimezone(timezone.utc)
-    # Las ventanas materializadas empiezan en minutos exactos; se ancla igual para que ambas fuentes coincidan.
-    return inicio.replace(second=0, microsecond=0)
+    return inicio_temporal(partido.fecha_hora, mongo_adapter.find_inicio_tracking(partido.codigo))
 
 
 def _hora(inicio: datetime, minuto: int) -> str:

@@ -296,3 +296,22 @@ def test_proximo_convocado_y_acumulado_vacio(client, datos):
     acumulado = obtener_acumulados('ARG-10')
     assert acumulado.consolidacion == 'sin_datos' and acumulado.partidos == []
     influx_adapter.find_tracking_jugador.assert_not_called()
+
+
+def test_tracking_anclado_en_inicio_tracking(datos):
+    docs, _, tracking = datos
+    d = docs['P-001']
+    real = datetime(2026, 11, 20, 18, 30, tzinfo=timezone.utc)
+    intervalo = dict(desde=real.isoformat(), hasta=(real + timedelta(seconds=2)).isoformat(), muestras=3)
+    for jugador, filas in tracking.items():
+        d['tracking_control']['jugadores'][jugador] = [dict(intervalo)]
+        for n, fila in enumerate(filas):
+            fila['time'] = (real + timedelta(seconds=n)).isoformat()
+    # Sin inicio_tracking el intervalo queda fuera de fecha_hora + reloj.
+    assert obtener_rendimiento('P-001', 'ARG-10').metricas.distancia_m is None
+    d['inicio_tracking'] = real
+    assert obtener_rendimiento('P-001', 'ARG-10').metricas.distancia_m == 8.
+    # Con inicio_tracking, el tracking precargado en el horario del calendario ya no es válido.
+    d['tracking_control']['jugadores']['ARG-10'] = [dict(desde=INICIO.isoformat(),
+        hasta=(INICIO + timedelta(seconds=2)).isoformat(), muestras=3)]
+    assert obtener_rendimiento('P-001', 'ARG-10').metricas.distancia_m is None
