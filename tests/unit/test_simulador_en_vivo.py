@@ -282,12 +282,16 @@ def en_vivo(monkeypatch, plan, cache_redis):
     return doc, influx, confirmados
 
 
-def _simular(plan, influx, factor=10, informar=None):
+def _ocupacion_falsa(codigo, _influx):
+    return dict(partido=codigo, enviadas=0, rechazadas=0)
+
+
+def _simular(plan, influx, factor=10, informar=None, materializar=_ocupacion_falsa):
     reloj = RelojFalso()
     escritor = EscritorInflux(_adaptador(influx), BASES)
     resultado = simular(plan, factor, titulares_de_archivos([DEMO_P001], plan), ['CONMEBOL', 'UEFA'], escritor,
                         reloj=reloj, dormir=reloj.dormir, ahora=datetime(2026, 11, 20, 18, 30, 42, tzinfo=timezone.utc),
-                        informar=informar or (lambda _: None))
+                        informar=informar or (lambda _: None), materializar=materializar)
     return resultado, reloj
 
 
@@ -402,7 +406,7 @@ def test_metricas_de_ticks_puntos_segundo_y_retraso(plan, en_vivo):
     reloj = RelojFalso()
     escritor = EscritorInflux(_adaptador(influx), BASES)
     simular(plan, 10, titulares_de_archivos([DEMO_P001], plan), ['UEFA'], escritor, reloj=reloj, dormir=reloj.dormir,
-            ahora=INICIO_TRACKING, informar=lambda _: None)
+            ahora=INICIO_TRACKING, informar=lambda _: None, materializar=_ocupacion_falsa)
     assert _metrica(escritor, 'simulador_ticks_aplicados_total') == 9
     assert _metrica(escritor, 'simulador_puntos_escritos_total', tabla='tracking_jugador') == 22 * 5400
     assert _metrica(escritor, 'simulador_puntos_escritos_total', tabla='estadisticas_partido') == 2162
@@ -432,3 +436,72 @@ def test_metricas_se_exponen_en_todas_las_interfaces_con_su_registro(monkeypatch
     metricas = MetricasSimulador(BASES)
     metricas.exponer(9105)
     servidor.assert_called_once_with(9105, addr='0.0.0.0', registry=metricas.registro)
+
+
+class OcupacionFalsa:
+    """Tracking leído al finalizar: registra cuándo se materializa respecto del estado del partido."""
+
+    def __init__(self, doc, rechazadas=0, falla=None):
+        self.doc, self.rechazadas, self.falla = doc, rechazadas, falla
+        self.lotes, self.estado_al_leer = [], None
+
+    def query_sql(self, query, params=None, database=None):
+        if self.falla:
+            raise self.falla
+        self.estado_al_leer = self.doc['estado']
+        assert database == settings.influx_database_en_vivo and params['partido'] == 'P-001'
+        return [{'jugador_id': 'URU-1', 'equipo_id': 'URU', 'minuto': '2026-11-20T18:30:00',
+                 'columna': 3.0, 'fila': 2.0, 'muestras': 60}]
+
+    def escribir_lineas(self, base, lineas):
+        self.lotes.append((base, list(lineas)))
+        return self.rechazadas
+
+
+class RedisScriptsFalso:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        return False
+
+    def scan_iter(self, match, count):
+        return []
+
+
+def _materializar_con(ocupacion):
+    from scripts.simular_en_vivo import materializar_al_finalizar
+    return lambda codigo, _influx: materializar_al_finalizar(codigo, ocupacion, RedisScriptsFalso)
+
+
+def test_al_finalizar_materializa_la_ocupacion_y_la_informa(plan, en_vivo):
+    doc, influx, _ = en_vivo
+    ocupacion = OcupacionFalsa(doc)
+    resultado, _ = _simular(plan, influx, materializar=_materializar_con(ocupacion))
+    assert ocupacion.estado_al_leer == 'finalizado'
+    assert resultado['ocupacion'] == dict(partido='P-001', enviadas=1, rechazadas=0)
+    base, lineas = ocupacion.lotes[0]
+    assert base == settings.influx_database and lineas[0].startswith('ocupacion_jugador_minuto,partido_id=P-001,')
+    assert resultado['consolidacion'] == 'completa'
+
+
+@pytest.mark.parametrize('falla, rechazadas, esperado', [
+    (RuntimeError('caído'), 0, dict(partido='P-001', error='RuntimeError')),
+    (None, 1, dict(partido='P-001', enviadas=1, rechazadas=1)),
+])
+def test_falla_al_materializar_no_deshace_el_partido(plan, en_vivo, falla, rechazadas, esperado):
+    doc, influx, _ = en_vivo
+    resultado, _ = _simular(plan, influx, materializar=_materializar_con(OcupacionFalsa(doc, rechazadas, falla)))
+    assert doc['estado'] == 'finalizado' and resultado['consolidacion'] == 'completa'
+    assert resultado['ocupacion'] == dict(esperado,
+        reintentar='.venv/bin/python scripts/materializar_ocupacion.py --partido P-001')
+
+
+def test_sin_titulares_no_materializa(plan, en_vivo):
+    _, influx, _ = en_vivo
+    reloj = RelojFalso()
+    materializar = MagicMock()
+    resultado = simular(plan, 2000, [], ['UEFA'], EscritorInflux(_adaptador(influx), BASES), reloj=reloj,
+                        dormir=reloj.dormir, ahora=INICIO_TRACKING, informar=lambda _: None, materializar=materializar)
+    materializar.assert_not_called()
+    assert resultado['ocupacion'] == dict(partido='P-001', enviadas=0, rechazadas=0)

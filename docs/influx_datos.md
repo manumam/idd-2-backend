@@ -99,7 +99,9 @@ fuera de la cancha. Funciones en la documentación de InfluxDB 3 Core:
 `GET /partidos/{codigo}/mapa-calor` lee esta tabla en partidos finalizados: suma
 `muestras` por `celda` de las ventanas que empiezan en el rango pedido.
 
-Ejecutarlo después de cada partido y antes de que venza su crudo (7 días). La
+Ejecutarlo después de cada partido y antes de que venza su crudo (7 días).
+`scripts/simular_en_vivo.py` lo hace solo al finalizar el partido simulado; el
+comando manual queda para reprocesar o si esa materialización falló. La
 escritura usa el mismo método del adaptador que `cargar_influx.py`; si queda alguna
 línea rechazada termina con código 1. Reprocesar escribe el mismo valor en la
 misma serie y timestamp, sin sumar. Un punto de una celda que ya no tiene

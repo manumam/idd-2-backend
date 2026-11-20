@@ -91,6 +91,24 @@ Cada tick invalida las cachés del partido, fixture, posiciones y cuadro (lo hac
 `aplicar_tick`) y además `mapa_calor:v2:{partido}:*`. Entre ticks, el TTL de 5 s
 del mapa en vivo limita la antigüedad. Redis caído no detiene la simulación.
 
+## Al finalizar: ocupación del mapa de calor
+
+Con el partido ya finalizado, y si hubo `tracking_jugador`, el simulador materializa
+`ocupacion_jugador_minuto` con las funciones de `scripts/materializar_ocupacion.py`
+(no un subproceso): el mapa de calor pasa a la fuente `historico`. Después cierra el
+resumen de equipos del caso 8. La salida incluye `ocupacion` con `enviadas` y
+`rechazadas`.
+
+Una falla de la materialización no deshace el partido: queda finalizado, `ocupacion`
+informa el `error` (o las líneas rechazadas) y `reintentar` con el comando manual, que
+también se imprime en stderr:
+
+```bash
+.venv/bin/python scripts/materializar_ocupacion.py --partido P-051
+```
+
+Mientras tanto el mapa sigue leyendo el crudo, que vence a los 7 días.
+
 ## Métricas para Prometheus
 
 Mientras corre, el simulador expone `/metrics` en `0.0.0.0:9105` (`--puerto-metricas`
@@ -119,8 +137,8 @@ estadísticas) **o elegir otro partido próximo**. El script no restaura ni borr
   odómetro creciente sin huecos a 1 Hz y velocidad en km/h. El simulador no
   registra `tracking_control`: consolidar el caso 9 sigue requiriendo registrarlo
   con `scripts/consolidar_jugadores.py`, con intervalos desde `inicio_tracking`.
-- El crudo vence a los 7 días: materializar la ocupación con
-  `scripts/materializar_ocupacion.py` para conservar el mapa de calor.
+- El crudo vence a los 7 días; la ocupación materializada al finalizar conserva
+  el mapa de calor.
 
 Las pruebas (`tests/unit/test_simulador_en_vivo.py`) recorren el partido completo
 con reloj, MongoDB, Redis e Influx en memoria. No certifican una ejecución real.

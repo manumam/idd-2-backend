@@ -18,7 +18,7 @@ from app.core.exceptions import DatabaseUnavailableError
 from app.schemas.alineaciones import Alineaciones
 from app.services.cache_partidos import patron_mapa_calor
 from app.services.comparacion_service import consolidar
-from scripts import cargar_influx
+from scripts import cargar_influx, materializar_ocupacion
 from scripts.cargar_alineaciones import Lote
 from scripts.cargar_fixture import read_csv
 from scripts.simular_estadisticas import (
@@ -202,8 +202,28 @@ def invalidar_mapa_calor(codigo):
         pass
 
 
+def conectar_cache_scripts():
+    from app.config.settings import settings
+    from app.services.cache_partidos import conectar_cache
+    return conectar_cache(settings)
+
+
+def materializar_al_finalizar(codigo, influx, conectar=conectar_cache_scripts):
+    """Pasa el mapa de calor a la fuente histórica. Una falla no deshace el partido ya finalizado."""
+    from app.config.settings import settings
+    reintentar = f'.venv/bin/python scripts/materializar_ocupacion.py --partido {codigo}'
+    try:
+        resultado = materializar_ocupacion.materializar(
+            influx, conectar, settings.influx_database_en_vivo, settings.influx_database, codigo)
+    except Exception as exc:
+        return dict(partido=codigo, error=type(exc).__name__, reintentar=reintentar)
+    if resultado['rechazadas']:
+        resultado['reintentar'] = reintentar
+    return resultado
+
+
 def simular(plan, factor, titulares, confederaciones, escritor, reloj=time.monotonic, dormir=time.sleep,
-            ahora=None, informar=print):
+            ahora=None, informar=print, materializar=materializar_al_finalizar):
     """Avanza el partido en tiempo real acelerado hasta finalizarlo. No es reanudable."""
     codigo = plan.deportivo.partido
     doc = mongo_adapter.find_estadisticas(codigo)
@@ -242,9 +262,11 @@ def simular(plan, factor, titulares, confederaciones, escritor, reloj=time.monot
             espera = proximo - (reloj() - origen)
             if espera > 0:
                 dormir(espera)
+    # Sin titulares no hay tracking_jugador que materializar.
+    ocupacion = materializar(codigo, escritor.influx) if titulares else dict(partido=codigo, enviadas=0, rechazadas=0)
     resumen = consolidar(codigo)
     return dict(partido=codigo, inicio_tracking=inicio_tracking.strftime('%Y-%m-%dT%H:%M:%SZ'),
-                factor=factor, tablas=escritor.contadores, consolidacion=resumen.consolidacion)
+                factor=factor, tablas=escritor.contadores, consolidacion=resumen.consolidacion, ocupacion=ocupacion)
 
 
 def contar_puntos(plan, titulares, confederaciones):
@@ -291,7 +313,11 @@ def main():
     titulares = titulares_de(Alineaciones.model_validate(documento.get('alineaciones') or {}), plan.local, plan.visitante)
     escritor = EscritorInflux(influx_adapter, bases_configuradas())
     escritor.metricas.exponer(args.puerto_metricas)
-    print(json.dumps(simular(plan, args.factor, titulares, confederaciones, escritor), indent=2))
+    resultado = simular(plan, args.factor, titulares, confederaciones, escritor)
+    print(json.dumps(resultado, indent=2))
+    if 'reintentar' in resultado['ocupacion']:
+        print('El partido quedó finalizado, pero la ocupación del mapa de calor no se materializó completa. '
+              f"Reintentar: {resultado['ocupacion']['reintentar']}", file=sys.stderr)
 
 
 if __name__ == '__main__':
