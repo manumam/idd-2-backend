@@ -1499,9 +1499,10 @@ paths:
       tags:
       - Demo
       summary: Estado de la simulación en vivo
-      description: Última simulación lanzada por este proceso de la API, o la que
-        está en curso, y el próximo partido simulable. segundo_de_juego avanza con
-        cada tick confirmado del guion.
+      description: 'Última simulación lanzada por este proceso de la API, o la que
+        está en curso, y siguiente: el próximo partido simulable con la misma regla
+        que POST sin partido, consultado en MongoDB sin caché. segundo_de_juego avanza
+        con cada tick confirmado del guion.'
       operationId: estado_simulacion_demo_simulacion_get
       responses:
         '200':
@@ -1526,16 +1527,39 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
+        '503':
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
     post:
       tags:
       - Demo
       summary: Simular un partido en vivo
-      description: Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido
-        elige el próximo partido simulable; con partido valida ese código. Requiere
-        un partido próximo, sin datos previos y con las dos alineaciones. Responde
-        sin esperar a que termine. Modifica eventos, reloj, marcador y estado hasta
-        finalizarlo y escribe en InfluxDB; no es reanudable. Una simulación a la vez
-        por proceso de la API.
+      description: 'Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido
+        elige el próximo por fecha_hora: próximo, sin eventos, resultado ni simulaciones
+        previas y con las dos alineaciones. Con partido valida ese código con las
+        mismas condiciones, pero alcanza una alineación. Responde sin esperar a que
+        termine. Modifica eventos, reloj, marcador y estado hasta finalizarlo y escribe
+        en InfluxDB; no es reanudable. Una simulación a la vez por proceso de la API.'
       operationId: iniciar_simulacion_demo_simulacion_post
       requestBody:
         content:
@@ -3002,6 +3026,7 @@ components:
           - type: string
           - type: 'null'
           title: Siguiente
+          description: Próximo partido simulable con ambas alineaciones
           examples:
           - P-004
       type: object
@@ -3022,6 +3047,7 @@ components:
             pattern: ^P-[0-9]{3}$
           - type: 'null'
           title: Partido
+          description: Sin partido, se elige el próximo simulable
           examples:
           - P-001
         factor:

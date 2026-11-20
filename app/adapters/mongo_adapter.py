@@ -171,10 +171,24 @@ class MongoAdapter(BaseAdapter):
         return self._execute(lambda: self.db["partidos"].find_one({"_id": codigo}))
 
     @observe("MongoDB")
-    def list_candidatos_simulacion(self):
-        """Próximos partidos ordenados para que el servicio elija el primero simulable."""
-        return self._execute(lambda: list(self.db["partidos"].find(
-            {"estado": "proximo"}).sort([("fecha_hora", 1), ("_id", 1)])))
+    def list_candidatos_simulacion(self, limite: int):
+        """Próximos sin datos previos y con ambas alineaciones; el servicio valida el resto."""
+        filtro = {
+            "estado": "proximo",
+            "eventos": {"$in": [None, []]},
+            "resultado": None,
+            "estadisticas_control": {"$in": [None, {}]},
+            "inicio_tracking": None,
+            "local": {"$ne": None},
+            "visitante": {"$ne": None},
+            "alineaciones.local": {"$ne": None},
+            "alineaciones.visitante": {"$ne": None},
+        }
+        proyeccion = {field: 1 for field in (
+            "_id", "fecha_hora", "estado", "eventos", "resultado", "estadisticas_control",
+            "inicio_tracking", "local", "visitante", "alineaciones")}
+        return self._execute(lambda: list(self.db["partidos"].find(filtro, proyeccion)
+                                          .sort([("fecha_hora", 1), ("_id", 1)]).limit(limite)))
 
     @observe("MongoDB")
     def list_partidos_jugador(self, codigo: str):

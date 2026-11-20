@@ -3384,6 +3384,70 @@
                 }
               ],
               "body": "{\"en_curso\": false, \"partido\": \"P-002\", \"factor\": 10.0, \"segundo_de_juego\": 5400, \"iniciada_en\": \"2026-11-20T18:30:00Z\", \"finalizada\": true, \"error\": null, \"siguiente\": \"P-004\"}"
+            },
+            {
+              "name": "MONGODB_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/demo/simulacion",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "demo",
+                    "simulacion"
+                  ],
+                  "query": []
+                },
+                "description": "Última simulación lanzada por este proceso de la API, o la que está en curso, y el próximo partido simulable."
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_UNAVAILABLE\", \"message\": \"MongoDB no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_TIMEOUT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/demo/simulacion",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "demo",
+                    "simulacion"
+                  ],
+                  "query": []
+                },
+                "description": "Última simulación lanzada por este proceso de la API, o la que está en curso, y el próximo partido simulable."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
             }
           ]
         },

@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts" / "simular_en_vivo.py"
 ESPERA_PLAN_SEG = 60
 ESPERA_CIERRE_SEG = 10
+CANDIDATOS_SIGUIENTE = 20
 
 
 def motivo_no_simulable(documento: dict) -> str | None:
@@ -33,14 +34,16 @@ def motivo_no_simulable(documento: dict) -> str | None:
     return None
 
 
-def motivo_sin_alineaciones(documento: dict) -> str | None:
+def motivo_sin_alineaciones(documento: dict, exigir_ambas: bool = False) -> str | None:
     # Sin alineaciones no hay tracking: la demo mostraría un mapa de calor vacío.
     try:
         alineaciones = Alineaciones.model_validate(documento.get("alineaciones") or {})
     except ValidationError:
         return "Las alineaciones del partido son inválidas"
-    cargadas = {lado: getattr(alineaciones, lado) for lado in ("local", "visitante")}
-    if not all(cargadas.values()):
+    cargadas = {lado: getattr(alineaciones, lado) for lado in ("local", "visitante") if getattr(alineaciones, lado)}
+    if not cargadas:
+        return "El partido no tiene alineaciones cargadas"
+    if exigir_ambas and len(cargadas) < 2:
         return "El partido no tiene las dos alineaciones cargadas"
     if any(a.equipo.codigo != documento[lado]["codigo"] for lado, a in cargadas.items()):
         return "Una alineación no corresponde a la selección del partido"
@@ -139,8 +142,9 @@ class SimulacionDemo:
         return self._proceso is not None and self._proceso.codigo_salida() is None
 
     def _siguiente(self, excluir: str | None = None) -> str | None:
-        for documento in mongo_adapter.list_candidatos_simulacion():
-            if documento.get("_id") != excluir and not (motivo_no_simulable(documento) or motivo_sin_alineaciones(documento)):
+        for documento in mongo_adapter.list_candidatos_simulacion(CANDIDATOS_SIGUIENTE):
+            simulable = not (motivo_no_simulable(documento) or motivo_sin_alineaciones(documento, exigir_ambas=True))
+            if simulable and documento["_id"] != excluir:
                 return documento["_id"]
         return None
 

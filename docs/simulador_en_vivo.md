@@ -88,27 +88,29 @@ tiene los mismos efectos que el comando: modifica el encuentro hasta finalizarlo
 
 - Antes de lanzar, la API aplica las condiciones del script (`motivo_no_simulable`,
   compartida con `simular`): próximo, sin eventos ni resultado, ambas selecciones, sin
-  `estadisticas_control` ni `inicio_tracking`. Además exige las dos alineaciones cargadas:
-  sin ellas faltaría tracking para una selección.
+  `estadisticas_control` ni `inicio_tracking`. La elección automática exige además las
+  dos alineaciones cargadas, cada una de su selección (una sola consulta acotada a MongoDB,
+  ordenada por `fecha_hora`); con `partido` explícito alcanza con una, porque sin
+  ninguna no hay tracking y el mapa de calor quedaría vacío.
 - Genera el plan con `--crear-plan` en un directorio temporal y ejecuta el script con
   `--factor` como **proceso aparte**, con el mismo intérprete, entorno y directorio que la
   API, así usa las mismas bases configuradas. No es un hilo de la API: el simulador
   mantiene su propio pool de conexiones y no compite con la atención de pedidos.
 - Responde 202 sin esperar. Una simulación a la vez por proceso de la API.
-- `GET /demo/simulacion` informa `en_curso`, `finalizada` (código de salida 0), `error` y
-  `siguiente`, el código del próximo partido simulable o `null`.
-  (código de salida y última línea de stderr). `segundo_de_juego` se lee de las líneas
-  JSON que el script imprime en cada tick del guion, por lo que avanza por ticks. Para
-  el avance segundo a segundo, usar `/metrics` del simulador (puerto 9105).
+- `GET /demo/simulacion` informa `en_curso`, `finalizada` (código de salida 0), `error`
+  (código de salida y última línea de stderr) y `siguiente`, el próximo partido simulable
+  con la misma regla o `null`, consultado en MongoDB en cada pedido, sin caché.
+  `segundo_de_juego` se lee de las líneas JSON que el script imprime en cada tick del
+  guion, por lo que avanza por ticks. Para el avance segundo a segundo, usar `/metrics` del simulador (puerto 9105).
 - Al apagar la API se envía SIGINT al simulador (como Ctrl+C): el partido queda cortado
   y no es reanudable. El estado vive en memoria: reiniciar la API lo pierde.
 
 | Código | Cuándo |
 | --- | --- |
-| 404 `PARTIDO_NO_ENCONTRADO` | el partido no existe |
+| 404 `PARTIDO_NO_ENCONTRADO` | el `partido` indicado no existe |
 | 409 `SIMULACION_EN_CURSO` | ya hay una simulación corriendo en este proceso |
 | 409 `SIN_PARTIDOS_SIMULABLES` | no queda un partido próximo con ambas alineaciones y sin datos previos |
-| 409 `PARTIDO_NO_SIMULABLE` | no cumple las condiciones o el script rechazó el plan |
+| 409 `PARTIDO_NO_SIMULABLE` | el `partido` indicado no cumple las condiciones o el script rechazó el plan |
 
 ## Ritmo, orden e invalidación
 

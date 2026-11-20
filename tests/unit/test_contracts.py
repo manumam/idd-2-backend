@@ -167,7 +167,7 @@ def test_postman_operations_and_parameters_match_openapi():
     for (path, method), item in operations.items():
         expected = {p['name'] for p in schema['paths'][path][method].get('parameters', []) if p['in'] == 'query'}
         assert expected == {p['key'] for p in item['request']['url'].get('query', [])}
-        if path not in ('/health', '/live', '/ready') and (path, method) != ('/demo/simulacion', 'get'):
+        if path not in ('/health', '/live', '/ready'):
             assert 504 in {response['code'] for response in item['response']}
             assert '504' in schema['paths'][path][method]['responses']
 
