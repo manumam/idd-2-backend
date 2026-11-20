@@ -171,9 +171,13 @@ estadísticas) **o elegir otro partido próximo**. El script no restaura ni borr
   del guion no modifican el tracking.
 - El caso 9 valida el tracking desde `inicio_tracking` más el reloj (la misma
   regla de anclaje que el mapa de calor y el caso 8), y los campos son compatibles:
-  odómetro creciente sin huecos a 1 Hz y velocidad en km/h. El simulador no
-  registra `tracking_control`: consolidar el caso 9 sigue requiriendo registrarlo
-  con `scripts/consolidar_jugadores.py`, con intervalos desde `inicio_tracking`.
+  odómetro creciente sin huecos a 1 Hz y velocidad en km/h.
+- El rendimiento individual (caso 9) de un partido simulado no se consolida, por
+  decisión: el simulador no registra `tracking_control` y no sigue al suplente que
+  entra en el cambio, y la consolidación rechaza a un jugador que participó sin
+  muestras. No se fabrican muestras para cubrir ese hueco (ver
+  [rendimiento](rendimiento.md)), así que distancia y velocidad máxima de ese
+  partido quedan en "—". En la demo no se muestra el rendimiento de sus jugadores.
 - El crudo vence a los 7 días; la ocupación materializada al finalizar conserva
   el mapa de calor.
 
