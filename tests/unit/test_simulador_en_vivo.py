@@ -127,7 +127,7 @@ def test_muestras_por_segundo_iguales_a_la_carga_masiva(plan):
     assert tablas['actividad_usuarios'] == list(cargar_influx.lineas_actividad_usuarios(masivo, regiones))
     assert len(tablas['tracking_jugador']) == 22 * DURACION_SEG
     # Estadísticas: exactamente las del caso 8, sin duplicar el muestreo de la carga masiva.
-    assert tablas['estadisticas_partido'] == line_protocol(plan, plan.muestras(0, 5400)).splitlines()
+    assert tablas['estadisticas_partido'] == line_protocol(plan, plan.muestras(0, 5400, INICIO_TRACKING)).splitlines()
     assert len(tablas['estadisticas_partido']) == 2162
 
 
@@ -139,8 +139,8 @@ def test_anclas_de_tiempo_y_series_de_cada_tabla(plan):
     assert tablas['tracking_jugador'][-1].endswith(f' {inicio + 5}')
     assert [l.rsplit(' ', 1)[1] for l in tablas['tracking_pelota']] == [str(inicio + s) for s in range(6)]
     assert [l.rsplit(' ', 1)[1] for l in tablas['actividad_usuarios']] == [str(inicio), str(inicio + 5)]
-    plan_inicio = int(datetime(2030, 6, 8, 20, tzinfo=timezone.utc).timestamp())
-    assert [l.rsplit(' ', 1)[1] for l in tablas['estadisticas_partido']] == [str(plan_inicio)] * 2 + [str(plan_inicio + 5)] * 2
+    # También las del caso 8: las de la carga masiva quedan en el horario del partido, sin choque.
+    assert [l.rsplit(' ', 1)[1] for l in tablas['estadisticas_partido']] == [str(inicio)] * 2 + [str(inicio + 5)] * 2
     assert 'duracion_s=0i' in tablas['estadisticas_partido'][0]
 
 
@@ -311,9 +311,9 @@ def test_recorrido_completo_avanza_mongo_e_influx_al_mismo_ritmo(plan, en_vivo, 
     inicio = int(INICIO_TRACKING.timestamp())
     tiempos = sorted({int(l.rsplit(' ', 1)[1]) for l in influx.lineas['tracking_jugador']})
     assert tiempos == list(range(inicio, inicio + 5400))
-    plan_inicio = int(datetime(2030, 6, 8, 20, tzinfo=timezone.utc).timestamp())
+    assert doc['estadisticas_control']['inicio'] == '2026-11-20T18:30:00Z'
     for minuto, ultimo in confirmados:
-        assert ultimo >= plan_inicio + minuto * 60
+        assert ultimo >= inicio + minuto * 60
     ticks = [json.loads(a) for a in avisos]
     assert [t['minuto'] for t in ticks] == [0, 12, 28, 45, 46, 62, 78, 82, 90]
     assert all(t['minuto'] * 60 <= t['segundo_de_juego'] < t['minuto'] * 60 + 10 for t in ticks)
@@ -340,7 +340,7 @@ def test_rechazo_de_influx_detiene_antes_de_confirmar_el_tick(plan, en_vivo):
         _simular(plan, InfluxFalso())
 
 
-def test_no_simula_partidos_iniciados_ni_con_muestras_previas(plan, en_vivo):
+def test_no_simula_partidos_iniciados_ni_con_muestras_en_su_inicio_real(plan, en_vivo):
     doc, influx, _ = en_vivo
     doc['estado'] = 'en_vivo'
     doc['resultado'] = dict(goles_local=0, goles_visitante=0, penales=None)
@@ -348,11 +348,21 @@ def test_no_simula_partidos_iniciados_ni_con_muestras_previas(plan, en_vivo):
         _simular(plan, influx)
     assert 'inicio_tracking' not in doc
     doc.update(estado='proximo', resultado=None)
-    plan_inicio = int(datetime(2030, 6, 8, 20, tzinfo=timezone.utc).timestamp())
-    influx.estadisticas[(plan_inicio, 'URU')] = dict(time='2030-06-08T20:00:00+00:00', equipo_id='URU')
+    inicio = int(INICIO_TRACKING.timestamp())
+    influx.estadisticas[(inicio + 60, 'URU')] = dict(time='2026-11-20T18:31:00+00:00', equipo_id='URU')
     with pytest.raises(ValueError, match='muestras'):
         _simular(plan, influx)
     assert 'inicio_tracking' not in doc
+
+
+def test_muestras_precargadas_en_el_horario_no_impiden_simular(plan, en_vivo):
+    doc, influx, _ = en_vivo
+    precargadas = plan.muestras(0, 5400)
+    for fila in precargadas:
+        influx.estadisticas[(int(datetime.fromisoformat(fila['time']).timestamp()), fila['equipo_id'])] = fila
+    resultado, _ = _simular(plan, influx)
+    assert doc['estado'] == 'finalizado' and resultado['consolidacion'] == 'completa'
+    assert len(influx.estadisticas) == 2 * len(precargadas)
 
 
 def test_solo_validar_no_conecta(plan, tmp_path, monkeypatch, capsys):

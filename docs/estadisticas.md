@@ -130,6 +130,12 @@ La comprobación previa consulta el esquema de Influx: si aún no existe la tabl
 la primera escritura la crea. Las muestras heredadas sin duración no se consideran
 cobertura suficiente para consolidar.
 
+Las muestras se anclan en el inicio temporal del partido: `fecha_hora`, salvo que
+el partido tenga `inicio_tracking` (lo registra la simulación en vivo de
+[simulador_en_vivo.md](simulador_en_vivo.md)); entonces el control y la lectura
+empiezan en esa hora real. `estadisticas_control.inicio` guarda el ancla usado y
+la comparación exige que coincida con el del partido.
+
 Influx se escribe antes de confirmar el tick en MongoDB. No hay transacción
 distribuida: una interrupción puede dejar muestras adelantadas. Las lecturas se
 limitan al avance confirmado; volver a ejecutar **el mismo archivo** reenvía las

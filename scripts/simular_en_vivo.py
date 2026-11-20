@@ -98,12 +98,14 @@ class GeneradorMuestras:
 
     Tracking y audiencia reutilizan los generadores de la carga masiva, anclados en
     inicio_tracking: mismos valores por segundo, otra hora. Las estadísticas de equipo
-    son las del caso 8, ancladas en el inicio del plan, que es lo que su comparación valida.
+    son las del caso 8, también ancladas en inicio_tracking: así no chocan con las que la
+    carga masiva escribió en el horario del partido.
     Las secuencias son deterministas pero dependen de los segundos anteriores: se piden en orden.
     """
 
     def __init__(self, plan, titulares, confederaciones, inicio_tracking):
         self.plan = plan
+        self.inicio_tracking = inicio_tracking
         self.titulares = titulares
         self.confederaciones = confederaciones
         partido = dict(codigo=cargar_influx._tag(plan.deportivo.partido),
@@ -126,7 +128,7 @@ class GeneradorMuestras:
                     tablas['actividad_usuarios'] += islice(self._audiencia, len(self.confederaciones))
         primero = -(-desde // INTERVALO_RESUMEN_SEG) * INTERVALO_RESUMEN_SEG
         if primero <= hasta:
-            tablas['estadisticas_partido'] = line_protocol(self.plan, self.plan.muestras(primero, hasta)).splitlines()
+            tablas['estadisticas_partido'] = line_protocol(self.plan, self.plan.muestras(primero, hasta, self.inicio_tracking)).splitlines()
         self.siguiente = hasta + 1
         return tablas
 

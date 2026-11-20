@@ -9,7 +9,7 @@ cada segundo de juego escribe lo que escribiría una ingesta real:
 | MongoDB `partidos` | reloj, marcador, eventos y estado (guion del caso 7) | en el minuto de cada tick del guion | — |
 | `fixture2030_en_vivo.tracking_jugador` | `x_m`, `y_m`, `velocidad_kmh`, `distancia_acum_m` | 1 Hz por titular | `inicio_tracking` + segundo |
 | `fixture2030_en_vivo.tracking_pelota` | posición y velocidad | 1 Hz | `inicio_tracking` + segundo |
-| `fixture2030_resumen.estadisticas_partido` | muestras del caso 8 | cada 5 s por selección | `fecha_hora` + segundo |
+| `fixture2030_resumen.estadisticas_partido` | muestras del caso 8 | cada 5 s por selección | `inicio_tracking` + segundo |
 | `fixture2030_resumen.actividad_usuarios` | usuarios conectados | cada 5 s por región | `inicio_tracking` + segundo |
 
 Las bases son las configuradas en `INFLUX_DATABASE_EN_VIVO` e `INFLUX_DATABASE`,
@@ -42,8 +42,12 @@ se escribe en `inicio_tracking + s`; con factor 10 esos puntos quedan por delant
 del reloj de pared, sin efecto para las consultas, que cuentan minutos de juego
 desde `inicio_tracking`.
 
-Las estadísticas de equipo quedan ancladas en `fecha_hora`, porque la comparación
-del caso 8 exige que su control empiece en el horario del partido.
+Las estadísticas de equipo también se anclan en `inicio_tracking`: el control del
+caso 8 (`estadisticas_control.inicio`) guarda esa hora y la comparación exige que
+coincida con el inicio temporal del partido (`inicio_tracking` si existe, si no
+`fecha_hora`). Así las muestras que la carga masiva escribió en el horario del
+calendario no se mezclan con las de la simulación ni la bloquean. El plan sigue
+atado al horario: si `fecha_hora` cambia, la ejecución se rechaza igual que en el caso 8.
 
 ## Comandos
 
@@ -71,9 +75,9 @@ resumen de equipos y actualiza el validador de `partidos` (incluye `inicio_track
 ```
 
 Se rechazan partidos no próximos, con `estadisticas_control` o `inicio_tracking`,
-referencias desactualizadas y muestras de `estadisticas_partido` preexistentes en
-el horario del partido. La carga masiva de `cargar_influx.py` escribe esas muestras
-para todos los partidos: en una base con esa carga, el partido se rechaza.
+referencias desactualizadas y muestras de `estadisticas_partido` preexistentes
+desde el nuevo `inicio_tracking`. Las de la carga masiva (`cargar_influx.py`) están
+en el horario del calendario y no impiden simular.
 
 ## Ritmo, orden e invalidación
 
