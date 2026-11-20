@@ -1494,6 +1494,144 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
+  /demo/simulacion:
+    get:
+      tags:
+      - Demo
+      summary: Estado de la simulación en vivo
+      description: Última simulación lanzada por este proceso de la API, o la que
+        está en curso. No consulta bases. segundo_de_juego avanza con cada tick confirmado
+        del guion.
+      operationId: estado_simulacion_demo_simulacion_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulacionEstado'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+    post:
+      tags:
+      - Demo
+      summary: Simular un partido en vivo
+      description: Lanza scripts/simular_en_vivo.py como proceso aparte para un partido
+        próximo con alineaciones, sin simulaciones previas, y responde sin esperar
+        a que termine. Modifica eventos, reloj, marcador y estado del partido hasta
+        finalizarlo y escribe en InfluxDB; no es reanudable. Deshabilitada salvo DEMO_SIMULACION_HABILITADA=true.
+        Una simulación a la vez por proceso de la API.
+      operationId: iniciar_simulacion_demo_simulacion_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimulacionRequest'
+        required: true
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulacionEstado'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '400':
+          description: Parámetro inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '403':
+          description: Demo deshabilitada (DEMO_DESHABILITADA)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '409':
+          description: SIMULACION_EN_CURSO o PARTIDO_NO_SIMULABLE
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '503':
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
 components:
   schemas:
     AcumuladosJugadorResponse:
@@ -2824,3 +2962,79 @@ components:
       - nombre
       - ciudad
       title: SedeRef
+    SimulacionEstado:
+      properties:
+        habilitada:
+          type: boolean
+          title: Habilitada
+        en_curso:
+          type: boolean
+          title: En Curso
+        partido:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Partido
+          examples:
+          - P-001
+        factor:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Factor
+          examples:
+          - 10
+        segundo_de_juego:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Segundo De Juego
+          description: Último segundo de juego confirmado por un tick del guion
+          examples:
+          - 2700
+        iniciada_en:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Iniciada En
+          examples:
+          - '2026-11-20T18:30:00Z'
+        finalizada:
+          type: boolean
+          title: Finalizada
+        error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error
+      type: object
+      required:
+      - habilitada
+      - en_curso
+      - partido
+      - factor
+      - segundo_de_juego
+      - iniciada_en
+      - finalizada
+      title: SimulacionEstado
+    SimulacionRequest:
+      properties:
+        partido:
+          type: string
+          pattern: ^P-[0-9]{3}$
+          title: Partido
+          examples:
+          - P-001
+        factor:
+          type: number
+          maximum: 120.0
+          minimum: 1.0
+          title: Factor
+          description: Segundos de juego por segundo real
+          default: 10
+      additionalProperties: false
+      type: object
+      required:
+      - partido
+      title: SimulacionRequest

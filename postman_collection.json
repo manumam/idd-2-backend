@@ -3298,6 +3298,407 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Demo",
+      "item": [
+        {
+          "name": "Estado de la simulación en vivo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/demo/simulacion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "demo",
+                "simulacion"
+              ],
+              "query": []
+            },
+            "description": "Última simulación lanzada por este proceso de la API, o la que está en curso. No consulta bases. segundo_de_juego avanza con cada tick confirmado del guion."
+          },
+          "response": [
+            {
+              "name": "En curso",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/demo/simulacion",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "demo",
+                    "simulacion"
+                  ],
+                  "query": []
+                },
+                "description": "Última simulación lanzada por este proceso de la API, o la que está en curso. No consulta bases. segundo_de_juego avanza con cada tick confirmado del guion."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"habilitada\": true, \"en_curso\": true, \"partido\": \"P-002\", \"factor\": 10.0, \"segundo_de_juego\": 2700, \"iniciada_en\": \"2026-11-20T18:30:00Z\", \"finalizada\": false, \"error\": null}"
+            },
+            {
+              "name": "Finalizada",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/demo/simulacion",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "demo",
+                    "simulacion"
+                  ],
+                  "query": []
+                },
+                "description": "Última simulación lanzada por este proceso de la API, o la que está en curso. No consulta bases. segundo_de_juego avanza con cada tick confirmado del guion."
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"habilitada\": true, \"en_curso\": false, \"partido\": \"P-002\", \"factor\": 10.0, \"segundo_de_juego\": 5400, \"iniciada_en\": \"2026-11-20T18:30:00Z\", \"finalizada\": true, \"error\": null}"
+            }
+          ]
+        },
+        {
+          "name": "Simular un partido en vivo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"partido\": \"P-002\", \"factor\": 10}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/demo/simulacion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "demo",
+                "simulacion"
+              ],
+              "query": []
+            },
+            "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+          },
+          "response": [
+            {
+              "name": "Lanzada",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"partido\": \"P-002\", \"factor\": 10}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/demo/simulacion",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "demo",
+                    "simulacion"
+                  ],
+                  "query": []
+                },
+                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+              },
+              "status": "Accepted",
+              "code": 202,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"habilitada\": true, \"en_curso\": true, \"partido\": \"P-002\", \"factor\": 10.0, \"segundo_de_juego\": null, \"iniciada_en\": \"2026-11-20T18:30:00Z\", \"finalizada\": false, \"error\": null}"
+            },
+            {
+              "name": "DEMO_DESHABILITADA",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"partido\": \"P-002\", \"factor\": 10}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/demo/simulacion",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "demo",
+                    "simulacion"
+                  ],
+                  "query": []
+                },
+                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"DEMO_DESHABILITADA\", \"message\": \"La simulación desde la API está deshabilitada.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "PARTIDO_NO_ENCONTRADO",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"partido\": \"P-002\", \"factor\": 10}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/demo/simulacion",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "demo",
+                    "simulacion"
+                  ],
+                  "query": []
+                },
+                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"PARTIDO_NO_ENCONTRADO\", \"message\": \"No existe el partido 'P-999'.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "SIMULACION_EN_CURSO",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"partido\": \"P-002\", \"factor\": 10}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/demo/simulacion",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "demo",
+                    "simulacion"
+                  ],
+                  "query": []
+                },
+                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+              },
+              "status": "Conflict",
+              "code": 409,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"SIMULACION_EN_CURSO\", \"message\": \"Ya hay una simulación en curso.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "PARTIDO_NO_SIMULABLE",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"partido\": \"P-002\", \"factor\": 10}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/demo/simulacion",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "demo",
+                    "simulacion"
+                  ],
+                  "query": []
+                },
+                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+              },
+              "status": "Conflict",
+              "code": 409,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"PARTIDO_NO_SIMULABLE\", \"message\": \"El partido ya tuvo una simulación: restaurarlo o elegir otro próximo.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_TIMEOUT",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"partido\": \"P-002\", \"factor\": 10}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/demo/simulacion",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "demo",
+                    "simulacion"
+                  ],
+                  "query": []
+                },
+                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
+        }
+      ]
     }
   ],
   "variable": [

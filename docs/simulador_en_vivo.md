@@ -79,6 +79,38 @@ referencias desactualizadas y muestras de `estadisticas_partido` preexistentes
 desde el nuevo `inicio_tracking`. Las de la carga masiva (`cargar_influx.py`) están
 en el horario del calendario y no impiden simular.
 
+## Desde el front
+
+Para la demo, la API lanza el mismo script con `POST /demo/simulacion`
+(`{"partido": "P-002", "factor": 10}`; `factor` opcional, de 1 a 120). Está
+**deshabilitado por defecto**: es la única ruta que escribe en las bases y nunca debe
+exponerse fuera de una demo. Se habilita con `DEMO_SIMULACION_HABILITADA=true` en
+`.env` al iniciar la API. Ejecutarlo tiene los mismos efectos que el comando: requiere
+autorizar el partido concreto.
+
+- Antes de lanzar, la API aplica las condiciones del script (`motivo_no_simulable`,
+  compartida con `simular`): próximo, sin eventos ni resultado, ambas selecciones, sin
+  `estadisticas_control` ni `inicio_tracking`. Además exige alineación cargada de al menos
+  una selección: sin ella no hay tracking y el mapa de calor quedaría vacío.
+- Genera el plan con `--crear-plan` en un directorio temporal y ejecuta el script con
+  `--factor` como **proceso aparte**, con el mismo intérprete, entorno y directorio que la
+  API, así usa las mismas bases configuradas. No es un hilo de la API: el simulador
+  mantiene su propio pool de conexiones y no compite con la atención de pedidos.
+- Responde 202 sin esperar. Una simulación a la vez por proceso de la API.
+- `GET /demo/simulacion` informa `en_curso`, `finalizada` (código de salida 0) o `error`
+  (código de salida y última línea de stderr). `segundo_de_juego` se lee de las líneas
+  JSON que el script imprime en cada tick del guion, por lo que avanza por ticks. Para
+  el avance segundo a segundo, usar `/metrics` del simulador (puerto 9105).
+- Al apagar la API se envía SIGINT al simulador (como Ctrl+C): el partido queda cortado
+  y no es reanudable. El estado vive en memoria: reiniciar la API lo pierde.
+
+| Código | Cuándo |
+| --- | --- |
+| 403 `DEMO_DESHABILITADA` | `DEMO_SIMULACION_HABILITADA` no está en `true` |
+| 404 `PARTIDO_NO_ENCONTRADO` | el partido no existe |
+| 409 `SIMULACION_EN_CURSO` | ya hay una simulación corriendo en este proceso |
+| 409 `PARTIDO_NO_SIMULABLE` | no cumple las condiciones o el script rechazó el plan |
+
 ## Ritmo, orden e invalidación
 
 El bucle escribe un lote por tabla cada segundo real con todos los segundos de

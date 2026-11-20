@@ -12,13 +12,15 @@ from app.core.handlers import register_handlers
 from app.core.request_context import request_context_middleware
 from app.routes import equipos, estadisticas, fixture, grupos, health, mapa_calor, partidos
 from app.schemas.errors import ErrorResponse
-from app.routes import metricas, playoffs, rendimiento
+from app.routes import demo, metricas, playoffs, rendimiento
+from app.services import simulacion_demo_service
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
 @asynccontextmanager
 async def lifespan(app):
     yield
+    simulacion_demo_service.detener_simulacion()
     for adapter in FUENTES.values():
         try:
             adapter.close()
@@ -49,6 +51,7 @@ app.include_router(partidos.router)
 app.include_router(estadisticas.router)
 app.include_router(mapa_calor.router)
 app.include_router(rendimiento.router)
+app.include_router(demo.router)
 
 
 def custom_openapi():

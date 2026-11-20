@@ -18,6 +18,7 @@ from app.core.exceptions import DatabaseUnavailableError
 from app.schemas.alineaciones import Alineaciones
 from app.services.cache_partidos import patron_mapa_calor
 from app.services.comparacion_service import consolidar
+from app.services.simulacion_demo_service import motivo_no_simulable
 from scripts import cargar_influx, materializar_ocupacion
 from scripts.cargar_alineaciones import Lote
 from scripts.cargar_fixture import read_csv
@@ -229,8 +230,9 @@ def simular(plan, factor, titulares, confederaciones, escritor, reloj=time.monot
     doc = mongo_adapter.find_estadisticas(codigo)
     if not doc:
         raise ValueError('Partido inexistente')
-    if doc.get('estadisticas_control') or doc.get('inicio_tracking'):
-        raise ValueError('El partido ya tuvo una simulación: restaurarlo o elegir otro próximo')
+    motivo = motivo_no_simulable(doc)
+    if motivo:
+        raise ValueError(motivo)
     inicio_tracking = inicio_tracking_desde(ahora or datetime.now(timezone.utc))
     # inicio_tracking se guarda junto con el control inicial del caso 8, en una sola escritura.
     control = preparar_ejecucion(plan, {'inicio_tracking': inicio_tracking})
