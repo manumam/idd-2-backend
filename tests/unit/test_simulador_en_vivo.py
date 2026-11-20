@@ -5,12 +5,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from app.adapters import mongo_adapter
+from app.adapters import mongo_adapter, redis_adapter
 from app.services.seguimiento_service import TickPartido
 from scripts import cargar_influx
 from scripts.simular_en_vivo import (
     DURACION_SEG, EscritorInflux, GeneradorMuestras, bases_configuradas, RelojSimulado, confederaciones_del_torneo, inicio_tracking_desde,
-    ticks_vencidos, titulares_de_archivos)
+    simular, ticks_vencidos, titulares_de_archivos)
 from scripts.simular_estadisticas import PlanEstadisticas, line_protocol
 from scripts.simular_partido import crear_plan
 
@@ -199,3 +199,174 @@ def test_bases_por_defecto_son_las_que_leen_los_casos():
     bases = bases_configuradas()
     assert bases['tracking_jugador'] == bases['tracking_pelota'] == settings.influx_database_en_vivo
     assert bases['estadisticas_partido'] == bases['actividad_usuarios'] == settings.influx_database
+
+
+class RelojFalso:
+    """Avanza solo cuando el simulador duerme: el recorrido completo no espera tiempo real."""
+
+    def __init__(self):
+        self.ahora = 0.0
+        self.esperas = 0
+
+    def __call__(self):
+        return self.ahora
+
+    def dormir(self, segundos):
+        assert segundos > 0
+        self.esperas += 1
+        self.ahora += segundos
+
+
+class InfluxFalso:
+    def __init__(self, rechazar=False):
+        self.rechazar = rechazar
+        self.lineas = {}
+        self.estadisticas = {}
+
+    def post(self, url, params, data, headers, timeout):
+        if self.rechazar:
+            return _respuesta(500)
+        for linea in data.decode().splitlines():
+            tags, campos, ts = linea.split(' ')
+            tabla = tags.split(',', 1)[0]
+            self.lineas.setdefault(tabla, []).append(linea)
+            if tabla == 'estadisticas_partido':
+                equipo = tags.split('equipo_id=')[1]
+                valores = {k: float(v.rstrip('i')) for k, v in (p.split('=') for p in campos.split(','))}
+                self.estadisticas[(int(ts), equipo)] = dict(
+                    time=datetime.fromtimestamp(int(ts), timezone.utc).isoformat(), equipo_id=equipo, **valores)
+        return _respuesta(204)
+
+    def muestras(self, _partido, desde, hasta):
+        from app.services.comparacion_service import instante
+        return [f for (ts, _), f in sorted(self.estadisticas.items())
+                if instante(desde).timestamp() <= ts <= instante(hasta).timestamp()]
+
+
+@pytest.fixture
+def en_vivo(monkeypatch, plan, cache_redis):
+    from app.adapters import influx_adapter
+    doc = partido_proximo('P-001', plan.local.model_dump(), plan.visitante.model_dump())
+    monkeypatch.setattr(mongo_adapter, 'find_eventos', lambda _: deepcopy(doc))
+    monkeypatch.setattr(mongo_adapter, 'find_estadisticas', lambda _: deepcopy(doc))
+    monkeypatch.setattr(mongo_adapter, 'find_jugador', lambda c: dict(_id=c, nombre='Jugador',
+        apellido=c.split('-')[1], equipo={'_id': c.split('-')[0]}))
+    monkeypatch.setattr(mongo_adapter, 'list_cruces', lambda: [])
+    monkeypatch.setattr(type(mongo_adapter), 'db', property(lambda _: MagicMock()))
+    influx = InfluxFalso()
+    confirmados = []
+
+    def guardar(_, anterior, cambios):
+        if anterior != doc:
+            return False
+        if 'reloj' in cambios:
+            # Cada tick deportivo se confirma con sus estadísticas ya escritas.
+            ultimo = max((ts for ts, _ in influx.estadisticas), default=None)
+            confirmados.append((cambios['reloj']['minuto'], ultimo))
+        doc.update(deepcopy(cambios))
+        return True
+    monkeypatch.setattr(mongo_adapter, 'guardar_seguimiento', MagicMock(side_effect=guardar))
+    monkeypatch.setattr(mongo_adapter, 'guardar_estadisticas', MagicMock(side_effect=guardar))
+    monkeypatch.setattr(influx_adapter, 'find_muestras', MagicMock(side_effect=influx.muestras))
+    return doc, influx, confirmados
+
+
+def _simular(plan, influx, factor=10, informar=None):
+    reloj = RelojFalso()
+    escritor = EscritorInflux(influx, 'http://influx:8181', None, BASES)
+    resultado = simular(plan, factor, titulares_de_archivos([DEMO_P001], plan), ['CONMEBOL', 'UEFA'], escritor,
+                        reloj=reloj, dormir=reloj.dormir, ahora=datetime(2026, 11, 20, 18, 30, 42, tzinfo=timezone.utc),
+                        informar=informar or (lambda _: None))
+    return resultado, reloj
+
+
+def test_recorrido_completo_avanza_mongo_e_influx_al_mismo_ritmo(plan, en_vivo, cache_redis):
+    import json
+    doc, influx, confirmados = en_vivo
+    avisos = []
+    resultado, reloj = _simular(plan, influx, informar=avisos.append)
+    assert doc['estado'] == 'finalizado' and doc['reloj']['minuto'] == 90
+    assert doc['resultado']['goles_local'] == 2 and len(doc['eventos']) == 5
+    assert doc['inicio_tracking'] == INICIO_TRACKING
+    assert doc['estadisticas_control']['completa'] and resultado['consolidacion'] == 'completa'
+    assert doc['estadisticas_finales']['resumen']['local']['pases'] == 360
+    # 90 minutos en 9 reales, un lote por segundo real.
+    assert 540 <= reloj.ahora < 541 and 530 <= reloj.esperas <= 541
+    assert resultado['tablas']['tracking_jugador']['escritas'] == 22 * 5400
+    assert resultado['tablas']['tracking_pelota']['escritas'] == 5400
+    assert resultado['tablas']['estadisticas_partido']['escritas'] == 2162
+    assert resultado['tablas']['actividad_usuarios']['escritas'] == 1080 * 2
+    assert all(t['rechazadas'] == 0 for t in resultado['tablas'].values())
+    inicio = int(INICIO_TRACKING.timestamp())
+    tiempos = sorted({int(l.rsplit(' ', 1)[1]) for l in influx.lineas['tracking_jugador']})
+    assert tiempos == list(range(inicio, inicio + 5400))
+    plan_inicio = int(datetime(2030, 6, 8, 20, tzinfo=timezone.utc).timestamp())
+    for minuto, ultimo in confirmados:
+        assert ultimo >= plan_inicio + minuto * 60
+    ticks = [json.loads(a) for a in avisos]
+    assert [t['minuto'] for t in ticks] == [0, 12, 28, 45, 46, 62, 78, 82, 90]
+    assert all(t['minuto'] * 60 <= t['segundo_de_juego'] < t['minuto'] * 60 + 10 for t in ticks)
+    invalidaciones = [c.args[0] for c in redis_adapter.delete_cache_matching.call_args_list]
+    assert invalidaciones.count('mapa_calor:v2:P-001:*') == 9
+
+
+def test_factor_alto_aplica_todos_los_ticks_en_orden(plan, en_vivo):
+    doc, influx, confirmados = en_vivo
+    resultado, reloj = _simular(plan, influx, factor=2000)
+    assert [m for m, _ in confirmados] == [0, 12, 28, 45, 46, 62, 78, 82, 90]
+    assert doc['estado'] == 'finalizado' and reloj.ahora < 4
+    assert resultado['tablas']['tracking_pelota']['escritas'] == 5400
+
+
+def test_rechazo_de_influx_detiene_antes_de_confirmar_el_tick(plan, en_vivo):
+    doc, _, confirmados = en_vivo
+    with pytest.raises(ValueError, match='rechazó'):
+        _simular(plan, InfluxFalso(rechazar=True))
+    assert confirmados == [] and doc['estado'] == 'proximo'
+    assert doc['inicio_tracking'] == INICIO_TRACKING and doc['estadisticas_control']['tick'] == -1
+    # Una ejecución cortada no se reanuda: hay que restaurar el partido o elegir otro.
+    with pytest.raises(ValueError, match='restaurarlo'):
+        _simular(plan, InfluxFalso())
+
+
+def test_no_simula_partidos_iniciados_ni_con_muestras_previas(plan, en_vivo):
+    doc, influx, _ = en_vivo
+    doc['estado'] = 'en_vivo'
+    doc['resultado'] = dict(goles_local=0, goles_visitante=0, penales=None)
+    with pytest.raises(ValueError, match='próximo'):
+        _simular(plan, influx)
+    assert 'inicio_tracking' not in doc
+    doc.update(estado='proximo', resultado=None)
+    plan_inicio = int(datetime(2030, 6, 8, 20, tzinfo=timezone.utc).timestamp())
+    influx.estadisticas[(plan_inicio, 'URU')] = dict(time='2030-06-08T20:00:00+00:00', equipo_id='URU')
+    with pytest.raises(ValueError, match='muestras'):
+        _simular(plan, influx)
+    assert 'inicio_tracking' not in doc
+
+
+def test_solo_validar_no_conecta(plan, tmp_path, monkeypatch, capsys):
+    import json
+    import sys
+    from scripts import simular_en_vivo
+    archivo = tmp_path / 'plan.json'
+    archivo.write_text(plan.model_dump_json())
+    monkeypatch.setattr(mongo_adapter, 'find_estadisticas', MagicMock(side_effect=AssertionError('No conectar')))
+    monkeypatch.setattr(mongo_adapter, 'find_alineaciones', MagicMock(side_effect=AssertionError('No conectar')))
+    monkeypatch.setattr(sys, 'argv', ['simular_en_vivo.py', str(archivo), '--solo-validar', '--factor', '20'])
+    simular_en_vivo.main()
+    salida = json.loads(capsys.readouterr().out)
+    assert salida['duracion_real_s'] == 270 and salida['jugadores_con_tracking'] == 22
+    assert salida['ticks'][1] == dict(minuto=12, segundo_real=36)
+    assert salida['puntos']['tracking_jugador'] == 22 * 5400 and salida['puntos']['estadisticas_partido'] == 2162
+    assert salida['bases_modificadas'] is False
+
+
+def test_factor_invalido_y_alineaciones_solo_al_validar(plan, tmp_path, monkeypatch):
+    import sys
+    from scripts import simular_en_vivo
+    archivo = tmp_path / 'plan.json'
+    archivo.write_text(plan.model_dump_json())
+    for argumentos in (['--factor', '0'], ['--alineaciones', str(DEMO_P001)]):
+        monkeypatch.setattr(sys, 'argv', ['simular_en_vivo.py', str(archivo), *argumentos])
+        with pytest.raises(SystemExit):
+            simular_en_vivo.main()

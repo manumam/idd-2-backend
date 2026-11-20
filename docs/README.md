@@ -18,6 +18,7 @@ El frontend se incorpora por pedido posterior a los lineamientos de solo API.
 - [Monitoreo con Prometheus y Grafana Cloud](../observabilidad/README.md) y
   [prueba de carga](../carga/README.md).
 - [Generación y carga de datos de InfluxDB](influx_datos.md).
+- [Simulación en vivo acelerada para la demo](simulador_en_vivo.md).
 - [Configuración, arranque y carga de datos](../README.md).
 - [Contrato HTTP implementado](../openapi/openapi.yaml) y
   [colección Postman](../postman_collection.json).

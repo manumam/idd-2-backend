@@ -1,22 +1,34 @@
 #!/usr/bin/env python3
 """Simulación en vivo acelerada: MongoDB e InfluxDB avanzan al mismo ritmo de juego."""
-from datetime import timezone
+import argparse
+from datetime import datetime, timezone
 from itertools import islice
+import json
 import math
 from pathlib import Path
 import sys
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from app.adapters import influx_adapter, mongo_adapter, redis_adapter
+from app.core.exceptions import DatabaseUnavailableError
 from app.schemas.alineaciones import Alineaciones
+from app.services.cache_partidos import patron_mapa_calor
+from app.services.comparacion_service import consolidar
 from scripts import cargar_influx
 from scripts.cargar_alineaciones import Lote
 from scripts.cargar_fixture import read_csv
-from scripts.simular_estadisticas import line_protocol
+from scripts.simular_estadisticas import (
+    PlanEstadisticas, confirmar_tick, crear_plan_estadisticas, line_protocol, preparar_ejecucion, verificar_avance)
 
 DURACION_SEG = cargar_influx.DURACION_PARTIDO_SEG
 INTERVALO_RESUMEN_SEG = cargar_influx.INTERVALO_MUESTREO_SEG
 FACTOR_POR_DEFECTO = 10
+# Un lote por segundo real: con factor 10 agrupa diez segundos de juego por escritura.
+CADENCIA_REAL_SEG = 1.0
+ALINEACIONES_DEMO = (cargar_influx.DATA / 'alineaciones-p001-demo.json',
+                     cargar_influx.DATA / 'alineaciones-argentina-demo.json')
 
 
 class RelojSimulado:
@@ -143,3 +155,116 @@ class EscritorInflux:
             self.contadores[tabla]['rechazadas'] += fallidas
             rechazadas += fallidas
         return rechazadas
+
+
+def invalidar_mapa_calor(codigo):
+    try:
+        redis_adapter.delete_cache_matching(patron_mapa_calor(codigo))
+    except DatabaseUnavailableError:
+        # Redis es opcional: el TTL de 5 s del mapa en vivo limita la antigüedad.
+        pass
+
+
+def simular(plan, factor, titulares, confederaciones, escritor, reloj=time.monotonic, dormir=time.sleep,
+            ahora=None, informar=print):
+    """Avanza el partido en tiempo real acelerado hasta finalizarlo. No es reanudable."""
+    codigo = plan.deportivo.partido
+    doc = mongo_adapter.find_estadisticas(codigo)
+    if not doc:
+        raise ValueError('Partido inexistente')
+    if doc.get('estadisticas_control') or doc.get('inicio_tracking'):
+        raise ValueError('El partido ya tuvo una simulación: restaurarlo o elegir otro próximo')
+    inicio_tracking = inicio_tracking_desde(ahora or datetime.now(timezone.utc))
+    # inicio_tracking se guarda junto con el control inicial del caso 8, en una sola escritura.
+    control = preparar_ejecucion(plan, {'inicio_tracking': inicio_tracking})
+    generador = GeneradorMuestras(plan, titulares, confederaciones, inicio_tracking)
+    reloj_juego = RelojSimulado(factor)
+    escrito, siguiente_tick = -1, 0
+    origen = reloj()
+    while escrito < DURACION_SEG:
+        comienzo = reloj() - origen
+        pendientes = reloj_juego.pendientes(escrito, comienzo)
+        if pendientes:
+            # Influx antes que MongoDB: un tick solo se confirma con sus muestras ya escritas.
+            if escritor.escribir(generador.lineas(pendientes.start, pendientes[-1])):
+                raise ValueError('InfluxDB rechazó muestras después de los reintentos')
+            escrito = pendientes[-1]
+            for i in ticks_vencidos(plan.deportivo.ticks, siguiente_tick, escrito):
+                verificar_avance(plan, control)
+                control = confirmar_tick(plan, i, control)
+                invalidar_mapa_calor(codigo)
+                siguiente_tick = i + 1
+                tick = plan.deportivo.ticks[i]
+                informar(json.dumps(dict(partido=codigo, tick=i + 1, minuto=tick.reloj.minuto,
+                                         segundo_de_juego=escrito, finalizado=tick.finalizado)))
+        if escrito < DURACION_SEG:
+            proximo = max(reloj_juego.transcurrido_para(escrito + 1), comienzo + CADENCIA_REAL_SEG)
+            espera = proximo - (reloj() - origen)
+            if espera > 0:
+                dormir(espera)
+    resumen = consolidar(codigo)
+    return dict(partido=codigo, inicio_tracking=inicio_tracking.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                factor=factor, tablas=escritor.contadores, consolidacion=resumen.consolidacion)
+
+
+def contar_puntos(plan, titulares, confederaciones):
+    generador = GeneradorMuestras(plan, titulares, confederaciones, datetime.now(timezone.utc))
+    return {tabla: len(lineas) for tabla, lineas in generador.lineas(0, DURACION_SEG).items()}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('archivo', type=Path, help='Plan del caso 8 (simular_estadisticas.py); ver docs/simulador_en_vivo.md')
+    parser.add_argument('--crear-plan', metavar='CODIGO', help='Genera el plan leyendo catálogos, sin escribir en las bases')
+    parser.add_argument('--solo-validar', action='store_true', help='Valida el plan y cuenta puntos sin conectar a bases')
+    parser.add_argument('--factor', type=float, default=FACTOR_POR_DEFECTO, help='Segundos de juego por segundo real')
+    parser.add_argument('--alineaciones', type=Path, action='append',
+                        help='Solo con --solo-validar: lotes versionados de alineaciones; por defecto los de demo')
+    args = parser.parse_args()
+    try:
+        reloj_juego = RelojSimulado(args.factor)
+    except ValueError as exc:
+        parser.error(str(exc))
+    if args.alineaciones and not args.solo_validar:
+        parser.error('--alineaciones se usa con --solo-validar; la ejecución lee las alineaciones de MongoDB')
+    if args.crear_plan:
+        if args.archivo.exists():
+            parser.error('El archivo ya existe; elegir otro nombre')
+        plan = crear_plan_estadisticas(args.crear_plan)
+        args.archivo.write_text(plan.model_dump_json(indent=2) + '\n')
+        print(json.dumps(dict(archivo=str(args.archivo), partido=plan.deportivo.partido, bases_modificadas=False)))
+        return
+    plan = PlanEstadisticas.model_validate_json(args.archivo.read_text())
+    confederaciones = confederaciones_del_torneo()
+    if args.solo_validar:
+        titulares = titulares_de_archivos(args.alineaciones or ALINEACIONES_DEMO, plan)
+        print(json.dumps(dict(partido=plan.deportivo.partido, factor=args.factor,
+            duracion_real_s=reloj_juego.transcurrido_para(DURACION_SEG),
+            ticks=[dict(minuto=t.reloj.minuto, segundo_real=reloj_juego.transcurrido_para(t.reloj.minuto * 60))
+                   for t in plan.deportivo.ticks],
+            jugadores_con_tracking=len(titulares), puntos=contar_puntos(plan, titulares, confederaciones),
+            bases_modificadas=False, referencias_verificadas=False), indent=2))
+        return
+    import requests
+    from app.config.settings import settings
+    documento = mongo_adapter.find_alineaciones(plan.deportivo.partido) or {}
+    titulares = titulares_de(Alineaciones.model_validate(documento.get('alineaciones') or {}), plan.local, plan.visitante)
+    with requests.Session() as session:
+        escritor = EscritorInflux(session, settings.influx_url, influx_adapter._resolve_token(), bases_configuradas())
+        print(json.dumps(simular(plan, args.factor, titulares, confederaciones, escritor), indent=2))
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Simulación detenida. No es reanudable: restaurar el partido o elegir otro próximo.', file=sys.stderr)
+        sys.exit(130)
+    except Exception as exc:
+        print(f'Simulación interrumpida: {type(exc).__name__}. No es reanudable: revisar plan, referencias '
+              'y conexiones; restaurar el partido o elegir otro próximo.', file=sys.stderr)
+        sys.exit(1)
+    finally:
+        mongo_adapter.close()
+        influx_adapter.close()
+        redis_adapter.close()

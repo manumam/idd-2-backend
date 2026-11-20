@@ -88,7 +88,8 @@ def line_protocol(plan, filas):
         f'{int(instante(f["time"]).timestamp())}' for f in filas) + '\n'
 
 
-def ejecutar(plan, intervalo):
+def preparar_ejecucion(plan, cambios_iniciales=None):
+    """Valida referencias y estado; al empezar un plan nuevo guarda su control junto con `cambios_iniciales`."""
     codigo = plan.deportivo.partido
     doc = mongo_adapter.find_estadisticas(codigo)
     if not doc or doc.get('local') != plan.local.model_dump() or doc.get('visitante') != plan.visitante.model_dump():
@@ -120,36 +121,59 @@ def ejecutar(plan, intervalo):
         validationLevel='strict', validationAction='error')
     if not control:
         control = plan.control(-1)
-        if not mongo_adapter.guardar_estadisticas(codigo, doc, {'estadisticas_control': control}):
+        if not mongo_adapter.guardar_estadisticas(codigo, doc, {'estadisticas_control': control, **(cambios_iniciales or {})}):
             raise ValueError('El partido cambió antes de iniciar')
     if control != plan.control(control['tick']):
         raise ValueError('El avance persistido no coincide con el plan')
+    return control
+
+
+def verificar_avance(plan, control):
+    actual = mongo_adapter.find_estadisticas(plan.deportivo.partido)
+    if (not actual or actual.get('local') != plan.local.model_dump()
+        or actual.get('visitante') != plan.visitante.model_dump()
+        or instante(actual['fecha_hora']) != instante(plan.inicio)
+        or actual.get('estadisticas_control') != control):
+        raise ValueError('El partido cambió antes de escribir las muestras')
+
+
+def confirmar_tick(plan, i, control):
+    """Aplica el tick i del guion, con sus muestras ya escritas en Influx, y avanza el control."""
+    codigo = plan.deportivo.partido
+    aplicar_tick(codigo, plan.deportivo.ticks[i])
+    doc = mongo_adapter.find_estadisticas(codigo)
+    if doc.get('estadisticas_control') != control:
+        raise ValueError('Otra ejecución avanzó el plan; detener y consultar')
+    siguiente = plan.control(i)
+    if not mongo_adapter.guardar_estadisticas(codigo, doc, {'estadisticas_control': siguiente}):
+        raise ValueError('El partido cambió durante el avance; reintentar el mismo plan')
+    return siguiente
+
+
+def ejecutar(plan, intervalo):
+    codigo = plan.deportivo.partido
+    control = preparar_ejecucion(plan)
     inicio_tick = control['tick'] + 1
     for i in range(inicio_tick, len(plan.deportivo.ticks)):
         if i > inicio_tick:
             time.sleep(intervalo)
         tick = plan.deportivo.ticks[i]
-        actual = mongo_adapter.find_estadisticas(codigo)
-        if (not actual or actual.get('local') != plan.local.model_dump()
-            or actual.get('visitante') != plan.visitante.model_dump()
-            or instante(actual['fecha_hora']) != instante(plan.inicio)
-            or actual.get('estadisticas_control') != control):
-            raise ValueError('El partido cambió antes de escribir las muestras')
+        verificar_avance(plan, control)
         desde = 0 if i == 0 else plan.deportivo.ticks[i - 1].reloj.minuto * 60 + 5
         filas = plan.muestras(desde, tick.reloj.minuto * 60)
         # Influx primero. Un fallo posterior se reintenta con las mismas claves y valores.
         influx_adapter.escribir_muestras(line_protocol(plan, filas))
-        aplicar_tick(codigo, tick)
-        doc = mongo_adapter.find_estadisticas(codigo)
-        if doc.get('estadisticas_control') != control:
-            raise ValueError('Otra ejecución avanzó el plan; detener y consultar')
-        siguiente = plan.control(i)
-        if not mongo_adapter.guardar_estadisticas(codigo, doc, {'estadisticas_control': siguiente}):
-            raise ValueError('El partido cambió durante el avance; reintentar el mismo plan')
-        control = siguiente
+        control = confirmar_tick(plan, i, control)
         print(json.dumps(dict(partido=codigo, tick=i + 1, muestras=control['muestras'], finalizado=tick.finalizado)), flush=True)
     resumen = consolidar(codigo)
     print(resumen.model_dump_json(indent=2))
+
+
+def crear_plan_estadisticas(codigo):
+    deportivo = crear_plan(codigo)
+    doc = mongo_adapter.find_estadisticas(deportivo.partido)
+    return PlanEstadisticas(inicio=instante(doc['fecha_hora']).strftime('%Y-%m-%dT%H:%M:%SZ'),
+        local=doc['local'], visitante=doc['visitante'], deportivo=deportivo)
 
 
 def main():
@@ -177,12 +201,9 @@ def main():
     if args.crear_plan:
         if args.archivo.exists():
             parser.error('El archivo ya existe; elegir otro nombre')
-        deportivo = crear_plan(args.crear_plan)
-        doc = mongo_adapter.find_estadisticas(deportivo.partido)
-        plan = PlanEstadisticas(inicio=instante(doc['fecha_hora']).strftime('%Y-%m-%dT%H:%M:%SZ'),
-            local=doc['local'], visitante=doc['visitante'], deportivo=deportivo)
+        plan = crear_plan_estadisticas(args.crear_plan)
         args.archivo.write_text(plan.model_dump_json(indent=2) + '\n')
-        print(json.dumps(dict(archivo=str(args.archivo), partido=deportivo.partido, bases_modificadas=False)))
+        print(json.dumps(dict(archivo=str(args.archivo), partido=plan.deportivo.partido, bases_modificadas=False)))
         return
     plan = PlanEstadisticas.model_validate_json(args.archivo.read_text())
     filas = plan.muestras(0, 5400)
