@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     influx_url: str = Field(default="http://127.0.0.1:8181", alias="INFLUX_URL")
     influx_database: str = Field(default="fixture2030_resumen", alias="INFLUX_DATABASE")
     influx_database_en_vivo: str = Field(default="fixture2030_en_vivo", alias="INFLUX_DATABASE_EN_VIVO")
+    influx_tracking_database: str = Field(default="fixture2030_en_vivo", alias="INFLUX_TRACKING_DATABASE")
     influx_token_file_enabled: bool = Field(default=True, alias="INFLUX_TOKEN_FILE_ENABLED")
     influx_token: Optional[str] = Field(default=None, alias="INFLUX_TOKEN")
 

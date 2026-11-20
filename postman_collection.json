@@ -2951,6 +2951,353 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Rendimiento individual",
+      "item": [
+        {
+          "name": "Rendimiento de un jugador en un partido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/jugadores/{{codigoJugadorPartido}}/estadisticas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "partidos",
+                "{{codigoPartido}}",
+                "jugadores",
+                "{{codigoJugadorPartido}}",
+                "estadisticas"
+              ],
+              "query": []
+            },
+            "description": "Goles, asistencias y tarjetas desde eventos MongoDB; distancia en metros y velocidad máxima en km/h desde tracking Influx a 1 Hz confirmado. Redis opcional (5 s). Finales desde resúmenes MongoDB vigentes, sin leer Influx; cierre incompleto devuelve métricas físicas null y estado pendiente. Un jugador no registrado en el encuentro devuelve 404. No incluye autogoles ni tandas como goles individuales."
+          },
+          "response": [
+            {
+              "name": "Ejemplo ilustrativo; no carga datos",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"partido\": \"P-001\",\n  \"jugador\": {\n    \"codigo\": \"ARG-10\",\n    \"nombre\": \"Jugador de ejemplo\"\n  },\n  \"equipo\": {\n    \"codigo\": \"ARG\",\n    \"nombre\": \"Argentina\"\n  },\n  \"estado\": \"finalizado\",\n  \"consolidacion\": \"completa\",\n  \"reloj\": null,\n  \"actualizado_en\": \"2030-06-24T21:30:00Z\",\n  \"metricas\": {\n    \"goles\": 2,\n    \"asistencias\": 0,\n    \"tarjetas_amarillas\": 0,\n    \"tarjetas_rojas\": 0,\n    \"distancia_m\": 10200.0,\n    \"velocidad_max_kmh\": 31.5\n  },\n  \"advertencias\": []\n}"
+            },
+            {
+              "name": "VALIDACION_INVALIDA",
+              "status": "Bad Request",
+              "code": 400,
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/jugadores/{{codigoJugadorPartido}}/estadisticas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "jugadores",
+                    "{{codigoJugadorPartido}}",
+                    "estadisticas"
+                  ],
+                  "query": []
+                },
+                "description": "Goles, asistencias y tarjetas desde eventos MongoDB; distancia en metros y velocidad máxima en km/h desde tracking Influx a 1 Hz confirmado. Redis opcional (5 s). Finales desde resúmenes MongoDB vigentes, sin leer Influx; cierre incompleto devuelve métricas físicas null y estado pendiente. Un jugador no registrado en el encuentro devuelve 404. No incluye autogoles ni tandas como goles individuales."
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"VALIDACION_INVALIDA\", \"message\": \"Parámetro inválido.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "JUGADOR_NO_ENCONTRADO",
+              "status": "Not Found",
+              "code": 404,
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/jugadores/{{codigoJugadorPartido}}/estadisticas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "jugadores",
+                    "{{codigoJugadorPartido}}",
+                    "estadisticas"
+                  ],
+                  "query": []
+                },
+                "description": "Goles, asistencias y tarjetas desde eventos MongoDB; distancia en metros y velocidad máxima en km/h desde tracking Influx a 1 Hz confirmado. Redis opcional (5 s). Finales desde resúmenes MongoDB vigentes, sin leer Influx; cierre incompleto devuelve métricas físicas null y estado pendiente. Un jugador no registrado en el encuentro devuelve 404. No incluye autogoles ni tandas como goles individuales."
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"JUGADOR_NO_ENCONTRADO\", \"message\": \"No existe el jugador solicitado.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_UNAVAILABLE",
+              "status": "Service Unavailable",
+              "code": 503,
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/jugadores/{{codigoJugadorPartido}}/estadisticas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "jugadores",
+                    "{{codigoJugadorPartido}}",
+                    "estadisticas"
+                  ],
+                  "query": []
+                },
+                "description": "Goles, asistencias y tarjetas desde eventos MongoDB; distancia en metros y velocidad máxima en km/h desde tracking Influx a 1 Hz confirmado. Redis opcional (5 s). Finales desde resúmenes MongoDB vigentes, sin leer Influx; cierre incompleto devuelve métricas físicas null y estado pendiente. Un jugador no registrado en el encuentro devuelve 404. No incluye autogoles ni tandas como goles individuales."
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_UNAVAILABLE\", \"message\": \"MongoDB no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_TIMEOUT",
+              "status": "Gateway Timeout",
+              "code": 504,
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/partidos/{{codigoPartido}}/jugadores/{{codigoJugadorPartido}}/estadisticas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "partidos",
+                    "{{codigoPartido}}",
+                    "jugadores",
+                    "{{codigoJugadorPartido}}",
+                    "estadisticas"
+                  ],
+                  "query": []
+                },
+                "description": "Goles, asistencias y tarjetas desde eventos MongoDB; distancia en metros y velocidad máxima en km/h desde tracking Influx a 1 Hz confirmado. Redis opcional (5 s). Finales desde resúmenes MongoDB vigentes, sin leer Influx; cierre incompleto devuelve métricas físicas null y estado pendiente. Un jugador no registrado en el encuentro devuelve 404. No incluye autogoles ni tandas como goles individuales."
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
+        },
+        {
+          "name": "Acumulados de un jugador en el Mundial 2030",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jugadores/{{codigoJugador}}/estadisticas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jugadores",
+                "{{codigoJugador}}",
+                "estadisticas"
+              ],
+              "query": []
+            },
+            "description": "Agrega una sola vez cada partido: resumen final vigente o eventos del encuentro no consolidado. Solo MongoDB y caché Redis opcional; nunca lee Influx. Suma goles, asistencias, tarjetas y distancias; toma el máximo de velocidades. Cada métrica con cobertura incompleta devuelve null, sin ocultar los valores conocidos por partido. No incluye encuentros próximos, autogoles ni tandas en los goles individuales."
+          },
+          "response": [
+            {
+              "name": "Ejemplo ilustrativo; no carga datos",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"jugador\": {\n    \"codigo\": \"ARG-10\",\n    \"nombre\": \"Jugador de ejemplo\"\n  },\n  \"equipo\": {\n    \"codigo\": \"ARG\",\n    \"nombre\": \"Argentina\"\n  },\n  \"consolidacion\": \"completa\",\n  \"metricas\": {\n    \"goles\": 2,\n    \"asistencias\": 0,\n    \"tarjetas_amarillas\": 0,\n    \"tarjetas_rojas\": 0,\n    \"distancia_m\": 10200.0,\n    \"velocidad_max_kmh\": 31.5\n  },\n  \"partidos\": [\n    {\n      \"partido\": \"P-001\",\n      \"jugador\": {\n        \"codigo\": \"ARG-10\",\n        \"nombre\": \"Jugador de ejemplo\"\n      },\n      \"equipo\": {\n        \"codigo\": \"ARG\",\n        \"nombre\": \"Argentina\"\n      },\n      \"estado\": \"finalizado\",\n      \"consolidacion\": \"completa\",\n      \"reloj\": null,\n      \"actualizado_en\": \"2030-06-24T21:30:00Z\",\n      \"metricas\": {\n        \"goles\": 2,\n        \"asistencias\": 0,\n        \"tarjetas_amarillas\": 0,\n        \"tarjetas_rojas\": 0,\n        \"distancia_m\": 10200.0,\n        \"velocidad_max_kmh\": 31.5\n      },\n      \"advertencias\": []\n    }\n  ],\n  \"partidos_consolidados\": 1,\n  \"partidos_pendientes\": 0,\n  \"advertencias\": []\n}"
+            },
+            {
+              "name": "VALIDACION_INVALIDA",
+              "status": "Bad Request",
+              "code": 400,
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/jugadores/{{codigoJugador}}/estadisticas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "jugadores",
+                    "{{codigoJugador}}",
+                    "estadisticas"
+                  ],
+                  "query": []
+                },
+                "description": "Agrega una sola vez cada partido: resumen final vigente o eventos del encuentro no consolidado. Solo MongoDB y caché Redis opcional; nunca lee Influx. Suma goles, asistencias, tarjetas y distancias; toma el máximo de velocidades. Cada métrica con cobertura incompleta devuelve null, sin ocultar los valores conocidos por partido. No incluye encuentros próximos, autogoles ni tandas en los goles individuales."
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"VALIDACION_INVALIDA\", \"message\": \"Parámetro inválido.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "JUGADOR_NO_ENCONTRADO",
+              "status": "Not Found",
+              "code": 404,
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/jugadores/{{codigoJugador}}/estadisticas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "jugadores",
+                    "{{codigoJugador}}",
+                    "estadisticas"
+                  ],
+                  "query": []
+                },
+                "description": "Agrega una sola vez cada partido: resumen final vigente o eventos del encuentro no consolidado. Solo MongoDB y caché Redis opcional; nunca lee Influx. Suma goles, asistencias, tarjetas y distancias; toma el máximo de velocidades. Cada métrica con cobertura incompleta devuelve null, sin ocultar los valores conocidos por partido. No incluye encuentros próximos, autogoles ni tandas en los goles individuales."
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"JUGADOR_NO_ENCONTRADO\", \"message\": \"No existe el jugador solicitado.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_UNAVAILABLE",
+              "status": "Service Unavailable",
+              "code": 503,
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/jugadores/{{codigoJugador}}/estadisticas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "jugadores",
+                    "{{codigoJugador}}",
+                    "estadisticas"
+                  ],
+                  "query": []
+                },
+                "description": "Agrega una sola vez cada partido: resumen final vigente o eventos del encuentro no consolidado. Solo MongoDB y caché Redis opcional; nunca lee Influx. Suma goles, asistencias, tarjetas y distancias; toma el máximo de velocidades. Cada métrica con cobertura incompleta devuelve null, sin ocultar los valores conocidos por partido. No incluye encuentros próximos, autogoles ni tandas en los goles individuales."
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_UNAVAILABLE\", \"message\": \"MongoDB no está disponible.\", \"requestId\": \"postman-ejemplo\"}"
+            },
+            {
+              "name": "MONGODB_TIMEOUT",
+              "status": "Gateway Timeout",
+              "code": 504,
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/jugadores/{{codigoJugador}}/estadisticas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "jugadores",
+                    "{{codigoJugador}}",
+                    "estadisticas"
+                  ],
+                  "query": []
+                },
+                "description": "Agrega una sola vez cada partido: resumen final vigente o eventos del encuentro no consolidado. Solo MongoDB y caché Redis opcional; nunca lee Influx. Suma goles, asistencias, tarjetas y distancias; toma el máximo de velocidades. Cada métrica con cobertura incompleta devuelve null, sin ocultar los valores conocidos por partido. No incluye encuentros próximos, autogoles ni tandas en los goles individuales."
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Request-Id",
+                  "value": "postman-ejemplo"
+                }
+              ],
+              "body": "{\"code\": \"MONGODB_TIMEOUT\", \"message\": \"La dependencia excedió el tiempo de espera.\", \"requestId\": \"postman-ejemplo\"}"
+            }
+          ]
+        }
+      ]
     }
   ],
   "variable": [
@@ -2978,6 +3325,11 @@
       "key": "grupoId",
       "value": "A",
       "type": "string"
+    },
+    {
+      "key": "codigoJugadorPartido",
+      "value": "ARG-10",
+      "type": "default"
     }
   ]
 }

@@ -1299,8 +1299,243 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
+  /partidos/{codigo}/jugadores/{jugador_codigo}/estadisticas:
+    get:
+      tags:
+      - Rendimiento individual
+      summary: Rendimiento de un jugador en un partido
+      description: Goles, asistencias y tarjetas desde eventos MongoDB; distancia
+        en metros y velocidad máxima en km/h desde tracking Influx a 1 Hz confirmado.
+        Redis opcional (5 s). Finales desde resúmenes MongoDB vigentes, sin leer Influx;
+        cierre incompleto devuelve métricas físicas null y estado pendiente. Un jugador
+        no registrado en el encuentro devuelve 404. No incluye autogoles ni tandas
+        como goles individuales.
+      operationId: rendimiento_partidos__codigo__jugadores__jugador_codigo__estadisticas_get
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^P-[0-9]{3}$
+          description: Código del partido
+          examples:
+          - P-001
+          title: Codigo
+        description: Código del partido
+      - name: jugador_codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-Z]{3}-([1-9]|[1-9][0-9])$
+          description: '`<equipo>-<dorsal>`'
+          examples:
+          - ARG-10
+          title: Jugador Codigo
+        description: '`<equipo>-<dorsal>`'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RendimientoResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '400':
+          description: Parámetro inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '503':
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+  /jugadores/{codigo}/estadisticas:
+    get:
+      tags:
+      - Rendimiento individual
+      summary: Acumulados de un jugador en el Mundial 2030
+      description: 'Agrega una sola vez cada partido: resumen final vigente o eventos
+        del encuentro no consolidado. Solo MongoDB y caché Redis opcional; nunca lee
+        Influx. Suma goles, asistencias, tarjetas y distancias; toma el máximo de
+        velocidades. Cada métrica con cobertura incompleta devuelve null, sin ocultar
+        los valores conocidos por partido. No incluye encuentros próximos, autogoles
+        ni tandas en los goles individuales.'
+      operationId: acumulados_jugadores__codigo__estadisticas_get
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-Z]{3}-([1-9]|[1-9][0-9])$
+          description: '`<equipo>-<dorsal>`'
+          examples:
+          - ARG-10
+          title: Codigo
+        description: '`<equipo>-<dorsal>`'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcumuladosJugadorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '400':
+          description: Parámetro inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '503':
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
 components:
   schemas:
+    AcumuladosJugadorResponse:
+      properties:
+        jugador:
+          $ref: '#/components/schemas/JugadorRef'
+        equipo:
+          $ref: '#/components/schemas/EquipoRef'
+        consolidacion:
+          type: string
+          enum:
+          - sin_datos
+          - pendiente
+          - provisional
+          - completa
+          title: Consolidacion
+        metricas:
+          $ref: '#/components/schemas/MetricasJugador'
+        partidos:
+          items:
+            $ref: '#/components/schemas/RendimientoResponse'
+          type: array
+          title: Partidos
+        partidos_consolidados:
+          type: integer
+          title: Partidos Consolidados
+          default: 0
+        partidos_pendientes:
+          type: integer
+          title: Partidos Pendientes
+          default: 0
+        advertencias:
+          items:
+            type: string
+          type: array
+          title: Advertencias
+      type: object
+      required:
+      - jugador
+      - equipo
+      - consolidacion
+      title: AcumuladosJugadorResponse
     AlineacionEquipo:
       properties:
         equipo:
@@ -1929,6 +2164,19 @@ components:
       - codigo
       - nombre
       title: JugadorEvento
+    JugadorRef:
+      properties:
+        codigo:
+          type: string
+          title: Codigo
+        nombre:
+          type: string
+          title: Nombre
+      type: object
+      required:
+      - codigo
+      - nombre
+      title: JugadorRef
     JugadorResumen:
       properties:
         codigo:
@@ -2040,6 +2288,46 @@ components:
       - goles_local
       - goles_visitante
       title: Marcador
+    MetricasJugador:
+      properties:
+        goles:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Goles
+        asistencias:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Asistencias
+        tarjetas_amarillas:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Tarjetas Amarillas
+        tarjetas_rojas:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Tarjetas Rojas
+        distancia_m:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: 'null'
+          title: Distancia M
+        velocidad_max_kmh:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: 'null'
+          title: Velocidad Max Kmh
+      type: object
+      title: MetricasJugador
     OrigenEquipo:
       properties:
         tipo:
@@ -2450,6 +2738,55 @@ components:
       - minuto
       title: RelojPartido
       description: Instantánea informada por la ingesta; nunca se infiere del horario.
+    RendimientoResponse:
+      properties:
+        partido:
+          type: string
+          title: Partido
+        jugador:
+          $ref: '#/components/schemas/JugadorRef'
+        equipo:
+          $ref: '#/components/schemas/EquipoRef'
+        estado:
+          type: string
+          enum:
+          - proximo
+          - en_vivo
+          - finalizado
+          title: Estado
+        consolidacion:
+          type: string
+          enum:
+          - sin_datos
+          - pendiente
+          - provisional
+          - completa
+          title: Consolidacion
+        reloj:
+          anyOf:
+          - $ref: '#/components/schemas/RelojPartido'
+          - type: 'null'
+        actualizado_en:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Actualizado En
+        metricas:
+          $ref: '#/components/schemas/MetricasJugador'
+        advertencias:
+          items:
+            type: string
+          type: array
+          title: Advertencias
+      type: object
+      required:
+      - partido
+      - jugador
+      - equipo
+      - estado
+      - consolidacion
+      title: RendimientoResponse
     ResultadoFixture:
       properties:
         goles_local:

@@ -157,6 +157,7 @@ def test_postman_operations_and_parameters_match_openapi():
             path = request['url']['raw'].replace('{{baseUrl}}', '').split('?')[0]
             path = re.sub(r'\{\{codigo(?:Equipo|Jugador|Partido)\}\}', '{codigo}', path)
             path = path.replace('{{grupoId}}', '{id}')
+            path = path.replace('{{codigoJugadorPartido}}', '{jugador_codigo}')
             key = (path, request['method'].lower())
             assert key not in operations
             operations[key] = item

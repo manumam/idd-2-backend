@@ -408,3 +408,28 @@ deportivos. Ver [configuración y verificación](docs/estadisticas.md).
 ### Tracking y estadísticas del caso 8
 
 El simulador `simular_estadisticas.py` escribe posesión, tiros acumulados y cantidades de pases por intervalo en `estadisticas_partido`; los eventos deportivos se guardan en MongoDB. No genera posiciones ni trayectorias de jugadores o pelota. Para un mapa de calor con contenido se necesita una carga de tracking independiente y, para conservarlo, materializar la ocupación antes de que venza el crudo. Sin muestras, tabla o base de tracking creada, el mapa devuelve 200 con `celdas: []`; no inventa posiciones. Los fallos de autenticación, permisos, conexión y consultas inválidas siguen devolviendo errores.
+
+## Rendimiento individual (caso 9)
+
+`GET /partidos/{codigo}/jugadores/{jugador_codigo}/estadisticas` consulta goles,
+asistencias, tarjetas, distancia en metros y velocidad máxima en km/h. Durante el
+vivo combina eventos MongoDB y tracking confirmado de InfluxDB a 1 Hz; los finales
+consolidados se leen solo desde MongoDB. `GET /jugadores/{codigo}/estadisticas`
+agrega por encuentro sin doble conteo y sin leer Influx. La velocidad conserva el
+máximo; distancias y contadores se suman. Una métrica incompleta queda null.
+
+La ficha desde las alineaciones conserva el partido, muestra rendimiento y
+acumulados con Nothing Design oscuro y refresca cada cinco segundos durante el
+vivo/cierre pendiente. Redis es opcional, con TTL de cinco segundos y claves
+versionadas por entradas. Los escritores deportivos invalidan también rendimiento
+y acumulados; los cargadores generales borran esos namespaces con `SCAN`.
+
+`INFLUX_TRACKING_DATABASE=fixture2030_en_vivo` selecciona la base de tracking;
+`INFLUX_DATABASE` sigue seleccionando las estadísticas de equipos. El registro de
+cobertura, la actualización del validador de una base existente y la consolidación
+son operaciones explícitas con `scripts/consolidar_jugadores.py`; no cargan tracking
+ni se ejecutan al arrancar. Los resúmenes individuales se publican por generación
+completa mediante CAS, con huella para invalidar correcciones. Ver
+[contratos, comandos y límites](docs/rendimiento.md). Tests locales y lectura
+deportiva real de URU-21/P-001 por proxy verificados; la ejecución del cierre
+físico con motores reales sigue pendiente.

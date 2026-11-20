@@ -101,3 +101,36 @@ def test_catalogo_equipos_lee_mongo_sin_depender_del_fixture():
     assert adapter.list_equipos() == [{'_id': 'ARG', 'nombre': 'Argentina'}]
     adapter._db['equipos'].find.assert_called_once_with({}, {'_id': 1, 'nombre': 1})
     cursor.sort.assert_called_once_with([('nombre', 1), ('_id', 1)])
+
+
+def test_tracking_usa_base_cruda_y_parametros(monkeypatch):
+    from app.config.settings import settings
+    adapter = InfluxAdapter()
+    session = Mock()
+    monkeypatch.setattr(adapter, 'get_session', lambda: session)
+    monkeypatch.setattr(adapter, '_resolve_token', lambda: None)
+    response = Mock(status_code=200)
+    response.json.side_effect = [[{'table_name': 'tracking_jugador'}], []]
+    session.post.return_value = response
+    assert adapter.find_tracking_jugador('P-001', 'ARG-10', 'ARG', 'inicio', 'fin') == []
+    payload = session.post.call_args.kwargs['json']
+    assert payload['db'] == settings.influx_tracking_database
+    assert payload['params'] == dict(partido='P-001', jugador='ARG-10', equipo='ARG', desde='inicio', hasta='fin')
+    assert 'ARG-10' not in payload['q'] and 'LIMIT 14402' in payload['q']
+
+
+def test_publicacion_individual_no_apunta_a_filas_parciales():
+    adapter = MongoAdapter()
+    adapter._client = Mock()
+    adapter._db = MagicMock()
+    coleccion = adapter._db['estadisticas_jugador_partido']
+    coleccion.insert_many.side_effect = ConnectionFailure('fallo de escritura')
+    with pytest.raises(DatabaseUnavailableError):
+        adapter.publicar_resumenes_jugadores('P-001', {}, {'generacion': 'g'}, [{'_id': 'fila'}])
+    adapter._db['partidos'].update_one.assert_not_called()
+    coleccion.insert_many.side_effect = None
+    adapter._db['partidos'].update_one.return_value.matched_count = 0
+    assert not adapter.publicar_resumenes_jugadores('P-001', {'eventos': ['original']}, {'generacion': 'g'}, [{'_id': 'fila'}])
+    filtro, actualizacion = adapter._db['partidos'].update_one.call_args.args
+    assert filtro['eventos'] == ['original'] and 'tracking_control' in filtro and 'alineaciones' in filtro
+    assert actualizacion == {'$set': {'jugadores_finales': {'generacion': 'g'}}}
