@@ -11,6 +11,8 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+# encontrado en documentación de prometheus_client
+from prometheus_client import CollectorRegistry, Counter, Gauge, start_http_server
 from app.adapters import influx_adapter, mongo_adapter, redis_adapter
 from app.core.exceptions import DatabaseUnavailableError
 from app.schemas.alineaciones import Alineaciones
@@ -27,6 +29,7 @@ INTERVALO_RESUMEN_SEG = cargar_influx.INTERVALO_MUESTREO_SEG
 FACTOR_POR_DEFECTO = 10
 # Un lote por segundo real: con factor 10 agrupa diez segundos de juego por escritura.
 CADENCIA_REAL_SEG = 1.0
+PUERTO_METRICAS = 9105
 ALINEACIONES_DEMO = (cargar_influx.DATA / 'alineaciones-p001-demo.json',
                      cargar_influx.DATA / 'alineaciones-argentina-demo.json')
 
@@ -140,11 +143,41 @@ def bases_configuradas():
             'estadisticas_partido': settings.influx_database, 'actividad_usuarios': settings.influx_database}
 
 
+class MetricasSimulador:
+    """Métricas del simulador en un registro propio: no se mezclan con las de la API ni de sus adaptadores.
+
+    Etiquetas acotadas: solo `tabla`. El partido y el entorno los identifica el target de Prometheus.
+    """
+
+    def __init__(self, tablas=()):
+        self.registro = CollectorRegistry()
+        self.ticks = Counter('simulador_ticks_aplicados', 'Ticks del guion confirmados en MongoDB.',
+                             registry=self.registro)
+        self.escritas = Counter('simulador_puntos_escritos', 'Puntos escritos en InfluxDB por tabla.',
+                                ['tabla'], registry=self.registro)
+        self.rechazadas = Counter('simulador_puntos_rechazados',
+                                  'Puntos que InfluxDB rechazó después de los reintentos, por tabla.',
+                                  ['tabla'], registry=self.registro)
+        self.retraso = Gauge('simulador_retraso_segundos',
+                             'Segundos reales que la escritura va detrás del reloj de juego acelerado.',
+                             registry=self.registro)
+        self.segundo = Gauge('simulador_segundo_de_juego', 'Último segundo de juego escrito en InfluxDB.',
+                             registry=self.registro)
+        for tabla in tablas:
+            self.escritas.labels(tabla=tabla)
+            self.rechazadas.labels(tabla=tabla)
+
+    def exponer(self, puerto):
+        # 0.0.0.0: Prometheus corre en Docker y llega al host por host.docker.internal.
+        start_http_server(puerto, addr='0.0.0.0', registry=self.registro)
+
+
 class EscritorInflux:
     """Un lote por tabla y tick a través del adaptador de InfluxDB, con contadores por tabla."""
 
-    def __init__(self, influx, bases):
+    def __init__(self, influx, bases, metricas=None):
         self.influx, self.bases = influx, bases
+        self.metricas = metricas or MetricasSimulador(bases)
         self.contadores = {tabla: dict(base=base, escritas=0, rechazadas=0) for tabla, base in bases.items()}
 
     def escribir(self, lineas_por_tabla):
@@ -155,6 +188,8 @@ class EscritorInflux:
             fallidas = self.influx.escribir_lineas(self.bases[tabla], lineas)
             self.contadores[tabla]['escritas'] += len(lineas) - fallidas
             self.contadores[tabla]['rechazadas'] += fallidas
+            self.metricas.escritas.labels(tabla=tabla).inc(len(lineas) - fallidas)
+            self.metricas.rechazadas.labels(tabla=tabla).inc(fallidas)
             rechazadas += fallidas
         return rechazadas
 
@@ -191,9 +226,12 @@ def simular(plan, factor, titulares, confederaciones, escritor, reloj=time.monot
             if escritor.escribir(generador.lineas(pendientes.start, pendientes[-1])):
                 raise ValueError('InfluxDB rechazó muestras después de los reintentos')
             escrito = pendientes[-1]
+            escritor.metricas.segundo.set(escrito)
+            escritor.metricas.retraso.set(reloj() - origen - reloj_juego.transcurrido_para(escrito))
             for i in ticks_vencidos(plan.deportivo.ticks, siguiente_tick, escrito):
                 verificar_avance(plan, control)
                 control = confirmar_tick(plan, i, control)
+                escritor.metricas.ticks.inc()
                 invalidar_mapa_calor(codigo)
                 siguiente_tick = i + 1
                 tick = plan.deportivo.ticks[i]
@@ -220,6 +258,8 @@ def main():
     parser.add_argument('--crear-plan', metavar='CODIGO', help='Genera el plan leyendo catálogos, sin escribir en las bases')
     parser.add_argument('--solo-validar', action='store_true', help='Valida el plan y cuenta puntos sin conectar a bases')
     parser.add_argument('--factor', type=float, default=FACTOR_POR_DEFECTO, help='Segundos de juego por segundo real')
+    parser.add_argument('--puerto-metricas', type=int, default=PUERTO_METRICAS,
+                        help='Puerto de /metrics para Prometheus mientras corre la simulación')
     parser.add_argument('--alineaciones', type=Path, action='append',
                         help='Solo con --solo-validar: lotes versionados de alineaciones; por defecto los de demo')
     args = parser.parse_args()
@@ -250,6 +290,7 @@ def main():
     documento = mongo_adapter.find_alineaciones(plan.deportivo.partido) or {}
     titulares = titulares_de(Alineaciones.model_validate(documento.get('alineaciones') or {}), plan.local, plan.visitante)
     escritor = EscritorInflux(influx_adapter, bases_configuradas())
+    escritor.metricas.exponer(args.puerto_metricas)
     print(json.dumps(simular(plan, args.factor, titulares, confederaciones, escritor), indent=2))
 
 

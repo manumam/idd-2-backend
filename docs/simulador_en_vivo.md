@@ -91,6 +91,16 @@ Cada tick invalida las cachés del partido, fixture, posiciones y cuadro (lo hac
 `aplicar_tick`) y además `mapa_calor:v2:{partido}:*`. Entre ticks, el TTL de 5 s
 del mapa en vivo limita la antigüedad. Redis caído no detiene la simulación.
 
+## Métricas para Prometheus
+
+Mientras corre, el simulador expone `/metrics` en `0.0.0.0:9105` (`--puerto-metricas`
+para otro puerto; si está ocupado, falla antes de modificar el partido). Publica
+ticks aplicados, puntos escritos y rechazados por tabla, segundo de juego actual y
+retraso de la escritura respecto del reloj acelerado. El job `simulador` de
+`observabilidad/prometheus/prometheus.yml` lo recolecta con `entorno: prueba` (o el
+entorno que genere `generar_config.py`); detalle en `observabilidad/README.md`. Al
+terminar la simulación el endpoint se cierra y el target queda `DOWN`.
+
 ## Corte: no es reanudable
 
 Una ejecución cortada deja el partido con `inicio_tracking`, el control del caso 8,

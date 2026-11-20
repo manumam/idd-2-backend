@@ -12,7 +12,7 @@ from app.config.settings import settings
 from app.services.seguimiento_service import TickPartido
 from scripts import cargar_influx
 from scripts.simular_en_vivo import (
-    DURACION_SEG, EscritorInflux, GeneradorMuestras, bases_configuradas, RelojSimulado, confederaciones_del_torneo, inicio_tracking_desde,
+    DURACION_SEG, EscritorInflux, MetricasSimulador, GeneradorMuestras, bases_configuradas, RelojSimulado, confederaciones_del_torneo, inicio_tracking_desde,
     simular, ticks_vencidos, titulares_de_archivos)
 from scripts.simular_estadisticas import PlanEstadisticas, line_protocol
 from scripts.simular_partido import crear_plan
@@ -391,3 +391,44 @@ def test_factor_invalido_y_alineaciones_solo_al_validar(plan, tmp_path, monkeypa
         monkeypatch.setattr(sys, 'argv', ['simular_en_vivo.py', str(archivo), *argumentos])
         with pytest.raises(SystemExit):
             simular_en_vivo.main()
+
+
+def _metrica(escritor, nombre, **etiquetas):
+    return escritor.metricas.registro.get_sample_value(nombre, etiquetas)
+
+
+def test_metricas_de_ticks_puntos_segundo_y_retraso(plan, en_vivo):
+    _, influx, _ = en_vivo
+    reloj = RelojFalso()
+    escritor = EscritorInflux(_adaptador(influx), BASES)
+    simular(plan, 10, titulares_de_archivos([DEMO_P001], plan), ['UEFA'], escritor, reloj=reloj, dormir=reloj.dormir,
+            ahora=INICIO_TRACKING, informar=lambda _: None)
+    assert _metrica(escritor, 'simulador_ticks_aplicados_total') == 9
+    assert _metrica(escritor, 'simulador_puntos_escritos_total', tabla='tracking_jugador') == 22 * 5400
+    assert _metrica(escritor, 'simulador_puntos_escritos_total', tabla='estadisticas_partido') == 2162
+    assert _metrica(escritor, 'simulador_puntos_rechazados_total', tabla='tracking_pelota') == 0
+    assert _metrica(escritor, 'simulador_segundo_de_juego') == DURACION_SEG
+    # El reloj falso no avanza mientras escribe: no hay retraso.
+    assert _metrica(escritor, 'simulador_retraso_segundos') == 0
+    nombres = {m.name for m in escritor.metricas.registro.collect()}
+    assert not any(n.startswith('api_') for n in nombres)
+    etiquetas = {k for m in escritor.metricas.registro.collect() for muestra in m.samples for k in muestra.labels}
+    assert etiquetas <= {'tabla'}
+
+
+def test_metricas_cuentan_rechazos_por_tabla():
+    session = MagicMock()
+    session.post.return_value = _respuesta(400)
+    escritor = EscritorInflux(_adaptador(session), BASES)
+    escritor.escribir({'tracking_pelota': ['a 1', 'b 1']})
+    assert _metrica(escritor, 'simulador_puntos_rechazados_total', tabla='tracking_pelota') == 2
+    assert _metrica(escritor, 'simulador_puntos_escritos_total', tabla='tracking_pelota') == 0
+
+
+def test_metricas_se_exponen_en_todas_las_interfaces_con_su_registro(monkeypatch):
+    from scripts import simular_en_vivo
+    servidor = MagicMock()
+    monkeypatch.setattr(simular_en_vivo, 'start_http_server', servidor)
+    metricas = MetricasSimulador(BASES)
+    metricas.exponer(9105)
+    servidor.assert_called_once_with(9105, addr='0.0.0.0', registry=metricas.registro)
