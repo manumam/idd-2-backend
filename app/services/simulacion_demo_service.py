@@ -12,7 +12,6 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from app.adapters import mongo_adapter
-from app.config.settings import settings
 from app.core.exceptions import BaseAppException, ResourceNotFoundError
 from app.schemas.alineaciones import Alineaciones
 from app.schemas.simulacion import SimulacionEstado
@@ -40,9 +39,9 @@ def motivo_sin_alineaciones(documento: dict) -> str | None:
         alineaciones = Alineaciones.model_validate(documento.get("alineaciones") or {})
     except ValidationError:
         return "Las alineaciones del partido son inválidas"
-    cargadas = {lado: getattr(alineaciones, lado) for lado in ("local", "visitante") if getattr(alineaciones, lado)}
-    if not cargadas:
-        return "El partido no tiene alineaciones cargadas"
+    cargadas = {lado: getattr(alineaciones, lado) for lado in ("local", "visitante")}
+    if not all(cargadas.values()):
+        return "El partido no tiene las dos alineaciones cargadas"
     if any(a.equipo.codigo != documento[lado]["codigo"] for lado, a in cargadas.items()):
         return "Una alineación no corresponde a la selección del partido"
     return None
@@ -139,6 +138,12 @@ class SimulacionDemo:
     def _en_curso(self) -> bool:
         return self._proceso is not None and self._proceso.codigo_salida() is None
 
+    def _siguiente(self, excluir: str | None = None) -> str | None:
+        for documento in mongo_adapter.list_candidatos_simulacion():
+            if documento.get("_id") != excluir and not (motivo_no_simulable(documento) or motivo_sin_alineaciones(documento)):
+                return documento["_id"]
+        return None
+
     def estado(self) -> SimulacionEstado:
         proceso = self._proceso
         codigo = proceso.codigo_salida() if proceso else None
@@ -147,7 +152,6 @@ class SimulacionDemo:
             detalle = proceso.ultima_linea_error()
             error = f"El simulador terminó con código {codigo}" + (f": {detalle}" if detalle else "")
         return SimulacionEstado(
-            habilitada=settings.demo_simulacion_habilitada,
             en_curso=proceso is not None and codigo is None,
             partido=self._partido,
             factor=self._factor,
@@ -155,16 +159,19 @@ class SimulacionDemo:
             iniciada_en=self._iniciada_en,
             finalizada=codigo == 0,
             error=error,
+            siguiente=self._siguiente(self._partido if proceso and codigo is None else None),
         )
 
-    def iniciar(self, partido: str, factor: float) -> SimulacionEstado:
-        if not settings.demo_simulacion_habilitada:
-            raise _error(403, "DEMO_DESHABILITADA", "La simulación desde la API está deshabilitada.")
+    def iniciar(self, partido: str | None, factor: float) -> SimulacionEstado:
         if not self._lanzando.acquire(blocking=False):
             raise _error(409, "SIMULACION_EN_CURSO", "Ya hay una simulación en curso.")
         try:
             if self._en_curso():
                 raise _error(409, "SIMULACION_EN_CURSO", "Ya hay una simulación en curso.")
+            if partido is None:
+                partido = self._siguiente()
+                if partido is None:
+                    raise _error(409, "SIN_PARTIDOS_SIMULABLES", "No quedan partidos simulables.")
             documento = mongo_adapter.find_estadisticas(partido)
             if documento is None:
                 raise ResourceNotFoundError("PARTIDO_NO_ENCONTRADO", f"No existe el partido '{partido}'.")
@@ -203,7 +210,7 @@ def estado_simulacion() -> SimulacionEstado:
     return simulacion_demo.estado()
 
 
-def iniciar_simulacion(partido: str, factor: float) -> SimulacionEstado:
+def iniciar_simulacion(partido: str | None, factor: float) -> SimulacionEstado:
     return simulacion_demo.iniciar(partido, factor)
 
 

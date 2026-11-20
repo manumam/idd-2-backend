@@ -5,19 +5,22 @@ from unittest.mock import Mock
 import pytest
 
 from app.adapters import mongo_adapter
-from app.config.settings import settings
 from app.services import simulacion_demo_service
 from app.services.simulacion_demo_service import SimulacionDemo, motivo_no_simulable
 
 TITULARES = [dict(codigo=f"ARG-{d}", nombre=f"Jugador {d}", dorsal=d, posicion="Delantero") for d in range(1, 12)]
 ALINEACION_ARG = dict(equipo=dict(codigo="ARG", nombre="Argentina"), titulares=TITULARES, suplentes=[])
-CAMPOS = {"habilitada", "en_curso", "partido", "factor", "segundo_de_juego", "iniciada_en", "finalizada", "error"}
+ALINEACION_URU = dict(equipo=dict(codigo="URU", nombre="Uruguay"), titulares=[
+    {**jugador, "codigo": jugador["codigo"].replace("ARG", "URU")} for jugador in TITULARES
+], suplentes=[])
+CAMPOS = {"en_curso", "partido", "factor", "segundo_de_juego", "iniciada_en", "finalizada", "error", "siguiente"}
 
 
 def _partido(**cambios):
     return {**dict(_id="P-002", estado="proximo", eventos=[], resultado=None,
                    local=dict(codigo="ARG", nombre="Argentina"), visitante=dict(codigo="URU", nombre="Uruguay"),
-                   alineaciones=dict(local=ALINEACION_ARG, visitante=None)), **cambios}
+                   fecha_hora="2030-06-09T18:00:00Z",
+                   alineaciones=dict(local=ALINEACION_ARG, visitante=ALINEACION_URU)), **cambios}
 
 
 class ProcesoFalso:
@@ -55,8 +58,8 @@ class LanzadorFalso:
 def lanzador(monkeypatch):
     lanzador = LanzadorFalso()
     monkeypatch.setattr(simulacion_demo_service, "simulacion_demo", SimulacionDemo(lanzador))
-    monkeypatch.setattr(settings, "demo_simulacion_habilitada", True)
     monkeypatch.setattr(mongo_adapter, "find_estadisticas", Mock(return_value=_partido()))
+    monkeypatch.setattr(mongo_adapter, "list_candidatos_simulacion", Mock(return_value=[_partido()]))
     return lanzador
 
 
@@ -67,18 +70,8 @@ def _iniciar(client, **cuerpo):
 def test_estado_inicial(client, lanzador):
     respuesta = client.get("/demo/simulacion")
     assert respuesta.status_code == 200
-    assert respuesta.json() == dict(habilitada=True, en_curso=False, partido=None, factor=None,
-                                    segundo_de_juego=None, iniciada_en=None, finalizada=False, error=None)
-
-
-def test_deshabilitada_por_defecto_responde_403_sin_lanzar(client, lanzador, monkeypatch):
-    monkeypatch.setattr(settings, "demo_simulacion_habilitada", False)
-    respuesta = _iniciar(client)
-    assert respuesta.status_code == 403
-    assert respuesta.json()["code"] == "DEMO_DESHABILITADA"
-    assert set(respuesta.json()) == {"code", "message", "requestId"}
-    assert lanzador.lanzados == []
-    assert client.get("/demo/simulacion").json()["habilitada"] is False
+    assert respuesta.json() == dict(en_curso=False, partido=None, factor=None, segundo_de_juego=None,
+                                    iniciada_en=None, finalizada=False, error=None, siguiente="P-002")
 
 
 def test_lanza_y_responde_202_sin_esperar(client, lanzador):
@@ -89,6 +82,23 @@ def test_lanza_y_responde_202_sin_esperar(client, lanzador):
     assert cuerpo["en_curso"] and cuerpo["partido"] == "P-002" and cuerpo["factor"] == 10
     assert cuerpo["iniciada_en"].endswith("Z") and not cuerpo["finalizada"]
     assert lanzador.lanzados[0][:2] == ("P-002", 10)
+
+
+def test_sin_partido_elije_el_proximo_simulable(client, lanzador, monkeypatch):
+    siguiente = _partido(_id="P-004", fecha_hora="2030-06-10T18:00:00Z")
+    monkeypatch.setattr(mongo_adapter, "list_candidatos_simulacion", Mock(return_value=[_partido(estado="finalizado"), siguiente]))
+    monkeypatch.setattr(mongo_adapter, "find_estadisticas", Mock(return_value=siguiente))
+    respuesta = client.post("/demo/simulacion", json={"factor": 10})
+    assert respuesta.status_code == 202
+    assert respuesta.json()["partido"] == "P-004"
+    assert lanzador.lanzados[0][:2] == ("P-004", 10)
+
+
+def test_sin_partidos_simulables_responde_409(client, lanzador, monkeypatch):
+    monkeypatch.setattr(mongo_adapter, "list_candidatos_simulacion", Mock(return_value=[]))
+    respuesta = client.post("/demo/simulacion")
+    assert respuesta.status_code == 409
+    assert respuesta.json()["code"] == "SIN_PARTIDOS_SIMULABLES"
 
 
 def test_partido_inexistente_404(client, lanzador, monkeypatch):

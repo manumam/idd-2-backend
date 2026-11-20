@@ -3318,7 +3318,7 @@
               ],
               "query": []
             },
-            "description": "Última simulación lanzada por este proceso de la API, o la que está en curso. No consulta bases. segundo_de_juego avanza con cada tick confirmado del guion."
+            "description": "Última simulación lanzada por este proceso de la API, o la que está en curso, y el próximo partido simulable."
           },
           "response": [
             {
@@ -3337,7 +3337,7 @@
                   ],
                   "query": []
                 },
-                "description": "Última simulación lanzada por este proceso de la API, o la que está en curso. No consulta bases. segundo_de_juego avanza con cada tick confirmado del guion."
+                "description": "Última simulación lanzada por este proceso de la API, o la que está en curso, y el próximo partido simulable."
               },
               "status": "OK",
               "code": 200,
@@ -3351,7 +3351,7 @@
                   "value": "postman-ejemplo"
                 }
               ],
-              "body": "{\"habilitada\": true, \"en_curso\": true, \"partido\": \"P-002\", \"factor\": 10.0, \"segundo_de_juego\": 2700, \"iniciada_en\": \"2026-11-20T18:30:00Z\", \"finalizada\": false, \"error\": null}"
+              "body": "{\"en_curso\": true, \"partido\": \"P-002\", \"factor\": 10.0, \"segundo_de_juego\": 2700, \"iniciada_en\": \"2026-11-20T18:30:00Z\", \"finalizada\": false, \"error\": null, \"siguiente\": \"P-004\"}"
             },
             {
               "name": "Finalizada",
@@ -3369,7 +3369,7 @@
                   ],
                   "query": []
                 },
-                "description": "Última simulación lanzada por este proceso de la API, o la que está en curso. No consulta bases. segundo_de_juego avanza con cada tick confirmado del guion."
+                "description": "Última simulación lanzada por este proceso de la API, o la que está en curso, y el próximo partido simulable."
               },
               "status": "OK",
               "code": 200,
@@ -3383,7 +3383,7 @@
                   "value": "postman-ejemplo"
                 }
               ],
-              "body": "{\"habilitada\": true, \"en_curso\": false, \"partido\": \"P-002\", \"factor\": 10.0, \"segundo_de_juego\": 5400, \"iniciada_en\": \"2026-11-20T18:30:00Z\", \"finalizada\": true, \"error\": null}"
+              "body": "{\"en_curso\": false, \"partido\": \"P-002\", \"factor\": 10.0, \"segundo_de_juego\": 5400, \"iniciada_en\": \"2026-11-20T18:30:00Z\", \"finalizada\": true, \"error\": null, \"siguiente\": \"P-004\"}"
             }
           ]
         },
@@ -3399,7 +3399,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"partido\": \"P-002\", \"factor\": 10}",
+              "raw": "{\"factor\": 10}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3417,7 +3417,7 @@
               ],
               "query": []
             },
-            "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+            "description": "Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido, elige el próximo simulable con ambas alineaciones y responde 202 sin esperar. Una simulación a la vez."
           },
           "response": [
             {
@@ -3432,7 +3432,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\"partido\": \"P-002\", \"factor\": 10}",
+                  "raw": "{\"factor\": 10}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3450,7 +3450,7 @@
                   ],
                   "query": []
                 },
-                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido, elige el próximo simulable con ambas alineaciones y responde 202 sin esperar. Una simulación a la vez."
               },
               "status": "Accepted",
               "code": 202,
@@ -3464,10 +3464,10 @@
                   "value": "postman-ejemplo"
                 }
               ],
-              "body": "{\"habilitada\": true, \"en_curso\": true, \"partido\": \"P-002\", \"factor\": 10.0, \"segundo_de_juego\": null, \"iniciada_en\": \"2026-11-20T18:30:00Z\", \"finalizada\": false, \"error\": null}"
+              "body": "{\"en_curso\": true, \"partido\": \"P-002\", \"factor\": 10.0, \"segundo_de_juego\": null, \"iniciada_en\": \"2026-11-20T18:30:00Z\", \"finalizada\": false, \"error\": null, \"siguiente\": \"P-004\"}"
             },
             {
-              "name": "DEMO_DESHABILITADA",
+              "name": "SIN_PARTIDOS_SIMULABLES",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -3478,7 +3478,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\"partido\": \"P-002\", \"factor\": 10}",
+                  "raw": "{\"factor\": 10}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3496,10 +3496,10 @@
                   ],
                   "query": []
                 },
-                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido, elige el próximo simulable con ambas alineaciones y responde 202 sin esperar. Una simulación a la vez."
               },
-              "status": "Forbidden",
-              "code": 403,
+              "status": "Conflict",
+              "code": 409,
               "header": [
                 {
                   "key": "Content-Type",
@@ -3510,7 +3510,7 @@
                   "value": "postman-ejemplo"
                 }
               ],
-              "body": "{\"code\": \"DEMO_DESHABILITADA\", \"message\": \"La simulación desde la API está deshabilitada.\", \"requestId\": \"postman-ejemplo\"}"
+              "body": "{\"code\": \"SIN_PARTIDOS_SIMULABLES\", \"message\": \"No quedan partidos simulables.\", \"requestId\": \"postman-ejemplo\"}"
             },
             {
               "name": "PARTIDO_NO_ENCONTRADO",
@@ -3542,7 +3542,7 @@
                   ],
                   "query": []
                 },
-                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido, elige el próximo simulable con ambas alineaciones y responde 202 sin esperar. Una simulación a la vez."
               },
               "status": "Not Found",
               "code": 404,
@@ -3588,7 +3588,7 @@
                   ],
                   "query": []
                 },
-                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido, elige el próximo simulable con ambas alineaciones y responde 202 sin esperar. Una simulación a la vez."
               },
               "status": "Conflict",
               "code": 409,
@@ -3634,7 +3634,7 @@
                   ],
                   "query": []
                 },
-                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido, elige el próximo simulable con ambas alineaciones y responde 202 sin esperar. Una simulación a la vez."
               },
               "status": "Conflict",
               "code": 409,
@@ -3680,7 +3680,7 @@
                   ],
                   "query": []
                 },
-                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte para un partido próximo con alineaciones y responde 202 sin esperar. Modifica el partido hasta finalizarlo y escribe en InfluxDB; no es reanudable. Requiere DEMO_SIMULACION_HABILITADA=true. Una simulación a la vez."
+                "description": "Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido, elige el próximo simulable con ambas alineaciones y responde 202 sin esperar. Una simulación a la vez."
               },
               "status": "Gateway Timeout",
               "code": 504,

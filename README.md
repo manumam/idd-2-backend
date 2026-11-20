@@ -414,7 +414,7 @@ Para la demo, `scripts/simular_en_vivo.py` reutiliza ese plan y avanza MongoDB e
 `inicio_tracking`, las muestras del caso 8 y la actividad de usuarios. Solo se ejecuta explícitamente
 y no es reanudable. Ver [comandos, anclaje y límites](docs/simulador_en_vivo.md).
 Para la demo desde el front, `POST /demo/simulacion` lo lanza como proceso aparte y
-`GET /demo/simulacion` informa su estado; deshabilitado salvo `DEMO_SIMULACION_HABILITADA=true`.
+`GET /demo/simulacion` informa su estado y el próximo partido simulable.
 Ver [desde el front](docs/simulador_en_vivo.md#desde-el-front).
 
 ## Rendimiento individual (caso 9)

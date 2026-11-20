@@ -39,9 +39,6 @@ class Settings(BaseSettings):
     influx_token_file_enabled: bool = Field(default=True, alias="INFLUX_TOKEN_FILE_ENABLED")
     influx_token: Optional[str] = Field(default=None, alias="INFLUX_TOKEN")
 
-    # Es la única ruta que escribe en las bases: nunca debe exponerse fuera de una demo.
-    demo_simulacion_habilitada: bool = Field(default=False, alias="DEMO_SIMULACION_HABILITADA")
-
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

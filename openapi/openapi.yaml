@@ -1500,8 +1500,8 @@ paths:
       - Demo
       summary: Estado de la simulación en vivo
       description: Última simulación lanzada por este proceso de la API, o la que
-        está en curso. No consulta bases. segundo_de_juego avanza con cada tick confirmado
-        del guion.
+        está en curso, y el próximo partido simulable. segundo_de_juego avanza con
+        cada tick confirmado del guion.
       operationId: estado_simulacion_demo_simulacion_get
       responses:
         '200':
@@ -1530,18 +1530,21 @@ paths:
       tags:
       - Demo
       summary: Simular un partido en vivo
-      description: Lanza scripts/simular_en_vivo.py como proceso aparte para un partido
-        próximo con alineaciones, sin simulaciones previas, y responde sin esperar
-        a que termine. Modifica eventos, reloj, marcador y estado del partido hasta
-        finalizarlo y escribe en InfluxDB; no es reanudable. Deshabilitada salvo DEMO_SIMULACION_HABILITADA=true.
-        Una simulación a la vez por proceso de la API.
+      description: Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido
+        elige el próximo partido simulable; con partido valida ese código. Requiere
+        un partido próximo, sin datos previos y con las dos alineaciones. Responde
+        sin esperar a que termine. Modifica eventos, reloj, marcador y estado hasta
+        finalizarlo y escribe en InfluxDB; no es reanudable. Una simulación a la vez
+        por proceso de la API.
       operationId: iniciar_simulacion_demo_simulacion_post
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SimulacionRequest'
-        required: true
+              anyOf:
+              - $ref: '#/components/schemas/SimulacionRequest'
+              - type: 'null'
+              title: Pedido
       responses:
         '202':
           description: Successful Response
@@ -1576,17 +1579,6 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
-        '403':
-          description: Demo deshabilitada (DEMO_DESHABILITADA)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          headers:
-            X-Request-Id:
-              description: Identificador de correlación
-              schema:
-                type: string
         '404':
           description: Recurso inexistente
           content:
@@ -1599,7 +1591,7 @@ paths:
               schema:
                 type: string
         '409':
-          description: SIMULACION_EN_CURSO o PARTIDO_NO_SIMULABLE
+          description: SIMULACION_EN_CURSO, SIN_PARTIDOS_SIMULABLES o PARTIDO_NO_SIMULABLE
           content:
             application/json:
               schema:
@@ -2964,9 +2956,6 @@ components:
       title: SedeRef
     SimulacionEstado:
       properties:
-        habilitada:
-          type: boolean
-          title: Habilitada
         en_curso:
           type: boolean
           title: En Curso
@@ -3008,21 +2997,30 @@ components:
           - type: string
           - type: 'null'
           title: Error
+        siguiente:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Siguiente
+          examples:
+          - P-004
       type: object
       required:
-      - habilitada
       - en_curso
       - partido
       - factor
       - segundo_de_juego
       - iniciada_en
       - finalizada
+      - siguiente
       title: SimulacionEstado
     SimulacionRequest:
       properties:
         partido:
-          type: string
-          pattern: ^P-[0-9]{3}$
+          anyOf:
+          - type: string
+            pattern: ^P-[0-9]{3}$
+          - type: 'null'
           title: Partido
           examples:
           - P-001
@@ -3035,6 +3033,4 @@ components:
           default: 10
       additionalProperties: false
       type: object
-      required:
-      - partido
       title: SimulacionRequest

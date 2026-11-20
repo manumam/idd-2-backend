@@ -82,22 +82,21 @@ en el horario del calendario y no impiden simular.
 ## Desde el front
 
 Para la demo, la API lanza el mismo script con `POST /demo/simulacion`
-(`{"partido": "P-002", "factor": 10}`; `factor` opcional, de 1 a 120). Está
-**deshabilitado por defecto**: es la única ruta que escribe en las bases y nunca debe
-exponerse fuera de una demo. Se habilita con `DEMO_SIMULACION_HABILITADA=true` en
-`.env` al iniciar la API. Ejecutarlo tiene los mismos efectos que el comando: requiere
-autorizar el partido concreto.
+(`{"factor": 10}`; `factor` opcional, de 1 a 120). Sin `partido`, elige el próximo
+simulable por fecha; también acepta `partido` para validar un código concreto. Ejecutarlo
+tiene los mismos efectos que el comando: modifica el encuentro hasta finalizarlo.
 
 - Antes de lanzar, la API aplica las condiciones del script (`motivo_no_simulable`,
   compartida con `simular`): próximo, sin eventos ni resultado, ambas selecciones, sin
-  `estadisticas_control` ni `inicio_tracking`. Además exige alineación cargada de al menos
-  una selección: sin ella no hay tracking y el mapa de calor quedaría vacío.
+  `estadisticas_control` ni `inicio_tracking`. Además exige las dos alineaciones cargadas:
+  sin ellas faltaría tracking para una selección.
 - Genera el plan con `--crear-plan` en un directorio temporal y ejecuta el script con
   `--factor` como **proceso aparte**, con el mismo intérprete, entorno y directorio que la
   API, así usa las mismas bases configuradas. No es un hilo de la API: el simulador
   mantiene su propio pool de conexiones y no compite con la atención de pedidos.
 - Responde 202 sin esperar. Una simulación a la vez por proceso de la API.
-- `GET /demo/simulacion` informa `en_curso`, `finalizada` (código de salida 0) o `error`
+- `GET /demo/simulacion` informa `en_curso`, `finalizada` (código de salida 0), `error` y
+  `siguiente`, el código del próximo partido simulable o `null`.
   (código de salida y última línea de stderr). `segundo_de_juego` se lee de las líneas
   JSON que el script imprime en cada tick del guion, por lo que avanza por ticks. Para
   el avance segundo a segundo, usar `/metrics` del simulador (puerto 9105).
@@ -106,9 +105,9 @@ autorizar el partido concreto.
 
 | Código | Cuándo |
 | --- | --- |
-| 403 `DEMO_DESHABILITADA` | `DEMO_SIMULACION_HABILITADA` no está en `true` |
 | 404 `PARTIDO_NO_ENCONTRADO` | el partido no existe |
 | 409 `SIMULACION_EN_CURSO` | ya hay una simulación corriendo en este proceso |
+| 409 `SIN_PARTIDOS_SIMULABLES` | no queda un partido próximo con ambas alineaciones y sin datos previos |
 | 409 `PARTIDO_NO_SIMULABLE` | no cumple las condiciones o el script rechazó el plan |
 
 ## Ritmo, orden e invalidación
