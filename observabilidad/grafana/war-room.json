@@ -58,12 +58,12 @@
       },
       "targets": [
         {
-          "expr": "100 * sum(increase(api_http_requests_total{entorno=\"$entorno\",ruta!=\"sin_ruta\",status!~\"5..\"}[$__range])) / sum(increase(api_http_requests_total{entorno=\"$entorno\",ruta!=\"sin_ruta\"}[$__range]))",
+          "expr": "100 * sum(increase(api_http_requests_total{entorno=\"$entorno\",ruta!=\"sin_ruta\",status!~\"5..\"}[14d])) / sum(increase(api_http_requests_total{entorno=\"$entorno\",ruta!=\"sin_ruta\"}[14d]))",
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Disponibilidad (% sin 5xx) — SLO 99,99%",
+      "title": "Disponibilidad 14 días (% sin 5xx) — SLO 99,99%",
       "type": "stat"
     },
     {
