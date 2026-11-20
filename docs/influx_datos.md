@@ -17,7 +17,7 @@ ejecuta al iniciar la API ni durante los tests.
 Line Protocol con timestamps en segundos y 90 minutos por partido. La API lee
 `estadisticas_partido` de `INFLUX_DATABASE` (por defecto `fixture2030_resumen`) y
 el tracking crudo de `INFLUX_DATABASE_EN_VIVO` (por defecto `fixture2030_en_vivo`).
-Las consultas solo aceptan estas dos bases configuradas.
+Las consultas solo aceptan las bases configuradas (`INFLUX_DATABASE`, `INFLUX_DATABASE_EN_VIVO` e `INFLUX_TRACKING_DATABASE`, esta última para el rendimiento individual; por defecto coincide con la de en vivo).
 
 ## Fuentes
 
@@ -114,4 +114,4 @@ Redis no responde, solo advierte y la caché vence por TTL.
 
 ### Tracking y estadísticas del caso 8
 
-El simulador `simular_estadisticas.py` escribe posesión, tiros acumulados y cantidades de pases por intervalo en `estadisticas_partido`; los eventos deportivos se guardan en MongoDB. No genera posiciones ni trayectorias de jugadores o pelota. Para un mapa de calor con contenido se necesita una carga de tracking independiente y, para conservarlo, materializar la ocupación antes de que venza el crudo. Sin muestras, tabla o base de tracking creada, el mapa devuelve 200 con `celdas: []`; no inventa posiciones. Los fallos de autenticación, permisos, conexión y consultas inválidas siguen devolviendo errores.
+El simulador `simular_estadisticas.py` escribe posesión, tiros acumulados y cantidades de pases por intervalo en `estadisticas_partido`; los eventos deportivos se guardan en MongoDB. No genera posiciones ni trayectorias de jugadores o pelota: para eso están `scripts/simular_en_vivo.py` (tracking de jugadores y pelota a 1 Hz y materialización de la ocupación al finalizar) o la carga masiva `scripts/cargar_influx.py`; en ambos casos la ocupación debe materializarse antes de que venza el crudo (7 días). Sin muestras, tabla o base de tracking creada, el mapa devuelve 200 con `celdas: []`; no inventa posiciones. Los fallos de autenticación, permisos, conexión y consultas inválidas siguen devolviendo errores.

@@ -13,6 +13,9 @@ El frontend se incorpora por pedido posterior a los lineamientos de solo API.
 
 ## Consulta operativa
 
+- [Alineaciones (caso 6)](alineaciones.md).
+- [Eventos del partido y simulador de demo (caso 7)](eventos.md).
+- [Comparación de equipos (caso 8)](estadisticas.md).
 - [Rendimiento individual y consolidación del caso 9](rendimiento.md).
 - [Observabilidad y errores](observabilidad_y_errores.md).
 - [Monitoreo con Prometheus y Grafana Cloud](../observabilidad/README.md) y

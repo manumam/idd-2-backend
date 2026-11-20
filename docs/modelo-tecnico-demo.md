@@ -126,7 +126,7 @@ Redis caído o corrupto no impide calcular el cuadro.
 
 El frontend ofrece `/playoffs.html`, rondas, enlaces entre cruces y una vista
 resumida de cada encuentro mediante `?partido=P-097`. Esta vista no reemplaza
-la ficha central `/partido.html?codigo=…` del caso 5, accesible desde fixture, grupos y playoffs. El detalle ya usa MongoDB/Redis y un reloj persistido opcional; el avance automático depende de la ingesta pendiente.
+la ficha central `/partido.html?codigo=…` del caso 5, accesible desde fixture, grupos y playoffs. El detalle ya usa MongoDB/Redis y un reloj persistido opcional; el avance lo hacen los simuladores explícitos por consola (`simular_partido.py`, `simular_en_vivo.py`); no hay ingesta automática.
 
 Cada plaza de un cruce conserva su origen aunque el equipo aún no esté definido:
 
@@ -150,7 +150,7 @@ El cuadro devuelve fase, orden, partido, plazas y ganador. Hasta resolver una pl
 - Retornar celda, cantidad de muestras, intensidad normalizada, grilla e intervalo efectivo. Una celda sin ocupación representa cero.
 - Los minutos se cuentan desde `inicio_tracking` del partido en MongoDB (lo registra la simulación) o, si falta, desde `fecha_hora`. Un único ancla evita mezclar muestras simuladas y precargadas; se redondea al minuto para coincidir con las ventanas materializadas.
 
-No usar `AVG(x_m)` y `AVG(y_m)` como mapa de calor: una posición promedio no representa la distribución de posiciones. El script actual `fixture2030-influxdb/scripts/agregaciones.sh` agrega velocidad y distancia, pero todavía no genera ocupación espacial.
+No usar `AVG(x_m)` y `AVG(y_m)` como mapa de calor: una posición promedio no representa la distribución de posiciones. La ocupación espacial se materializa con `scripts/materializar_ocupacion.py` (ver [influx_datos](influx_datos.md#ocupación-por-celda-y-minuto)); el `agregaciones.sh` del repositorio TP solo agrega velocidad y distancia.
 
 La retención sin expiración del resumen no garantiza por sí sola que las consultas históricas sean adecuadas para la edición instalada. El repo usa `influxdb:3-core`: validar consultas de partidos antiguos y rangos del torneo con esa versión antes de prometer el histórico. La documentación de Core describe los límites de archivos consultados y su configuración: [InfluxDB 3 Core, configuration options](https://docs.influxdata.com/influxdb3/core/reference/config-options/).
 

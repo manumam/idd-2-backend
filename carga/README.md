@@ -2,7 +2,7 @@
 
 Prueba de carga para obtener evidencia de monitoreo (Clase 14): JMeter reproduce las consultas periódicas que hace el frontend mientras un espectador tiene una página abierta. No es una prueba de estrés ni de capacidad; los valores del escenario son parámetros, no una afirmación sobre cuánto soporta la API.
 
-Esta carpeta todavía no contiene resultados. La ejecución y la evidencia (resultados de JMeter y capturas del monitoreo) se agregan en un commit posterior.
+La primera corrida (entorno `prueba`, escenario por defecto) está en [resultados/prueba-20261119-1648](resultados/prueba-20261119-1648/resumen.md). Faltan las capturas del dashboard durante la corrida.
 
 ## Qué simula y por qué
 
@@ -41,7 +41,7 @@ python3 carga/carga/generar_jmx.py
 
 Escribe `carga/carga/polling_front.jmx` con los valores del escenario como valores por defecto. Volver a generarlo después de cambiar `escenario.json`.
 
-## Ejecutar (commit posterior)
+## Ejecutar
 
 Requisitos: Java 21 y Apache JMeter 5.6.3, y la API levantada en `api_url` (por defecto `http://127.0.0.1:8000`) con fixture, grupos, playoffs y alineaciones cargados en MongoDB. Comprobar antes que `GET /partidos/P-002` responda con estado `en_vivo`.
 

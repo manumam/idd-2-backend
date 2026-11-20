@@ -74,7 +74,7 @@ el frontend debe usar el mismo destino en `API_PROXY_TARGET`.
 | --- | --- |
 | `MONGO_URI`, `MONGO_DATABASE` | `mongodb://127.0.0.1:27018`, `fixture2030` |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB` | `127.0.0.1`, `6380`, `0` |
-| `INFLUX_URL`, `INFLUX_DATABASE`, `INFLUX_DATABASE_EN_VIVO` | `http://127.0.0.1:8181`, `fixture2030_resumen`, `fixture2030_en_vivo` |
+| `INFLUX_URL`, `INFLUX_DATABASE`, `INFLUX_DATABASE_EN_VIVO`, `INFLUX_TRACKING_DATABASE` | `http://127.0.0.1:8181`, `fixture2030_resumen`, `fixture2030_en_vivo`, `fixture2030_en_vivo` |
 | `DB_TIMEOUT_SECONDS` | `5` |
 
 Los puertos deben coincidir con `.env` y los mappings de Compose. Influx admite
@@ -145,7 +145,7 @@ El detalle `GET /partidos/{codigo}` usa MongoDB y Redis opcional. Devuelve
 `reloj` (período, minuto absoluto de juego y adicional). Conserva `fecha` como fecha UTC.
 El reloj es una instantánea persistida, sin extrapolar desde el horario; `null`
 significa que aún no fue informado. Representa entretiempo, pausas, prórroga y tanda.
-La ingesta/simulador que lo avance automáticamente sigue pendiente (caso 7).
+Lo avanzan los simuladores explícitos (`scripts/simular_partido.py` y `scripts/simular_en_vivo.py`, caso 7); no hay una ingesta automática.
 La ficha `/partido.html?codigo=P-001` del frontend se abre desde fixture, grupos y
 playoffs y se actualiza cada 15 s mientras está visible, hasta finalizar.
 Los cruces reutilizan la resolución del cuadro; los resultados con participantes
@@ -393,6 +393,7 @@ y cuenta: no se promedian coordenadas.
   (`todo` si falta un límite): TTL 5 s si `fuente: en_vivo` (el polling del front) y
   1 h si `historico`. El partido próximo no se cachea. Redis caído o contenido
   inválido: se calcula igual. La materialización borra `mapa_calor:v2:{partido}:*`.
+
 ## Comparación de equipos (caso 8)
 
 `GET /partidos/{codigo}/estadisticas` sin fechas compara posesión, tiros, pases,
@@ -420,7 +421,7 @@ deportivos. Ver [configuración y verificación](docs/estadisticas.md).
 
 ### Tracking y estadísticas del caso 8
 
-El simulador `simular_estadisticas.py` escribe posesión, tiros acumulados y cantidades de pases por intervalo en `estadisticas_partido`; los eventos deportivos se guardan en MongoDB. No genera posiciones ni trayectorias de jugadores o pelota. Para un mapa de calor con contenido se necesita una carga de tracking independiente y, para conservarlo, materializar la ocupación antes de que venza el crudo. Sin muestras, tabla o base de tracking creada, el mapa devuelve 200 con `celdas: []`; no inventa posiciones. Los fallos de autenticación, permisos, conexión y consultas inválidas siguen devolviendo errores.
+El simulador `simular_estadisticas.py` escribe posesión, tiros acumulados y cantidades de pases por intervalo en `estadisticas_partido`; los eventos deportivos se guardan en MongoDB. No genera posiciones ni trayectorias de jugadores o pelota: para eso están `scripts/simular_en_vivo.py` (tracking de jugadores y pelota a 1 Hz y materialización de la ocupación al finalizar) o la carga masiva `scripts/cargar_influx.py`; en ambos casos la ocupación debe materializarse antes de que venza el crudo (7 días). Sin muestras, tabla o base de tracking creada, el mapa devuelve 200 con `celdas: []`; no inventa posiciones. Los fallos de autenticación, permisos, conexión y consultas inválidas siguen devolviendo errores.
 
 Para la demo, `scripts/simular_en_vivo.py` reutiliza ese plan y avanza MongoDB e Influx al mismo ritmo
 (factor 10: 90 minutos en unos 9): escribe tracking de jugadores y pelota a 1 Hz anclado en

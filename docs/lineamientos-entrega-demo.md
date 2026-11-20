@@ -181,7 +181,7 @@ La mayor parte reutiliza lo construido: se mantienen las bases existentes, se am
 
 - Consulta del último punto de la pelota.
 - Consulta del mapa de calor por celdas, en vivo (crudo) e histórico (`ocupacion_jugador_minuto`: muestras por celda y minuto).
-- Materializar mapas de calor y estadísticas finales antes del vencimiento del crudo. El script actual de agregaciones no genera todavía la ocupación espacial histórica.
+- Materializar mapas de calor y estadísticas finales antes del vencimiento del crudo. La ocupación histórica la genera `scripts/materializar_ocupacion.py`, que también ejecuta el simulador en vivo al finalizar ([detalle](influx_datos.md#ocupación-por-celda-y-minuto)).
 - **Atención:** `generacion_puntos.py` lee los CSV de `fixture2030-neo4j/import/`. Si sacamos esa carpeta, hay que mover los CSV.
 
 ### Redis
@@ -191,7 +191,7 @@ La mayor parte reutiliza lo construido: se mantienen las bases existentes, se am
 
 ### Simulador (módulo nuevo)
 
-- Reproduce un partido ya generado, a velocidad real: tracking a 1 Hz, estadísticas cada 5 s y eventos en su minuto.
+- Hecho: reproduce un partido ya generado a velocidad acelerada (factor configurable): tracking a 1 Hz, estadísticas cada 5 s y eventos en su minuto, con `scripts/simular_en_vivo.py` ([detalle](simulador_en_vivo.md)). Escribe directo en las bases mediante los adaptadores, no a través de la API.
 
 ### Backend
 
@@ -215,7 +215,7 @@ La mayor parte reutiliza lo construido: se mantienen las bases existentes, se am
 
 ## Decisiones abiertas
 
-- ¿El simulador escribe a través de la API (un solo camino de escritura, validado y medido) o directo en las bases (más simple)?
+- Resuelta: el simulador escribe directo en las bases, por los adaptadores (que sí miden cada operación), no a través de la API.
 - TTL de cada clave de caché, en vivo y para partidos terminados.
 - Validar e implementar la grilla propuesta de 5 × 5 m y la ocupación por minuto en la edición instalada de InfluxDB.
 - Cargar las reglas de clasificación y la asignación de cruces del dataset de la demo; no asumir reglamento oficial de 2030.

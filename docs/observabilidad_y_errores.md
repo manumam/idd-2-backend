@@ -99,7 +99,7 @@ nunca códigos de partido, claves de caché ni rutas sin plantilla.
 | --- | --- | --- | --- |
 | `api_http_requests_total` | Counter | `ruta`, `metodo`, `status` | Requests atendidos; `ruta` es la plantilla (`/equipos/{codigo}`) o `sin_ruta` |
 | `api_latency_seconds` | Histogram | `ruta` | Duración del request; incluye el bucket de 0,1 s del objetivo P95 |
-| `api_cache_total` | Counter | `funcionalidad`, `resultado` | Lecturas de caché. `funcionalidad`: `fixture`, `partido`, `eventos`, `alineaciones`, `posiciones`, `playoffs`. `resultado`: `hit`, `miss` o `error` (Redis caído o contenido inválido; se responde desde MongoDB) |
+| `api_cache_total` | Counter | `funcionalidad`, `resultado` | Lecturas de caché. `funcionalidad`: `fixture`, `partido`, `eventos`, `alineaciones`, `posiciones`, `playoffs`, `mapa_calor`. `resultado`: `hit`, `miss` o `error` (Redis caído o contenido inválido; se responde desde MongoDB) |
 | `api_dependencia_seconds` | Histogram | `fuente`, `operacion` | Duración de cada operación de adaptador; `operacion` es el método del adaptador |
 | `api_dependencia_errores_total` | Counter | `fuente`, `categoria` | Fallas de adaptador, una por operación, con la categoría de la tabla de errores (`timeout`, `authentication`, `authorization`, `context`, `query`, `resolution`, `connection_refused`, `unavailable`) |
 | `api_dependencia_up` | Gauge | `fuente` | 1 si el último ping respondió, 0 si no |
