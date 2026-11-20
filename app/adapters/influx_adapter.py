@@ -5,6 +5,7 @@ Encapsula la API HTTP/SQL de InfluxDB 3 Core con lectura automática de tokens y
 
 import os
 import logging
+import time
 from typing import Any, Dict, Iterable, Iterator, List, Optional
 import requests
 
@@ -37,6 +38,8 @@ SQL_OCUPACION_POR_CELDA = (
 
 LOTE_LINEAS = 10000
 INTENTOS_POR_LOTE = 3
+# Espera creciente antes del 2.º y 3.º intento: le da tiempo a InfluxDB a recuperarse.
+ESPERAS_REINTENTO_SEG = (1, 2)
 # Un lote de 10.000 líneas tarda más que una consulta puntual.
 TIMEOUT_LOTE_SEG = 60
 
@@ -178,7 +181,7 @@ class InfluxAdapter(BaseAdapter):
 
     @observe("InfluxDB")
     def escribir_lote(self, database: str, lineas: List[str]) -> None:
-        """Escribe un lote completo o ninguna línea (accept_partial=false), con reintentos acotados."""
+        """Escribe un lote completo o ninguna línea (accept_partial=false), con reintentos acotados y espera creciente."""
         self._validar_base_de_escritura(database)
         headers = {"Content-Type": "text/plain; charset=utf-8"}
         token = self._resolve_token()
@@ -186,7 +189,9 @@ class InfluxAdapter(BaseAdapter):
             headers["Authorization"] = "Bearer " + token
         cuerpo = ("\n".join(lineas) + "\n").encode("utf-8")
         error = None
-        for _ in range(INTENTOS_POR_LOTE):
+        for intento in range(INTENTOS_POR_LOTE):
+            if intento:
+                self._esperar(ESPERAS_REINTENTO_SEG[intento - 1])
             try:
                 self.get_session().post(
                     f"{settings.influx_url.rstrip('/')}/api/v3/write_lp",
@@ -202,6 +207,9 @@ class InfluxAdapter(BaseAdapter):
                 error = exc
         logger.warning("InfluxDB rechazó un lote de %s líneas", len(lineas))
         raise DatabaseUnavailableError("InfluxDB", error) from error
+
+    def _esperar(self, segundos: float) -> None:
+        time.sleep(segundos)
 
     def escribir_lineas(self, database: str, lineas: Iterable[str]) -> int:
         """Escribe en lotes y devuelve las líneas rechazadas después de los reintentos."""

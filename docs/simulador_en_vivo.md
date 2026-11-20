@@ -29,7 +29,8 @@ las mismas que leen el mapa de calor y la comparación de equipos.
   el mismo partido y alineación, cada segundo tiene los mismos valores que la carga
   masiva; solo cambia la hora. Las escrituras pasan por el adaptador de InfluxDB
   (`escribir_lineas`: line protocol, precisión en segundos, lotes atómicos de hasta
-  10.000 líneas, hasta tres intentos ante fallas de disponibilidad).
+  10.000 líneas, hasta tres intentos ante fallas de disponibilidad, con esperas
+  de 1 s y 2 s entre intentos).
 
 Es un script aparte porque su contrato difiere del caso 8: escribe tracking,
 ancla el tiempo en la hora real de inicio y **no es reanudable**.
@@ -119,6 +120,9 @@ juego vencidos; si se atrasa, el siguiente lote los recupera sin huecos. Cada
 tick del guion se confirma en MongoDB cuando sus muestras ya están en Influx. Si
 Influx rechaza un lote después de los reintentos, la simulación se detiene antes
 de confirmar el tick. Al terminar informa puntos escritos y rechazados por tabla.
+Con factor 10 cada vuelta del bucle dura 1 s real: si hay reintentos, sus esperas
+(1 s y 2 s) atrasan la escritura respecto del reloj acelerado; el atraso se ve en
+`simulador_retraso_segundos` y la vuelta siguiente recupera los segundos pendientes.
 
 Cada tick invalida las cachés del partido, fixture, posiciones y cuadro (lo hace
 `aplicar_tick`) y además `mapa_calor:v2:{partido}:*`. Entre ticks, el TTL de 5 s

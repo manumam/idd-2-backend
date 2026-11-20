@@ -53,8 +53,11 @@ La carga escribe por el adaptador de InfluxDB de la API (`escribir_lineas`, con
 acceso a una base. Envía lotes de 10.000 líneas a `/api/v3/write_lp` con
 `precision=second` y `accept_partial=false`: cada lote se escribe entero o se
 rechaza entero, así la cantidad informada de líneas rechazadas es exacta. Las
-fallas de disponibilidad (conexión, timeout, 5xx) se reintentan hasta tres veces;
-un 4xx (líneas o credenciales rechazadas) no se reintenta. Solo escribe en las dos
+fallas transitorias de disponibilidad (conexión, timeout, 5xx) se intentan hasta tres
+veces, con esperas crecientes de 1 s y 2 s antes del segundo y del tercer intento
+(`ESPERAS_REINTENTO_SEG`), para no insistir sobre una base que se está recuperando.
+Repetir un lote es seguro: reescribe los mismos puntos sin duplicarlos. Un 4xx
+(líneas o credenciales rechazadas) no se reintenta ni espera. Solo escribe en las dos
 bases configuradas (`INFLUX_DATABASE` e `INFLUX_DATABASE_EN_VIVO`). Cada lote se
 mide en las métricas de dependencias de la API (`operacion="escribir_lote"`). Si
 queda alguna línea rechazada informa la cantidad y termina con código 1. Volver a cargar sobrescribe los

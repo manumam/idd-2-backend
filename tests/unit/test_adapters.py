@@ -180,6 +180,30 @@ def test_influx_reintenta_solo_fallas_de_disponibilidad(monkeypatch):
     assert session.post.call_count == 1
 
 
+def test_influx_espera_creciente_solo_antes_de_reintentar(monkeypatch):
+    from app.adapters.influx_adapter import ESPERAS_REINTENTO_SEG, INTENTOS_POR_LOTE
+    adapter, session = _adapter_escritura(monkeypatch, *[503] * INTENTOS_POR_LOTE)
+    esperas = []
+    monkeypatch.setattr(adapter, "_esperar", esperas.append)
+    assert adapter.escribir_lineas(settings.influx_database, ["a 1"]) == 1
+    assert esperas == list(ESPERAS_REINTENTO_SEG) == [1, 2]
+
+    adapter, session = _adapter_escritura(monkeypatch, requests.ConnectionError("hidden"), 204)
+    esperas = []
+    monkeypatch.setattr(adapter, "_esperar", esperas.append)
+    assert adapter.escribir_lineas(settings.influx_database, ["a 1"]) == 0
+    assert esperas == [1]
+
+
+def test_influx_no_espera_ante_4xx_ni_en_el_primer_intento(monkeypatch):
+    for status in (204, 400):
+        adapter, _ = _adapter_escritura(monkeypatch, status)
+        esperas = []
+        monkeypatch.setattr(adapter, "_esperar", esperas.append)
+        adapter.escribir_lineas(settings.influx_database, ["a 1"])
+        assert esperas == []
+
+
 def test_influx_escritura_mide_latencia_y_errores(monkeypatch):
     from app.core import observability
     errores, duraciones = [], []
