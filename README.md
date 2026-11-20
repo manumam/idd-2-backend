@@ -52,9 +52,11 @@ no TTL, y conserva las que se están leyendo, como las del partido en vivo. Las
 políticas `volatile-*` solo desalojan claves con TTL y, si no hay ninguna, se
 comportan como `noeviction` (rechazan escrituras nuevas). La expiración por TTL
 sigue acotando la antigüedad de cada clave; la evicción solo actúa por falta de
-memoria. La persistencia (AOF y snapshots) no cambia. El cambio de política se
-aplica al recrear el contenedor de Redis (`docker compose up -d redis`); un
-contenedor ya iniciado conserva la política anterior.
+memoria. Redis no persiste (sin AOF y con `--save ""`, sin snapshots RDB) porque
+es una caché reconstruible: tras un reinicio casi todas las claves ya habrían
+vencido, y persistir no convierte a Redis en fuente de verdad (Clase 8). Estos
+cambios se aplican al recrear el contenedor de Redis (`docker compose up -d redis`);
+un contenedor ya iniciado conserva la configuración anterior.
 
 `docker-compose.yaml` define MongoDB, Redis e InfluxDB. Los montajes para importar
 MongoDB son opcionales, mediante `docker-compose.imports.yaml` y `TP_DATA_DIR`

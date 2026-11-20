@@ -27,13 +27,9 @@ services:
       - "${REDIS_PORT:-6380}:6379"
     command:
       - redis-server
-      - --appendonly
-      - "yes"
-      - --appendfsync
-      - everysec
+      # Sin persistencia: la caché se reconstruye desde MongoDB e InfluxDB.
       - --save
-      - "60"
-      - "1000"
+      - ""
       - --maxmemory
       - 256mb
       # Instancia dedicada a caché reconstruible: desaloja las claves menos usadas, tengan o no TTL.

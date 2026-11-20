@@ -192,4 +192,5 @@ def test_redis_de_compose_es_cache_con_allkeys_lru():
     opcion = lambda nombre: comando[comando.index(nombre) + 1]
     assert opcion('--maxmemory-policy') == 'allkeys-lru'
     assert opcion('--maxmemory') == '256mb'
-    assert opcion('--appendonly') == 'yes'
+    assert '--appendonly' not in comando
+    assert opcion('--save') == ''
