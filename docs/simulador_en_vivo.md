@@ -29,7 +29,8 @@ las mismas que leen el mapa de calor y la comparación de equipos.
   el mismo partido y alineación, cada segundo tiene los mismos valores que la carga
   masiva; solo cambia la hora. Las escrituras pasan por el adaptador de InfluxDB
   (`escribir_lineas`: line protocol, precisión en segundos, lotes atómicos de hasta
-  10.000 líneas, hasta tres intentos ante fallas de disponibilidad).
+  10.000 líneas, hasta tres intentos ante fallas de disponibilidad, con esperas
+  de 1 s y 2 s entre intentos).
 
 Es un script aparte porque su contrato difiere del caso 8: escribe tracking,
 ancla el tiempo en la hora real de inicio y **no es reanudable**.
@@ -88,27 +89,29 @@ tiene los mismos efectos que el comando: modifica el encuentro hasta finalizarlo
 
 - Antes de lanzar, la API aplica las condiciones del script (`motivo_no_simulable`,
   compartida con `simular`): próximo, sin eventos ni resultado, ambas selecciones, sin
-  `estadisticas_control` ni `inicio_tracking`. Además exige las dos alineaciones cargadas:
-  sin ellas faltaría tracking para una selección.
+  `estadisticas_control` ni `inicio_tracking`. La elección automática exige además las
+  dos alineaciones cargadas, cada una de su selección (una sola consulta acotada a MongoDB,
+  ordenada por `fecha_hora`); con `partido` explícito alcanza con una, porque sin
+  ninguna no hay tracking y el mapa de calor quedaría vacío.
 - Genera el plan con `--crear-plan` en un directorio temporal y ejecuta el script con
   `--factor` como **proceso aparte**, con el mismo intérprete, entorno y directorio que la
   API, así usa las mismas bases configuradas. No es un hilo de la API: el simulador
   mantiene su propio pool de conexiones y no compite con la atención de pedidos.
 - Responde 202 sin esperar. Una simulación a la vez por proceso de la API.
-- `GET /demo/simulacion` informa `en_curso`, `finalizada` (código de salida 0), `error` y
-  `siguiente`, el código del próximo partido simulable o `null`.
-  (código de salida y última línea de stderr). `segundo_de_juego` se lee de las líneas
-  JSON que el script imprime en cada tick del guion, por lo que avanza por ticks. Para
-  el avance segundo a segundo, usar `/metrics` del simulador (puerto 9105).
+- `GET /demo/simulacion` informa `en_curso`, `finalizada` (código de salida 0), `error`
+  (código de salida y última línea de stderr) y `siguiente`, el próximo partido simulable
+  con la misma regla o `null`, consultado en MongoDB en cada pedido, sin caché.
+  `segundo_de_juego` se lee de las líneas JSON que el script imprime en cada tick del
+  guion, por lo que avanza por ticks. Para el avance segundo a segundo, usar `/metrics` del simulador (puerto 9105).
 - Al apagar la API se envía SIGINT al simulador (como Ctrl+C): el partido queda cortado
   y no es reanudable. El estado vive en memoria: reiniciar la API lo pierde.
 
 | Código | Cuándo |
 | --- | --- |
-| 404 `PARTIDO_NO_ENCONTRADO` | el partido no existe |
+| 404 `PARTIDO_NO_ENCONTRADO` | el `partido` indicado no existe |
 | 409 `SIMULACION_EN_CURSO` | ya hay una simulación corriendo en este proceso |
 | 409 `SIN_PARTIDOS_SIMULABLES` | no queda un partido próximo con ambas alineaciones y sin datos previos |
-| 409 `PARTIDO_NO_SIMULABLE` | no cumple las condiciones o el script rechazó el plan |
+| 409 `PARTIDO_NO_SIMULABLE` | el `partido` indicado no cumple las condiciones o el script rechazó el plan |
 
 ## Ritmo, orden e invalidación
 
@@ -117,6 +120,9 @@ juego vencidos; si se atrasa, el siguiente lote los recupera sin huecos. Cada
 tick del guion se confirma en MongoDB cuando sus muestras ya están en Influx. Si
 Influx rechaza un lote después de los reintentos, la simulación se detiene antes
 de confirmar el tick. Al terminar informa puntos escritos y rechazados por tabla.
+Con factor 10 cada vuelta del bucle dura 1 s real: si hay reintentos, sus esperas
+(1 s y 2 s) atrasan la escritura respecto del reloj acelerado; el atraso se ve en
+`simulador_retraso_segundos` y la vuelta siguiente recupera los segundos pendientes.
 
 Cada tick invalida las cachés del partido, fixture, posiciones y cuadro (lo hace
 `aplicar_tick`) y además `mapa_calor:v2:{partido}:*`. Entre ticks, el TTL de 5 s
@@ -165,9 +171,13 @@ estadísticas) **o elegir otro partido próximo**. El script no restaura ni borr
   del guion no modifican el tracking.
 - El caso 9 valida el tracking desde `inicio_tracking` más el reloj (la misma
   regla de anclaje que el mapa de calor y el caso 8), y los campos son compatibles:
-  odómetro creciente sin huecos a 1 Hz y velocidad en km/h. El simulador no
-  registra `tracking_control`: consolidar el caso 9 sigue requiriendo registrarlo
-  con `scripts/consolidar_jugadores.py`, con intervalos desde `inicio_tracking`.
+  odómetro creciente sin huecos a 1 Hz y velocidad en km/h.
+- El rendimiento individual (caso 9) de un partido simulado no se consolida, por
+  decisión: el simulador no registra `tracking_control` y no sigue al suplente que
+  entra en el cambio, y la consolidación rechaza a un jugador que participó sin
+  muestras. No se fabrican muestras para cubrir ese hueco (ver
+  [rendimiento](rendimiento.md)), así que distancia y velocidad máxima de ese
+  partido quedan en "—". En la demo no se muestra el rendimiento de sus jugadores.
 - El crudo vence a los 7 días; la ocupación materializada al finalizar conserva
   el mapa de calor.
 

@@ -4,7 +4,21 @@ from unittest.mock import Mock
 import pytest
 from fastapi.testclient import TestClient
 from app.adapters import redis_adapter
+from app.adapters.influx_adapter import InfluxAdapter
 from app.main import app
+from app.services import health_service
+
+
+@pytest.fixture(autouse=True)
+def estado_fuentes_sin_resultados(monkeypatch):
+    """Cada test empieza sin pings previos: /health y /ready reusan resultados durante 15 s."""
+    monkeypatch.setattr(health_service.estado_fuentes, '_estados', {})
+    monkeypatch.setattr(health_service.estado_fuentes, '_evaluado_en', {})
+
+
+@pytest.fixture(autouse=True)
+def reintentos_influx_sin_espera(monkeypatch):
+    monkeypatch.setattr(InfluxAdapter, '_esperar', lambda self, segundos: None)
 
 
 @pytest.fixture

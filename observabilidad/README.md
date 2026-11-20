@@ -101,6 +101,11 @@ latencia (P50/P95/P99 contra el SLO de 100 ms) y throughput, errores, caché, sa
 (operaciones en curso por base, pool de MongoDB, CPU y memoria) y estado de MongoDB e
 InfluxDB. Para recrearlo en otro stack: Dashboards → New → Import y pegar el JSON.
 
+El SLO de disponibilidad (99,99 % de solicitudes sin 5xx) se mide sobre los últimos
+14 días fijos, el máximo que retiene Grafana Cloud Free, y no sobre el rango que esté
+mirando cada uno: un SLO necesita un período fijo para que el cumplimiento sea comparable
+(Clase 14, SLI/SLO/SLA). 99,99 % en 14 días permite unos 2 minutos sin servicio.
+
 ## Solo local (sin credenciales ni envío)
 
 ```bash

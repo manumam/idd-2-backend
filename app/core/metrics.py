@@ -92,9 +92,14 @@ class EstadoFuentesCollector(Collector):
         self._evaluado_en: dict[str, float] = {}
         self._lock = threading.Lock()
 
-    def registrar(self, estados: dict) -> None:
+    def consultar(self, fuentes: tuple[str, ...]) -> dict:
+        """Reusa el último resultado y vuelve a hacer ping solo de las fuentes vencidas."""
+        # El lock hace que requests simultáneos esperen un único ping en lugar de repetirlo.
         with self._lock:
-            self._guardar(estados)
+            vencidas = self._vencidas(fuentes)
+            if vencidas:
+                self._guardar(self._evaluar(vencidas))
+            return {fuente: self._estados[fuente] for fuente in fuentes}
 
     def _guardar(self, estados: dict) -> None:
         ahora = self._reloj()
@@ -102,9 +107,9 @@ class EstadoFuentesCollector(Collector):
             self._estados[fuente] = estado
             self._evaluado_en[fuente] = ahora
 
-    def _vencidas(self) -> tuple[str, ...]:
+    def _vencidas(self, fuentes: tuple[str, ...]) -> tuple[str, ...]:
         ahora = self._reloj()
-        return tuple(f for f in self._fuentes
+        return tuple(f for f in fuentes
                      if ahora - self._evaluado_en.get(f, float("-inf")) >= self._intervalo_segundos)
 
     def _familia(self) -> GaugeMetricFamily:
@@ -115,13 +120,8 @@ class EstadoFuentesCollector(Collector):
         yield self._familia()
 
     def collect(self):
-        with self._lock:
-            vencidas = self._vencidas()
-            if vencidas:
-                self._guardar(self._evaluar(vencidas))
-            estados = dict(self._estados)
+        estados = self.consultar(self._fuentes)
         familia = self._familia()
-        for fuente in self._fuentes:
-            if fuente in estados:
-                familia.add_metric([fuente], 1.0 if estados[fuente] == "up" else 0.0)
+        for fuente, estado in estados.items():
+            familia.add_metric([fuente], 1.0 if estado == "up" else 0.0)
         yield familia

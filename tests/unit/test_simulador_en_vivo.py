@@ -24,7 +24,8 @@ INICIO_TRACKING = datetime(2026, 11, 20, 18, 30, tzinfo=timezone.utc)
 
 def partido_proximo(codigo, local, visitante):
     return dict(_id=codigo, fase='Grupos', grupo='A', fecha_hora=datetime(2030, 6, 8, 20),
-                local=local, visitante=visitante, estado='proximo', resultado=None, sede=None)
+                local=local, visitante=visitante, estado='proximo', resultado=None,
+                sede=dict(codigo='S-01', nombre='Estadio Centenario', ciudad='Montevideo'))
 
 
 def crear_plan_demo(monkeypatch, doc):
@@ -118,7 +119,7 @@ def _generar_por_tramos(generador, cortes):
 def test_muestras_por_segundo_iguales_a_la_carga_masiva(plan):
     titulares = titulares_de_archivos([DEMO_P001], plan)
     regiones = confederaciones_del_torneo()
-    generador = GeneradorMuestras(plan, titulares, regiones, INICIO_TRACKING)
+    generador = GeneradorMuestras(plan, titulares, regiones, INICIO_TRACKING, 'S-01')
     # Tramos irregulares, como los de un bucle real que se atrasa.
     tablas = _generar_por_tramos(generador, [0, 3, 4, 17, 1000, 5399, 5400])
     masivo = dict(codigo='P-001', inicio=int(INICIO_TRACKING.timestamp()), titulares=titulares)
@@ -127,12 +128,12 @@ def test_muestras_por_segundo_iguales_a_la_carga_masiva(plan):
     assert tablas['actividad_usuarios'] == list(cargar_influx.lineas_actividad_usuarios(masivo, regiones))
     assert len(tablas['tracking_jugador']) == 22 * DURACION_SEG
     # Estadísticas: exactamente las del caso 8, sin duplicar el muestreo de la carga masiva.
-    assert tablas['estadisticas_partido'] == line_protocol(plan, plan.muestras(0, 5400, INICIO_TRACKING)).splitlines()
+    assert tablas['estadisticas_partido'] == line_protocol(plan, plan.muestras(0, 5400, INICIO_TRACKING), 'S-01').splitlines()
     assert len(tablas['estadisticas_partido']) == 2162
 
 
 def test_anclas_de_tiempo_y_series_de_cada_tabla(plan):
-    generador = GeneradorMuestras(plan, titulares_de_archivos([DEMO_P001], plan), ['UEFA'], INICIO_TRACKING)
+    generador = GeneradorMuestras(plan, titulares_de_archivos([DEMO_P001], plan), ['UEFA'], INICIO_TRACKING, 'S-01')
     tablas = generador.lineas(0, 5)
     inicio = int(INICIO_TRACKING.timestamp())
     assert tablas['tracking_jugador'][0].startswith('tracking_jugador,partido_id=P-001,equipo_id=URU,jugador_id=URU-1 ')
@@ -144,14 +145,23 @@ def test_anclas_de_tiempo_y_series_de_cada_tabla(plan):
     assert 'duracion_s=0i' in tablas['estadisticas_partido'][0]
 
 
+def test_estadisticas_con_los_mismos_tags_que_la_carga_masiva(plan):
+    # Clase 9: los tags identifican la serie; sin sede_id cada equipo tendría dos.
+    vivo = GeneradorMuestras(plan, [], ['UEFA'], INICIO_TRACKING, 'S-01').lineas(0, 0)['estadisticas_partido']
+    masivo = cargar_influx.lineas_estadisticas_partido(dict(
+        codigo='P-001', inicio=int(INICIO_TRACKING.timestamp()), sede='S-01', equipos=['URU', 'KSA']))
+    assert [l.split(' ')[0] for l in vivo] == [next(masivo).split(' ')[0] for _ in vivo]
+    assert vivo[0].startswith('estadisticas_partido,partido_id=P-001,equipo_id=URU,sede_id=S-01 ')
+
+
 def test_sin_alineaciones_solo_pelota_estadisticas_y_audiencia(plan):
-    tablas = GeneradorMuestras(plan, [], ['UEFA'], INICIO_TRACKING).lineas(0, 9)
+    tablas = GeneradorMuestras(plan, [], ['UEFA'], INICIO_TRACKING, 'S-01').lineas(0, 9)
     assert tablas['tracking_jugador'] == []
     assert len(tablas['tracking_pelota']) == 10 and len(tablas['estadisticas_partido']) == 4
 
 
 def test_segundos_en_orden_y_dentro_del_partido(plan):
-    generador = GeneradorMuestras(plan, [], ['UEFA'], INICIO_TRACKING)
+    generador = GeneradorMuestras(plan, [], ['UEFA'], INICIO_TRACKING, 'S-01')
     with pytest.raises(ValueError):
         generador.lineas(1, 2)
     generador.lineas(0, 2)
@@ -182,7 +192,7 @@ def test_escritor_un_lote_por_tabla_en_su_base(plan):
     session = MagicMock()
     session.post.return_value = _respuesta(204)
     escritor = EscritorInflux(_adaptador(session, 'secreto'), BASES)
-    lineas = GeneradorMuestras(plan, titulares_de_archivos([DEMO_P001], plan), ['UEFA'], INICIO_TRACKING).lineas(0, 9)
+    lineas = GeneradorMuestras(plan, titulares_de_archivos([DEMO_P001], plan), ['UEFA'], INICIO_TRACKING, 'S-01').lineas(0, 9)
     assert escritor.escribir(lineas) == 0
     destinos = [(c.kwargs['params']['db'], c.kwargs['data'].decode().split(',', 1)[0]) for c in session.post.call_args_list]
     assert destinos == [(EN_VIVO, 'tracking_jugador'), (EN_VIVO, 'tracking_pelota'),
@@ -242,7 +252,7 @@ class InfluxFalso:
             tabla = tags.split(',', 1)[0]
             self.lineas.setdefault(tabla, []).append(linea)
             if tabla == 'estadisticas_partido':
-                equipo = tags.split('equipo_id=')[1]
+                equipo = tags.split('equipo_id=')[1].split(',')[0]
                 valores = {k: float(v.rstrip('i')) for k, v in (p.split('=') for p in campos.split(','))}
                 self.estadisticas[(int(ts), equipo)] = dict(
                     time=datetime.fromtimestamp(int(ts), timezone.utc).isoformat(), equipo_id=equipo, **valores)
@@ -310,6 +320,8 @@ def test_recorrido_completo_avanza_mongo_e_influx_al_mismo_ritmo(plan, en_vivo, 
     assert resultado['tablas']['tracking_jugador']['escritas'] == 22 * 5400
     assert resultado['tablas']['tracking_pelota']['escritas'] == 5400
     assert resultado['tablas']['estadisticas_partido']['escritas'] == 2162
+    # La sede sale del documento del partido.
+    assert all(',sede_id=S-01 ' in l for l in influx.lineas['estadisticas_partido'])
     assert resultado['tablas']['actividad_usuarios']['escritas'] == 1080 * 2
     assert all(t['rechazadas'] == 0 for t in resultado['tablas'].values())
     inicio = int(INICIO_TRACKING.timestamp())

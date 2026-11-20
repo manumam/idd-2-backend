@@ -5,6 +5,7 @@ from unittest.mock import Mock
 import pytest
 
 from app.adapters import mongo_adapter
+from app.core.exceptions import DatabaseUnavailableError
 from app.services import simulacion_demo_service
 from app.services.simulacion_demo_service import SimulacionDemo, motivo_no_simulable
 
@@ -84,21 +85,65 @@ def test_lanza_y_responde_202_sin_esperar(client, lanzador):
     assert lanzador.lanzados[0][:2] == ("P-002", 10)
 
 
-def test_sin_partido_elije_el_proximo_simulable(client, lanzador, monkeypatch):
-    siguiente = _partido(_id="P-004", fecha_hora="2030-06-10T18:00:00Z")
-    monkeypatch.setattr(mongo_adapter, "list_candidatos_simulacion", Mock(return_value=[_partido(estado="finalizado"), siguiente]))
-    monkeypatch.setattr(mongo_adapter, "find_estadisticas", Mock(return_value=siguiente))
-    respuesta = client.post("/demo/simulacion", json={"factor": 10})
+def _candidatos(monkeypatch, *documentos):
+    consulta = Mock(return_value=list(documentos))
+    monkeypatch.setattr(mongo_adapter, "list_candidatos_simulacion", consulta)
+    monkeypatch.setattr(mongo_adapter, "find_estadisticas",
+                        Mock(side_effect=lambda codigo: next(d for d in documentos if d["_id"] == codigo)))
+    return consulta
+
+
+def test_sin_partido_elige_el_primero_simulable_en_orden_de_fecha(client, lanzador, monkeypatch):
+    consulta = _candidatos(
+        monkeypatch,
+        _partido(_id="P-001", fecha_hora="2030-06-08T18:00:00Z", inicio_tracking="2030-06-08T18:00:00Z"),
+        _partido(_id="P-003", fecha_hora="2030-06-09T18:00:00Z", alineaciones=dict(local=ALINEACION_ARG, visitante=None)),
+        _partido(_id="P-005", fecha_hora="2030-06-09T21:00:00Z", estadisticas_control=dict(tick=2)),
+        _partido(_id="P-004", fecha_hora="2030-06-10T18:00:00Z"),
+        _partido(_id="P-006", fecha_hora="2030-06-11T18:00:00Z"),
+    )
+    respuesta = client.post("/demo/simulacion")
     assert respuesta.status_code == 202
     assert respuesta.json()["partido"] == "P-004"
     assert lanzador.lanzados[0][:2] == ("P-004", 10)
+    assert respuesta.json()["siguiente"] == "P-006"
+    consulta.assert_called_with(simulacion_demo_service.CANDIDATOS_SIGUIENTE)
+
+
+def test_cuerpo_vacio_usa_factor_por_defecto(client, lanzador):
+    assert client.post("/demo/simulacion", json={}).status_code == 202
+    assert lanzador.lanzados[0][:2] == ("P-002", 10)
 
 
 def test_sin_partidos_simulables_responde_409(client, lanzador, monkeypatch):
-    monkeypatch.setattr(mongo_adapter, "list_candidatos_simulacion", Mock(return_value=[]))
-    respuesta = client.post("/demo/simulacion")
+    _candidatos(monkeypatch, _partido(alineaciones=dict(local=ALINEACION_ARG, visitante=None)))
+    respuesta = client.post("/demo/simulacion", json={"factor": 20})
     assert respuesta.status_code == 409
     assert respuesta.json()["code"] == "SIN_PARTIDOS_SIMULABLES"
+    assert lanzador.lanzados == []
+
+
+def test_estado_informa_siguiente(client, lanzador, monkeypatch):
+    _candidatos(monkeypatch, _partido(_id="P-001", estado="finalizado"), _partido(_id="P-007"))
+    assert client.get("/demo/simulacion").json()["siguiente"] == "P-007"
+    _candidatos(monkeypatch)
+    assert client.get("/demo/simulacion").json()["siguiente"] is None
+
+
+def test_estado_con_mongodb_caido_responde_503(client, lanzador, monkeypatch):
+    monkeypatch.setattr(mongo_adapter, "list_candidatos_simulacion",
+                        Mock(side_effect=DatabaseUnavailableError("MongoDB")))
+    respuesta = client.get("/demo/simulacion")
+    assert respuesta.status_code == 503
+    assert respuesta.json()["code"] == "MONGODB_UNAVAILABLE"
+
+
+def test_partido_explicito_con_una_alineacion(client, lanzador, monkeypatch):
+    una = _partido(_id="P-009", alineaciones=dict(local=ALINEACION_ARG, visitante=None))
+    monkeypatch.setattr(mongo_adapter, "find_estadisticas", Mock(return_value=una))
+    respuesta = client.post("/demo/simulacion", json={"partido": "P-009", "factor": 5})
+    assert respuesta.status_code == 202
+    assert lanzador.lanzados[0][:2] == ("P-009", 5)
 
 
 def test_partido_inexistente_404(client, lanzador, monkeypatch):

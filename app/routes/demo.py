@@ -8,7 +8,8 @@ router = APIRouter(tags=["Demo"])
 
 
 @router.get("/demo/simulacion", response_model=SimulacionEstado, summary="Estado de la simulación en vivo",
-            description="Última simulación lanzada por este proceso de la API, o la que está en curso, y el próximo partido simulable. segundo_de_juego avanza con cada tick confirmado del guion.")
+            description="Última simulación lanzada por este proceso de la API, o la que está en curso, y siguiente: el próximo partido simulable con la misma regla que POST sin partido, consultado en MongoDB sin caché. segundo_de_juego avanza con cada tick confirmado del guion.",
+            responses=RESPUESTA_503)
 def estado_simulacion() -> SimulacionEstado:
     return simulacion_demo_service.estado_simulacion()
 
@@ -18,7 +19,7 @@ def estado_simulacion() -> SimulacionEstado:
     response_model=SimulacionEstado,
     status_code=202,
     summary="Simular un partido en vivo",
-    description="Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido elige el próximo partido simulable; con partido valida ese código. Requiere un partido próximo, sin datos previos y con las dos alineaciones. Responde sin esperar a que termine. Modifica eventos, reloj, marcador y estado hasta finalizarlo y escribe en InfluxDB; no es reanudable. Una simulación a la vez por proceso de la API.",
+    description="Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido elige el próximo por fecha_hora: próximo, sin eventos, resultado ni simulaciones previas y con las dos alineaciones. Con partido valida ese código con las mismas condiciones, pero alcanza una alineación. Responde sin esperar a que termine. Modifica eventos, reloj, marcador y estado hasta finalizarlo y escribe en InfluxDB; no es reanudable. Una simulación a la vez por proceso de la API.",
     responses={
         **RESPUESTA_400,
         **RESPUESTA_404,

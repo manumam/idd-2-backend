@@ -157,17 +157,20 @@ def test_dependencia_up_solo_reevalua_fuentes_vencidas():
     registry.register(collector)
     evaluar.assert_not_called()
 
-    collector.registrar({"mongodb": "down"})
+    evaluar.side_effect = lambda fuentes: {f: "down" for f in fuentes}
+    assert collector.consultar(("mongodb",)) == {"mongodb": "down"}
+    evaluar.side_effect = lambda fuentes: {f: "up" for f in fuentes}
     assert registry.get_sample_value("api_dependencia_up", {"fuente": "mongodb"}) == 0.0
-    evaluar.assert_called_once_with(("redis",))
+    assert evaluar.call_args_list[-1].args == (("redis",),)
+    assert evaluar.call_count == 2
 
     ahora[0] += 14
     registry.get_sample_value("api_dependencia_up", {"fuente": "mongodb"})
-    evaluar.assert_called_once()
+    assert evaluar.call_count == 2
 
     ahora[0] += 1
     assert registry.get_sample_value("api_dependencia_up", {"fuente": "mongodb"}) == 1.0
-    assert evaluar.call_count == 2
+    assert evaluar.call_count == 3
 
 
 def test_pool_mongodb_cuenta_conexiones_tomadas_y_devueltas():

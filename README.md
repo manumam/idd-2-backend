@@ -45,6 +45,19 @@ MongoDB se publica solo en loopback en `MONGO_PORT` (27018 por defecto);
 `fixture2030_fixture2030_data`. Redis usa `REDIS_PORT` (6380 por defecto).
 Estas dos bases no requieren otro clon ni ejecutan cargas de datos al iniciar.
 
+Redis es una instancia dedicada a caché: solo guarda copias reconstruibles desde
+MongoDB o InfluxDB. Por eso usa `--maxmemory 256mb` con `--maxmemory-policy allkeys-lru`:
+al llegar al límite desaloja (evicción) las claves usadas hace más tiempo, tengan o
+no TTL, y conserva las que se están leyendo, como las del partido en vivo. Las
+políticas `volatile-*` solo desalojan claves con TTL y, si no hay ninguna, se
+comportan como `noeviction` (rechazan escrituras nuevas). La expiración por TTL
+sigue acotando la antigüedad de cada clave; la evicción solo actúa por falta de
+memoria. Redis no persiste (sin AOF y con `--save ""`, sin snapshots RDB) porque
+es una caché reconstruible: tras un reinicio casi todas las claves ya habrían
+vencido, y persistir no convierte a Redis en fuente de verdad (Clase 8). Estos
+cambios se aplican al recrear el contenedor de Redis (`docker compose up -d redis`);
+un contenedor ya iniciado conserva la configuración anterior.
+
 `docker-compose.yaml` define MongoDB, Redis e InfluxDB. Los montajes para importar
 MongoDB son opcionales, mediante `docker-compose.imports.yaml` y `TP_DATA_DIR`
 (por defecto `../idd-2-tp`). InfluxDB todavía monta scripts del repositorio de hitos
@@ -102,7 +115,7 @@ si la fuente cae o no devuelve los datos esperados. Ver [tests/README.md](tests/
 - [Monitoreo con Prometheus y Grafana Cloud](observabilidad/README.md).
 - [Pruebas y evidencia disponible](laboratorio/pruebas_y_evidencia.md).
 
-`/live` comprueba el proceso sin consultar motores. `/ready` devuelve 200 si MongoDB e InfluxDB responden a su ping o 503 si alguno falla; Redis es caché opcional y no se evalúa. `/health` devuelve 200 con `up/down` para MongoDB, Redis e InfluxDB aun si alguna está caída. Los endpoints
+`/live` comprueba el proceso sin consultar motores. `/ready` devuelve 200 si MongoDB responde a su ping o 503 si falla; Redis es caché opcional y no se evalúa, e InfluxDB tampoco: si cae, solo las rutas que lo usan (estadísticas en vivo y serie temporal, mapa de calor, rendimiento en vivo) responden 503 `INFLUXDB_UNAVAILABLE`. `/health` devuelve 200 con `up/down` para MongoDB, Redis e InfluxDB aun si alguna está caída. Ambas reusan el último ping de cada fuente durante 15 s, así que el estado puede tener hasta 15 s de atraso. Los endpoints
 de datos responden 503 ante una dependencia inaccesible o con identidad/permisos/contexto rechazados, y 504 ante timeout. Los detalles del driver no
 se publican en respuestas ni logs.
 

@@ -72,12 +72,22 @@ registran su tipo, sin devolver el detalle al consumidor.
 | Ruta | Comprobación actual | Respuesta |
 | --- | --- | --- |
 | `/live` | Proceso, sin consultar bases | 200 con `{estado: alive}` |
-| `/ready` | Ping de MongoDB e InfluxDB | `{listo, estado}`; 200 si ambas responden, 503 si alguna falla |
+| `/ready` | Ping de MongoDB | `{listo, estado}`; 200 si responde, 503 si falla |
 | `/health` | Estado individual de MongoDB, Redis e InfluxDB | 200 con `{estado: {...}}`, incluso con fuentes `down` |
 
 El 503 de `/ready` usa su schema de salud, no el cuerpo de error de negocio.
 Un ping correcto no acredita esquemas ni datos; verificar también la ruta funcional.
 Redis no participa de `/ready`: es caché opcional y, si cae, la API sigue respondiendo desde MongoDB.
+InfluxDB tampoco: sin él siguen funcionando fixture, grupos, playoffs, partido, eventos,
+alineaciones, estadísticas finales consolidadas y acumulados del jugador. Solo las rutas
+que lo usan (estadísticas en vivo y serie temporal, mapa de calor, rendimiento en vivo)
+responden 503 `INFLUXDB_UNAVAILABLE`; su estado sigue informado en `/health`.
+
+`/health`, `/ready` y el scrape de `/metrics` comparten el último resultado de cada
+fuente: como mucho se hace un ping por fuente cada 15 s. Si el último resultado de
+una fuente tiene 15 s o más, se vuelve a hacer ping solo de esa fuente. Así la
+frecuencia de los sondeos no genera una tormenta de conexiones contra las bases; a
+cambio, el estado informado puede tener hasta 15 s de atraso.
 
 ## Métricas Prometheus
 
@@ -99,9 +109,8 @@ nunca códigos de partido, claves de caché ni rutas sin plantilla.
 `fuente` es `mongodb`, `redis` o `influxdb`. Las fallas de Redis absorbidas por la
 caché también se cuentan en `api_dependencia_errores_total`, aunque no lleguen al cliente.
 
-`api_dependencia_up` reutiliza el resultado de `/health` y `/ready`. Al hacer
-scrape solo se hace ping a las fuentes cuyo último resultado tiene más de 15 s,
-para que la frecuencia de scrape no genere una tormenta de conexiones.
+`api_dependencia_up` usa el mismo resultado compartido con `/health` y `/ready`
+(un ping por fuente cada 15 s como máximo).
 
 `api_pool_conexiones_en_uso` usa los eventos de monitoreo del pool de pymongo.
 Un valor sostenido cerca del máximo del pool indica requests esperando conexión

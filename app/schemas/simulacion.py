@@ -6,7 +6,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class SimulacionRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    partido: str | None = Field(default=None, pattern=r"^P-[0-9]{3}$", examples=["P-001"])
+    partido: str | None = Field(default=None, pattern=r"^P-[0-9]{3}$", examples=["P-001"],
+                                description="Sin partido, se elige el próximo simulable")
     factor: float = Field(default=10, ge=1, le=120, description="Segundos de juego por segundo real")
 
 
@@ -19,4 +20,5 @@ class SimulacionEstado(BaseModel):
     iniciada_en: datetime | None = Field(examples=["2026-11-20T18:30:00Z"])
     finalizada: bool
     error: str | None = None
-    siguiente: str | None = Field(examples=["P-004"])
+    siguiente: str | None = Field(description="Próximo partido simulable con ambas alineaciones",
+                                  examples=["P-004"])

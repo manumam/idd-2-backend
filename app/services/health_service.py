@@ -16,10 +16,12 @@ FUENTES = {
 FUENTES_HEALTH = tuple(FUENTES)
 
 # Redis es caché opcional: si cae, la API sigue respondiendo desde MongoDB.
-FUENTES_ESENCIALES = ("mongodb", "influxdb")
+# Sin InfluxDB solo fallan (503) las rutas en vivo y de serie temporal; el resto sigue con MongoDB.
+FUENTES_ESENCIALES = ("mongodb",)
 
-# api_dependencia_up reutiliza /health y /ready; el scrape solo hace ping si el último
-# resultado tiene más de 15 s (intervalo de scrape), para no generar una tormenta de conexiones.
+# /health, /ready y el scrape de api_dependencia_up comparten el último resultado: como mucho
+# un ping por fuente cada 15 s (intervalo de scrape), para no generar una tormenta de conexiones.
+# El estado informado puede tener hasta 15 s de atraso.
 INTERVALO_ESTADO_SEGUNDOS = 15
 
 
@@ -44,12 +46,9 @@ REGISTRY.register(estado_fuentes)
 
 
 def estado_dependencias() -> dict:
-    estados = _consultar(FUENTES_HEALTH)
-    estado_fuentes.registrar(estados)
-    return estados
+    return estado_fuentes.consultar(FUENTES_HEALTH)
 
 
 def estado_readiness() -> tuple[dict, bool]:
-    estados = _consultar(FUENTES_ESENCIALES)
-    estado_fuentes.registrar(estados)
+    estados = estado_fuentes.consultar(FUENTES_ESENCIALES)
     return estados, all(estado == "up" for estado in estados.values())

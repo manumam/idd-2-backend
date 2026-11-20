@@ -167,7 +167,7 @@ def test_postman_operations_and_parameters_match_openapi():
     for (path, method), item in operations.items():
         expected = {p['name'] for p in schema['paths'][path][method].get('parameters', []) if p['in'] == 'query'}
         assert expected == {p['key'] for p in item['request']['url'].get('query', [])}
-        if path not in ('/health', '/live', '/ready') and (path, method) != ('/demo/simulacion', 'get'):
+        if path not in ('/health', '/live', '/ready'):
             assert 504 in {response['code'] for response in item['response']}
             assert '504' in schema['paths'][path][method]['responses']
 
@@ -182,3 +182,15 @@ def test_ficha_equipo_sin_ranking_no_inventa_posicion(client, monkeypatch):
     response = client.get('/equipos/ARG')
     assert response.status_code == 200
     assert response.json()['rankingFifa'] is None
+
+
+def test_redis_de_compose_es_cache_con_allkeys_lru():
+    from pathlib import Path
+    import yaml
+    compose = yaml.safe_load(Path('docker-compose.yaml').read_text())
+    comando = compose['services']['redis']['command']
+    opcion = lambda nombre: comando[comando.index(nombre) + 1]
+    assert opcion('--maxmemory-policy') == 'allkeys-lru'
+    assert opcion('--maxmemory') == '256mb'
+    assert '--appendonly' not in comando
+    assert opcion('--save') == ''

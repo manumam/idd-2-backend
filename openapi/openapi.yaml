@@ -13,7 +13,8 @@ paths:
       - Sistema
       summary: Estado de las dependencias
       description: 'Consulta en paralelo MongoDB, Redis e InfluxDB. Responde 200 aunque
-        una fuente esté caída: la marca como `down`.'
+        una fuente esté caída: la marca como `down`. Reusa el último ping de cada
+        fuente durante 15 s: el estado puede tener hasta 15 s de atraso.'
       operationId: health_health_get
       responses:
         '200':
@@ -73,8 +74,11 @@ paths:
       tags:
       - Sistema
       summary: Readiness de conectividad
-      description: 200 si pasan los pings de MongoDB e InfluxDB; 503 si alguno falla.
-        Redis es caché opcional y no se evalúa. No certifica datos de dominio.
+      description: '200 si pasa el ping de MongoDB; 503 si falla. Redis es caché opcional
+        y no se evalúa. InfluxDB tampoco: si cae, solo las rutas que lo usan responden
+        503 `INFLUXDB_UNAVAILABLE` y su estado se informa en `/health`. Reusa el último
+        ping de cada fuente durante 15 s: el estado puede tener hasta 15 s de atraso.
+        No certifica datos de dominio.'
       operationId: ready_ready_get
       responses:
         '200':
@@ -100,7 +104,7 @@ paths:
               schema:
                 type: string
         '503':
-          description: MongoDB o InfluxDB no están disponibles
+          description: MongoDB no está disponible
           content:
             application/json:
               schema:
@@ -1499,9 +1503,10 @@ paths:
       tags:
       - Demo
       summary: Estado de la simulación en vivo
-      description: Última simulación lanzada por este proceso de la API, o la que
-        está en curso, y el próximo partido simulable. segundo_de_juego avanza con
-        cada tick confirmado del guion.
+      description: 'Última simulación lanzada por este proceso de la API, o la que
+        está en curso, y siguiente: el próximo partido simulable con la misma regla
+        que POST sin partido, consultado en MongoDB sin caché. segundo_de_juego avanza
+        con cada tick confirmado del guion.'
       operationId: estado_simulacion_demo_simulacion_get
       responses:
         '200':
@@ -1526,16 +1531,39 @@ paths:
               description: Identificador de correlación
               schema:
                 type: string
+        '503':
+          description: Dependencia no disponible, identidad rechazada, permisos o
+            contexto incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
+        '504':
+          description: Timeout de dependencia (<FUENTE>_TIMEOUT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          headers:
+            X-Request-Id:
+              description: Identificador de correlación
+              schema:
+                type: string
     post:
       tags:
       - Demo
       summary: Simular un partido en vivo
-      description: Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido
-        elige el próximo partido simulable; con partido valida ese código. Requiere
-        un partido próximo, sin datos previos y con las dos alineaciones. Responde
-        sin esperar a que termine. Modifica eventos, reloj, marcador y estado hasta
-        finalizarlo y escribe en InfluxDB; no es reanudable. Una simulación a la vez
-        por proceso de la API.
+      description: 'Lanza scripts/simular_en_vivo.py como proceso aparte. Sin partido
+        elige el próximo por fecha_hora: próximo, sin eventos, resultado ni simulaciones
+        previas y con las dos alineaciones. Con partido valida ese código con las
+        mismas condiciones, pero alcanza una alineación. Responde sin esperar a que
+        termine. Modifica eventos, reloj, marcador y estado hasta finalizarlo y escribe
+        en InfluxDB; no es reanudable. Una simulación a la vez por proceso de la API.'
       operationId: iniciar_simulacion_demo_simulacion_post
       requestBody:
         content:
@@ -3002,6 +3030,7 @@ components:
           - type: string
           - type: 'null'
           title: Siguiente
+          description: Próximo partido simulable con ambas alineaciones
           examples:
           - P-004
       type: object
@@ -3022,6 +3051,7 @@ components:
             pattern: ^P-[0-9]{3}$
           - type: 'null'
           title: Partido
+          description: Sin partido, se elige el próximo simulable
           examples:
           - P-001
         factor:
