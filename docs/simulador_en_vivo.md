@@ -27,8 +27,9 @@ las mismas que leen el mapa de calor y la comparación de equipos.
   continua cada 5 s, 2.162 en total), no las de la carga masiva: no se escriben dos veces.
 - Tracking y audiencia usan los generadores de `scripts/cargar_influx.py`: para
   el mismo partido y alineación, cada segundo tiene los mismos valores que la carga
-  masiva; solo cambia la hora. Las escrituras usan su `escribir` (line protocol,
-  precisión en segundos, lotes de hasta 10.000 líneas, tres intentos).
+  masiva; solo cambia la hora. Las escrituras pasan por el adaptador de InfluxDB
+  (`escribir_lineas`: line protocol, precisión en segundos, lotes atómicos de hasta
+  10.000 líneas, hasta tres intentos ante fallas de disponibilidad).
 
 Es un script aparte porque su contrato difiere del caso 8: escribe tracking,
 ancla el tiempo en la hora real de inicio y **no es reanudable**.

@@ -48,10 +48,16 @@ puntos que el torneo completo.
 .venv/bin/python scripts/cargar_influx.py --exportar /ruta/a/lp
 ```
 
-La carga usa `INFLUX_URL` y el token de la API (`INFLUX_TOKEN` o
-`.influxdb3-token`). Envía lotes de 10.000 líneas a `/api/v3/write_lp` con
-`precision=second` y hasta tres intentos por lote; si queda alguno rechazado
-informa la cantidad y termina con código 1. Volver a cargar sobrescribe los
+La carga escribe por el adaptador de InfluxDB de la API (`escribir_lineas`, con
+`INFLUX_URL` y el mismo token: `INFLUX_TOKEN` o `.influxdb3-token`), como todo
+acceso a una base. Envía lotes de 10.000 líneas a `/api/v3/write_lp` con
+`precision=second` y `accept_partial=false`: cada lote se escribe entero o se
+rechaza entero, así la cantidad informada de líneas rechazadas es exacta. Las
+fallas de disponibilidad (conexión, timeout, 5xx) se reintentan hasta tres veces;
+un 4xx (líneas o credenciales rechazadas) no se reintenta. Solo escribe en las dos
+bases configuradas (`INFLUX_DATABASE` e `INFLUX_DATABASE_EN_VIVO`). Cada lote se
+mide en las métricas de dependencias de la API (`operacion="escribir_lote"`). Si
+queda alguna línea rechazada informa la cantidad y termina con código 1. Volver a cargar sobrescribe los
 mismos puntos (misma serie y timestamp), sin duplicarlos.
 
 `--crear-bases` ejecuta `influxdb3` dentro del servicio `influxdb` con
@@ -94,7 +100,7 @@ fuera de la cancha. Funciones en la documentación de InfluxDB 3 Core:
 `muestras` por `celda` de las ventanas que empiezan en el rango pedido.
 
 Ejecutarlo después de cada partido y antes de que venza su crudo (7 días). La
-escritura reutiliza los lotes y reintentos de `cargar_influx.py`; si queda alguna
+escritura usa el mismo método del adaptador que `cargar_influx.py`; si queda alguna
 línea rechazada termina con código 1. Reprocesar escribe el mismo valor en la
 misma serie y timestamp, sin sumar. Un punto de una celda que ya no tiene
 muestras no se borra (el script solo escribe): `--solo-validar`

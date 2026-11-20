@@ -139,10 +139,10 @@ def bases_configuradas():
 
 
 class EscritorInflux:
-    """Un lote por tabla y tick, con los reintentos de la carga masiva y contadores por tabla."""
+    """Un lote por tabla y tick a través del adaptador de InfluxDB, con contadores por tabla."""
 
-    def __init__(self, session, url, token, bases):
-        self.session, self.url, self.token, self.bases = session, url, token, bases
+    def __init__(self, influx, bases):
+        self.influx, self.bases = influx, bases
         self.contadores = {tabla: dict(base=base, escritas=0, rechazadas=0) for tabla, base in bases.items()}
 
     def escribir(self, lineas_por_tabla):
@@ -150,7 +150,7 @@ class EscritorInflux:
         for tabla, lineas in lineas_por_tabla.items():
             if not lineas:
                 continue
-            fallidas = cargar_influx.escribir(self.session, self.url, self.token, self.bases[tabla], lineas)
+            fallidas = self.influx.escribir_lineas(self.bases[tabla], lineas)
             self.contadores[tabla]['escritas'] += len(lineas) - fallidas
             self.contadores[tabla]['rechazadas'] += fallidas
             rechazadas += fallidas
@@ -245,13 +245,10 @@ def main():
             jugadores_con_tracking=len(titulares), puntos=contar_puntos(plan, titulares, confederaciones),
             bases_modificadas=False, referencias_verificadas=False), indent=2))
         return
-    import requests
-    from app.config.settings import settings
     documento = mongo_adapter.find_alineaciones(plan.deportivo.partido) or {}
     titulares = titulares_de(Alineaciones.model_validate(documento.get('alineaciones') or {}), plan.local, plan.visitante)
-    with requests.Session() as session:
-        escritor = EscritorInflux(session, settings.influx_url, influx_adapter._resolve_token(), bases_configuradas())
-        print(json.dumps(simular(plan, args.factor, titulares, confederaciones, escritor), indent=2))
+    escritor = EscritorInflux(influx_adapter, bases_configuradas())
+    print(json.dumps(simular(plan, args.factor, titulares, confederaciones, escritor), indent=2))
 
 
 if __name__ == '__main__':

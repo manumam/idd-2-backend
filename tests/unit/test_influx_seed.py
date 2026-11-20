@@ -102,25 +102,15 @@ def test_rechaza_tags_que_romperian_el_line_protocol():
         seed._tag('Copa America')
 
 
-def test_escribe_en_lotes_con_precision_en_segundos_y_reintenta():
-    session = MagicMock()
-    session.post.side_effect = [MagicMock(status_code=204), MagicMock(status_code=500), MagicMock(status_code=204)]
-    lineas = [f'tracking_pelota,partido_id=P-001 x_m=1.00 {i}' for i in range(seed.LOTE_LINEAS + 1)]
-    rechazadas = seed.escribir(session, 'http://influx:8181/', 'secreto', 'fixture2030_en_vivo', lineas)
-    assert rechazadas == 0
-    assert session.post.call_count == 3
-    _, kwargs = session.post.call_args
-    assert session.post.call_args[0][0] == 'http://influx:8181/api/v3/write_lp'
-    assert kwargs['params'] == {'db': 'fixture2030_en_vivo', 'precision': 'second'}
-    assert kwargs['headers'] == {'Authorization': 'Bearer secreto'}
-    assert kwargs['data'].decode().count('\n') == 1
-
-
-def test_lote_rechazado_tras_los_reintentos_se_informa():
-    session = MagicMock()
-    session.post.return_value = MagicMock(status_code=400)
-    assert seed.escribir(session, 'http://influx:8181', None, 'fixture2030_resumen', ['a', 'b']) == 2
-    assert session.post.call_count == seed.INTENTOS_POR_LOTE
+def test_carga_escribe_cada_tabla_en_su_base_por_el_adaptador(torneo):
+    partidos, confederaciones = torneo
+    influx = MagicMock()
+    influx.escribir_lineas.side_effect = lambda base, lineas: 1 if base == seed.BASE_RESUMEN else 0
+    resultado = seed.cargar(partidos[:2], confederaciones, influx)
+    bases = {c.args[0] for c in influx.escribir_lineas.call_args_list}
+    assert bases == {seed.BASE_EN_VIVO, seed.BASE_RESUMEN}
+    assert resultado['tracking_pelota'] == dict(base=seed.BASE_EN_VIVO, enviadas=2 * seed.DURACION_PARTIDO_SEG, rechazadas=0)
+    assert resultado['estadisticas_partido']['rechazadas'] == 2
 
 
 def test_crear_bases_respeta_retencion_y_no_recrea_existentes(monkeypatch):

@@ -17,8 +17,6 @@ DATA = ROOT / 'data/fixture'
 SEMILLA = 2030
 DURACION_PARTIDO_SEG = 5400
 INTERVALO_MUESTREO_SEG = 5
-LOTE_LINEAS = 10000
-INTENTOS_POR_LOTE = 3
 
 BASE_EN_VIVO = 'fixture2030_en_vivo'
 BASE_RESUMEN = 'fixture2030_resumen'
@@ -166,49 +164,16 @@ def resumir(partidos, confederaciones):
     )
 
 
-def en_lotes(lineas, tamano=LOTE_LINEAS):
-    lote = []
-    for linea in lineas:
-        lote.append(linea)
-        if len(lote) == tamano:
-            yield lote
-            lote = []
-    if lote:
-        yield lote
-
-
-def escribir(session, url, token, base, lineas):
-    """POST /api/v3/write_lp con precisión en segundos; devuelve las líneas rechazadas tras los reintentos."""
-    import requests
-    headers = {'Authorization': f'Bearer {token}'} if token else {}
-    rechazadas = 0
-    for lote in en_lotes(lineas):
-        cuerpo = ('\n'.join(lote) + '\n').encode('utf-8')
-        for _ in range(INTENTOS_POR_LOTE):
-            try:
-                respuesta = session.post(f'{url.rstrip("/")}/api/v3/write_lp',
-                                         params={'db': base, 'precision': 'second'},
-                                         data=cuerpo, headers=headers, timeout=60)
-                if respuesta.status_code == 204:
-                    break
-            except requests.RequestException:
-                pass
-        else:
-            rechazadas += len(lote)
-    return rechazadas
-
-
-def cargar(partidos, confederaciones, url, token):
-    import requests
+def cargar(partidos, confederaciones, influx):
+    """Escribe por el adaptador de InfluxDB: lotes, precisión en segundos y reintentos acotados."""
     resultado = {}
-    with requests.Session() as session:
-        for tabla, (base, generar) in TABLAS.items():
-            enviadas = rechazadas = 0
-            for partido in partidos:
-                lineas = list(generar(partido, confederaciones))
-                enviadas += len(lineas)
-                rechazadas += escribir(session, url, token, base, lineas)
-            resultado[tabla] = dict(base=base, enviadas=enviadas, rechazadas=rechazadas)
+    for tabla, (base, generar) in TABLAS.items():
+        enviadas = rechazadas = 0
+        for partido in partidos:
+            lineas = list(generar(partido, confederaciones))
+            enviadas += len(lineas)
+            rechazadas += influx.escribir_lineas(base, lineas)
+        resultado[tabla] = dict(base=base, enviadas=enviadas, rechazadas=rechazadas)
     return resultado
 
 
@@ -270,14 +235,13 @@ def main():
         return
 
     from app.adapters.influx_adapter import influx_adapter
-    from app.config.settings import settings
-    token = influx_adapter._resolve_token()
     if args.crear_bases:
+        token = influx_adapter._resolve_token()
         if not token:
             parser.error('Falta el token de InfluxDB (INFLUX_TOKEN o .influxdb3-token)')
         print(json.dumps(crear_bases(token)))
         return
-    resultado = cargar(partidos, confederaciones, settings.influx_url, token)
+    resultado = cargar(partidos, confederaciones, influx_adapter)
     print(json.dumps(resultado, indent=2))
     if any(t['rechazadas'] for t in resultado.values()):
         sys.exit(1)
