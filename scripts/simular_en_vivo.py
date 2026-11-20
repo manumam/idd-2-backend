@@ -107,9 +107,10 @@ class GeneradorMuestras:
     Las secuencias son deterministas pero dependen de los segundos anteriores: se piden en orden.
     """
 
-    def __init__(self, plan, titulares, confederaciones, inicio_tracking):
+    def __init__(self, plan, titulares, confederaciones, inicio_tracking, sede):
         self.plan = plan
         self.inicio_tracking = inicio_tracking
+        self.sede = cargar_influx._tag(sede)
         self.titulares = titulares
         self.confederaciones = confederaciones
         partido = dict(codigo=cargar_influx._tag(plan.deportivo.partido),
@@ -132,7 +133,7 @@ class GeneradorMuestras:
                     tablas['actividad_usuarios'] += islice(self._audiencia, len(self.confederaciones))
         primero = -(-desde // INTERVALO_RESUMEN_SEG) * INTERVALO_RESUMEN_SEG
         if primero <= hasta:
-            tablas['estadisticas_partido'] = line_protocol(self.plan, self.plan.muestras(primero, hasta, self.inicio_tracking)).splitlines()
+            tablas['estadisticas_partido'] = line_protocol(self.plan, self.plan.muestras(primero, hasta, self.inicio_tracking), self.sede).splitlines()
         self.siguiente = hasta + 1
         return tablas
 
@@ -236,7 +237,7 @@ def simular(plan, factor, titulares, confederaciones, escritor, reloj=time.monot
     inicio_tracking = inicio_tracking_desde(ahora or datetime.now(timezone.utc))
     # inicio_tracking se guarda junto con el control inicial del caso 8, en una sola escritura.
     control = preparar_ejecucion(plan, {'inicio_tracking': inicio_tracking})
-    generador = GeneradorMuestras(plan, titulares, confederaciones, inicio_tracking)
+    generador = GeneradorMuestras(plan, titulares, confederaciones, inicio_tracking, doc['sede']['codigo'])
     reloj_juego = RelojSimulado(factor)
     escrito, siguiente_tick = -1, 0
     origen = reloj()
@@ -271,8 +272,10 @@ def simular(plan, factor, titulares, confederaciones, escritor, reloj=time.monot
                 factor=factor, tablas=escritor.contadores, consolidacion=resumen.consolidacion, ocupacion=ocupacion)
 
 
-def contar_puntos(plan, titulares, confederaciones):
-    generador = GeneradorMuestras(plan, titulares, confederaciones, datetime.now(timezone.utc))
+def contar_puntos(plan, titulares, confederaciones, import_dir=cargar_influx.DATA / 'import'):
+    # Sin conectar: la sede sale del mismo CSV que carga el fixture.
+    sede = {p['id']: p['sede_id'] for p in read_csv(Path(import_dir) / 'partidos.csv')}[plan.deportivo.partido]
+    generador = GeneradorMuestras(plan, titulares, confederaciones, datetime.now(timezone.utc), sede)
     return {tabla: len(lineas) for tabla, lineas in generador.lineas(0, DURACION_SEG).items()}
 
 

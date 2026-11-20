@@ -15,7 +15,8 @@ from scripts.simular_partido import crear_plan
 def escenario(monkeypatch):
     doc = dict(_id='P-002', fase='Grupos', grupo='A', fecha_hora=datetime(2030, 6, 24, 20),
         local=dict(codigo='ARG', nombre='Argentina'), visitante=dict(codigo='ESP', nombre='España'),
-        estado='proximo', resultado=None, sede=None)
+        estado='proximo', resultado=None,
+        sede=dict(codigo='S-02', nombre='Estadio Monumental', ciudad='Buenos Aires'))
     monkeypatch.setattr(mongo_adapter, 'find_eventos', lambda _: deepcopy(doc))
     monkeypatch.setattr(mongo_adapter, 'find_estadisticas', lambda _: deepcopy(doc))
     monkeypatch.setattr(mongo_adapter, 'find_jugador', lambda c: dict(_id=c, nombre='Jugador',
@@ -42,7 +43,7 @@ def escenario(monkeypatch):
     def escribir(lineas):
         for linea in lineas.splitlines():
             tags, campos, ts = linea.split(' ')
-            equipo = tags.split('equipo_id=')[1]
+            equipo = tags.split('equipo_id=')[1].split(',')[0]
             values = {k: float(v.rstrip('i')) for k, v in (p.split('=') for p in campos.split(','))}
             filas[(int(ts), equipo)] = dict(time=datetime.fromtimestamp(int(ts), timezone.utc).isoformat(), equipo_id=equipo, **values)
     monkeypatch.setattr(influx_adapter, 'escribir_muestras', Mock(side_effect=escribir))

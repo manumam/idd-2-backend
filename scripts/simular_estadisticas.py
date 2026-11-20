@@ -82,9 +82,10 @@ class PlanEstadisticas(BaseModel):
             tick=tick, completa=tick == len(self.deportivo.ticks) - 1)
 
 
-def line_protocol(plan, filas):
+def line_protocol(plan, filas, sede):
+    # Mismos tags que la carga masiva: sin sede_id cada equipo abriría otra serie.
     return '\n'.join(
-        f'estadisticas_partido,partido_id={plan.deportivo.partido},equipo_id={f["equipo_id"]} '
+        f'estadisticas_partido,partido_id={plan.deportivo.partido},equipo_id={f["equipo_id"]},sede_id={sede} '
         f'posesion_pct={float(f["posesion_pct"])},tiros_acumulados={f["tiros_acumulados"]}i,'
         f'pases_intervalo={f["pases_intervalo"]}i,duracion_s={f["duracion_s"]}i '
         f'{int(instante(f["time"]).timestamp())}' for f in filas) + '\n'
@@ -157,6 +158,7 @@ def confirmar_tick(plan, i, control):
 def ejecutar(plan, intervalo):
     codigo = plan.deportivo.partido
     control = preparar_ejecucion(plan)
+    sede = mongo_adapter.find_estadisticas(codigo)['sede']['codigo']
     inicio_tick = control['tick'] + 1
     for i in range(inicio_tick, len(plan.deportivo.ticks)):
         if i > inicio_tick:
@@ -166,7 +168,7 @@ def ejecutar(plan, intervalo):
         desde = 0 if i == 0 else plan.deportivo.ticks[i - 1].reloj.minuto * 60 + 5
         filas = plan.muestras(desde, tick.reloj.minuto * 60, instante(control['inicio']))
         # Influx primero. Un fallo posterior se reintenta con las mismas claves y valores.
-        influx_adapter.escribir_muestras(line_protocol(plan, filas))
+        influx_adapter.escribir_muestras(line_protocol(plan, filas, sede))
         control = confirmar_tick(plan, i, control)
         print(json.dumps(dict(partido=codigo, tick=i + 1, muestras=control['muestras'], finalizado=tick.finalizado)), flush=True)
     resumen = consolidar(codigo)
