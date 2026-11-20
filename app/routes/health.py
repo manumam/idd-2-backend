@@ -24,9 +24,10 @@ def live() -> LivenessResponse:
 
 
 @router.get('/ready', response_model=ReadinessResponse, summary='Readiness de conectividad',
-            description='200 si pasan los pings de MongoDB e InfluxDB; 503 si alguno falla. Redis es caché opcional y no se evalúa. '
+            description='200 si pasa el ping de MongoDB; 503 si falla. Redis es caché opcional y no se evalúa. InfluxDB tampoco: '
+                        'si cae, solo las rutas que lo usan responden 503 `INFLUXDB_UNAVAILABLE` y su estado se informa en `/health`. '
                         'Reusa el último ping de cada fuente durante 15 s: el estado puede tener hasta 15 s de atraso. No certifica datos de dominio.',
-            responses={503: {'model': ReadinessResponse, 'description': 'MongoDB o InfluxDB no están disponibles'}})
+            responses={503: {'model': ReadinessResponse, 'description': 'MongoDB no está disponible'}})
 def ready(response: Response) -> ReadinessResponse:
     estados, listo = health_service.estado_readiness()
     response.status_code = 200 if listo else 503

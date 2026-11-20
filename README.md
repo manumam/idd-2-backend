@@ -115,7 +115,7 @@ si la fuente cae o no devuelve los datos esperados. Ver [tests/README.md](tests/
 - [Monitoreo con Prometheus y Grafana Cloud](observabilidad/README.md).
 - [Pruebas y evidencia disponible](laboratorio/pruebas_y_evidencia.md).
 
-`/live` comprueba el proceso sin consultar motores. `/ready` devuelve 200 si MongoDB e InfluxDB responden a su ping o 503 si alguno falla; Redis es caché opcional y no se evalúa. `/health` devuelve 200 con `up/down` para MongoDB, Redis e InfluxDB aun si alguna está caída. Ambas reusan el último ping de cada fuente durante 15 s, así que el estado puede tener hasta 15 s de atraso. Los endpoints
+`/live` comprueba el proceso sin consultar motores. `/ready` devuelve 200 si MongoDB responde a su ping o 503 si falla; Redis es caché opcional y no se evalúa, e InfluxDB tampoco: si cae, solo las rutas que lo usan (estadísticas en vivo y serie temporal, mapa de calor, rendimiento en vivo) responden 503 `INFLUXDB_UNAVAILABLE`. `/health` devuelve 200 con `up/down` para MongoDB, Redis e InfluxDB aun si alguna está caída. Ambas reusan el último ping de cada fuente durante 15 s, así que el estado puede tener hasta 15 s de atraso. Los endpoints
 de datos responden 503 ante una dependencia inaccesible o con identidad/permisos/contexto rechazados, y 504 ante timeout. Los detalles del driver no
 se publican en respuestas ni logs.
 

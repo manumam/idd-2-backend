@@ -16,7 +16,8 @@ FUENTES = {
 FUENTES_HEALTH = tuple(FUENTES)
 
 # Redis es caché opcional: si cae, la API sigue respondiendo desde MongoDB.
-FUENTES_ESENCIALES = ("mongodb", "influxdb")
+# Sin InfluxDB solo fallan (503) las rutas en vivo y de serie temporal; el resto sigue con MongoDB.
+FUENTES_ESENCIALES = ("mongodb",)
 
 # /health, /ready y el scrape de api_dependencia_up comparten el último resultado: como mucho
 # un ping por fuente cada 15 s (intervalo de scrape), para no generar una tormenta de conexiones.

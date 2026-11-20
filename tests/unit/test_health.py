@@ -37,7 +37,7 @@ def test_ready_all_essential_up(client, monkeypatch):
     _mockear_pings(monkeypatch)
     response = client.get('/ready', headers={'X-Request-Id': 'ready-up'})
     assert response.status_code == 200
-    assert response.json() == {'listo': True, 'estado': {'mongodb': 'up', 'influxdb': 'up'}}
+    assert response.json() == {'listo': True, 'estado': {'mongodb': 'up'}}
     assert response.headers['X-Request-Id'] == 'ready-up'
 
 
@@ -46,22 +46,31 @@ def test_ready_ignores_redis_down(client, monkeypatch, error):
     pings = _mockear_pings(monkeypatch, caidas=('redis',), error=error)
     response = client.get('/ready')
     assert response.status_code == 200
-    assert response.json() == {'listo': True, 'estado': {'mongodb': 'up', 'influxdb': 'up'}}
+    assert response.json() == {'listo': True, 'estado': {'mongodb': 'up'}}
     pings['redis'].assert_not_called()
 
 
-@pytest.mark.parametrize('caida', ['mongodb', 'influxdb'])
 @pytest.mark.parametrize('error', [None, RuntimeError('secret')])
-def test_ready_503_when_essential_down(client, monkeypatch, caida, error):
-    pings = _mockear_pings(monkeypatch, caidas=(caida,), error=error)
+def test_ready_503_when_mongodb_down(client, monkeypatch, error):
+    pings = _mockear_pings(monkeypatch, caidas=('mongodb',), error=error)
     response = client.get('/ready')
     assert response.status_code == 503
-    assert response.json()['listo'] is False
-    assert response.json()['estado'] == {name: 'down' if name == caida else 'up' for name in ('mongodb', 'influxdb')}
+    assert response.json() == {'listo': False, 'estado': {'mongodb': 'down'}}
     assert 'secret' not in response.text
-    for ping in (pings['mongodb'], pings['influxdb']):
-        ping.assert_called_once()
+    pings['mongodb'].assert_called_once()
     assert client.get('/health').status_code == 200
+
+
+@pytest.mark.parametrize('error', [None, RuntimeError('secret')])
+def test_ready_ignores_influxdb_down_y_health_lo_informa(client, monkeypatch, error):
+    pings = _mockear_pings(monkeypatch, caidas=('influxdb',), error=error)
+    response = client.get('/ready')
+    assert response.status_code == 200
+    assert response.json() == {'listo': True, 'estado': {'mongodb': 'up'}}
+    pings['influxdb'].assert_not_called()
+    health = client.get('/health')
+    assert health.status_code == 200
+    assert health.json()['estado']['influxdb'] == 'down'
 
 
 @pytest.fixture
@@ -90,7 +99,7 @@ def test_solo_se_vuelve_a_hacer_ping_de_las_fuentes_vencidas(client, monkeypatch
 
     reloj[0] += 5
     client.get('/health')
-    assert [pings[n].call_count for n in ('mongodb', 'redis', 'influxdb')] == [2, 1, 2]
+    assert [pings[n].call_count for n in ('mongodb', 'redis', 'influxdb')] == [2, 1, 1]
 
 
 def test_ready_informa_la_caida_cuando_vence_el_ultimo_resultado(client, monkeypatch, reloj):
