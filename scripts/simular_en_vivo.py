@@ -117,3 +117,29 @@ class GeneradorMuestras:
             tablas['estadisticas_partido'] = line_protocol(self.plan, self.plan.muestras(primero, hasta)).splitlines()
         self.siguiente = hasta + 1
         return tablas
+
+
+def bases_configuradas():
+    # Las mismas bases que leen el mapa de calor (en vivo) y la comparación de equipos (resumen).
+    from app.config.settings import settings
+    return {'tracking_jugador': settings.influx_database_en_vivo, 'tracking_pelota': settings.influx_database_en_vivo,
+            'estadisticas_partido': settings.influx_database, 'actividad_usuarios': settings.influx_database}
+
+
+class EscritorInflux:
+    """Un lote por tabla y tick, con los reintentos de la carga masiva y contadores por tabla."""
+
+    def __init__(self, session, url, token, bases):
+        self.session, self.url, self.token, self.bases = session, url, token, bases
+        self.contadores = {tabla: dict(base=base, escritas=0, rechazadas=0) for tabla, base in bases.items()}
+
+    def escribir(self, lineas_por_tabla):
+        rechazadas = 0
+        for tabla, lineas in lineas_por_tabla.items():
+            if not lineas:
+                continue
+            fallidas = cargar_influx.escribir(self.session, self.url, self.token, self.bases[tabla], lineas)
+            self.contadores[tabla]['escritas'] += len(lineas) - fallidas
+            self.contadores[tabla]['rechazadas'] += fallidas
+            rechazadas += fallidas
+        return rechazadas

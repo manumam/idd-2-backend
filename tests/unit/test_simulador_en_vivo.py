@@ -1,6 +1,7 @@
 """Simulación en vivo con reloj y adaptadores en memoria: no duerme ni escribe bases."""
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -8,7 +9,7 @@ from app.adapters import mongo_adapter
 from app.services.seguimiento_service import TickPartido
 from scripts import cargar_influx
 from scripts.simular_en_vivo import (
-    DURACION_SEG, GeneradorMuestras, RelojSimulado, confederaciones_del_torneo, inicio_tracking_desde,
+    DURACION_SEG, EscritorInflux, GeneradorMuestras, bases_configuradas, RelojSimulado, confederaciones_del_torneo, inicio_tracking_desde,
     ticks_vencidos, titulares_de_archivos)
 from scripts.simular_estadisticas import PlanEstadisticas, line_protocol
 from scripts.simular_partido import crear_plan
@@ -154,3 +155,47 @@ def test_segundos_en_orden_y_dentro_del_partido(plan):
     for desde, hasta in ((0, 3), (4, 5), (3, 2), (3, DURACION_SEG + 1)):
         with pytest.raises(ValueError):
             generador.lineas(desde, hasta)
+
+
+BASES = {'tracking_jugador': 'en_vivo', 'tracking_pelota': 'en_vivo',
+         'estadisticas_partido': 'resumen', 'actividad_usuarios': 'resumen'}
+
+
+def _respuesta(status):
+    return MagicMock(status_code=status)
+
+
+def test_escritor_un_lote_por_tabla_en_su_base(plan):
+    session = MagicMock()
+    session.post.return_value = _respuesta(204)
+    escritor = EscritorInflux(session, 'http://influx:8181', 'secreto', BASES)
+    lineas = GeneradorMuestras(plan, titulares_de_archivos([DEMO_P001], plan), ['UEFA'], INICIO_TRACKING).lineas(0, 9)
+    assert escritor.escribir(lineas) == 0
+    destinos = [(c.kwargs['params']['db'], c.kwargs['data'].decode().split(',', 1)[0]) for c in session.post.call_args_list]
+    assert destinos == [('en_vivo', 'tracking_jugador'), ('en_vivo', 'tracking_pelota'),
+                        ('resumen', 'estadisticas_partido'), ('resumen', 'actividad_usuarios')]
+    assert all(c.kwargs['params']['precision'] == 'second' for c in session.post.call_args_list)
+    assert escritor.contadores['tracking_jugador'] == dict(base='en_vivo', escritas=220, rechazadas=0)
+    assert escritor.contadores['estadisticas_partido']['escritas'] == 4
+    assert escritor.contadores['actividad_usuarios']['escritas'] == 2
+
+
+def test_escritor_reintenta_y_cuenta_rechazos_por_tabla():
+    session = MagicMock()
+    session.post.side_effect = [_respuesta(500), _respuesta(204),
+                                *[_respuesta(503)] * cargar_influx.INTENTOS_POR_LOTE]
+    escritor = EscritorInflux(session, 'http://influx:8181', None, BASES)
+    rechazadas = escritor.escribir({'tracking_pelota': ['a 1', 'b 1'], 'tracking_jugador': [],
+                                    'actividad_usuarios': ['c 1']})
+    assert rechazadas == 1
+    assert session.post.call_count == 2 + cargar_influx.INTENTOS_POR_LOTE
+    assert escritor.contadores['tracking_pelota'] == dict(base='en_vivo', escritas=2, rechazadas=0)
+    assert escritor.contadores['actividad_usuarios'] == dict(base='resumen', escritas=0, rechazadas=1)
+    assert escritor.contadores['tracking_jugador'] == dict(base='en_vivo', escritas=0, rechazadas=0)
+
+
+def test_bases_por_defecto_son_las_que_leen_los_casos():
+    from app.config.settings import settings
+    bases = bases_configuradas()
+    assert bases['tracking_jugador'] == bases['tracking_pelota'] == settings.influx_database_en_vivo
+    assert bases['estadisticas_partido'] == bases['actividad_usuarios'] == settings.influx_database
