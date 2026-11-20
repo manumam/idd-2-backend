@@ -1,0 +1,175 @@
+# Simulación en vivo acelerada (modo demo)
+
+`scripts/simular_en_vivo.py` juega un partido próximo en tiempo real acelerado:
+con el factor por defecto (10) los 90 minutos duran unos 9 minutos reales. Por
+cada segundo de juego escribe lo que escribiría una ingesta real:
+
+| Destino | Qué | Frecuencia | Hora del punto |
+| --- | --- | --- | --- |
+| MongoDB `partidos` | reloj, marcador, eventos y estado (guion del caso 7) | en el minuto de cada tick del guion | — |
+| `fixture2030_en_vivo.tracking_jugador` | `x_m`, `y_m`, `velocidad_kmh`, `distancia_acum_m` | 1 Hz por titular | `inicio_tracking` + segundo |
+| `fixture2030_en_vivo.tracking_pelota` | posición y velocidad | 1 Hz | `inicio_tracking` + segundo |
+| `fixture2030_resumen.estadisticas_partido` | muestras del caso 8 | cada 5 s por selección | `inicio_tracking` + segundo |
+| `fixture2030_resumen.actividad_usuarios` | usuarios conectados | cada 5 s por región | `inicio_tracking` + segundo |
+
+Las bases son las configuradas en `INFLUX_DATABASE_EN_VIVO` e `INFLUX_DATABASE`,
+las mismas que leen el mapa de calor y la comparación de equipos.
+
+## Reutiliza el caso 8 y la carga masiva
+
+- El plan es el mismo archivo de `scripts/simular_estadisticas.py`: sirve para
+  cualquiera de los dos scripts. La validación inicial, el control
+  `estadisticas_control`, la confirmación de cada tick y la consolidación final
+  son las funciones del caso 8 (`preparar_ejecucion`, `verificar_avance`,
+  `confirmar_tick`, `consolidar`). La comparación de equipos funciona en vivo y
+  termina `completa`, igual que con `--modo vivo`.
+- Las estadísticas de equipo son las muestras del caso 8 (base cero, cobertura
+  continua cada 5 s, 2.162 en total), no las de la carga masiva: no se escriben dos veces.
+- Tracking y audiencia usan los generadores de `scripts/cargar_influx.py`: para
+  el mismo partido y alineación, cada segundo tiene los mismos valores que la carga
+  masiva; solo cambia la hora. Las escrituras pasan por el adaptador de InfluxDB
+  (`escribir_lineas`: line protocol, precisión en segundos, lotes atómicos de hasta
+  10.000 líneas, hasta tres intentos ante fallas de disponibilidad).
+
+Es un script aparte porque su contrato difiere del caso 8: escribe tracking,
+ancla el tiempo en la hora real de inicio y **no es reanudable**.
+
+## Anclaje temporal
+
+Al empezar guarda `inicio_tracking` en el partido: la hora UTC actual redondeada
+al minuto, el mismo redondeo que aplica el mapa de calor. El segundo de juego `s`
+se escribe en `inicio_tracking + s`; con factor 10 esos puntos quedan por delante
+del reloj de pared, sin efecto para las consultas, que cuentan minutos de juego
+desde `inicio_tracking`.
+
+Las estadísticas de equipo también se anclan en `inicio_tracking`: el control del
+caso 8 (`estadisticas_control.inicio`) guarda esa hora y la comparación exige que
+coincida con el inicio temporal del partido (`inicio_tracking` si existe, si no
+`fecha_hora`). Así las muestras que la carga masiva escribió en el horario del
+calendario no se mezclan con las de la simulación ni la bloquean. El plan sigue
+atado al horario: si `fecha_hora` cambia, la ejecución se rechaza igual que en el caso 8.
+
+## Comandos
+
+Elegir un partido **próximo con ambas selecciones**, sin simulaciones previas.
+Crear y validar no modifica bases; la validación no conecta (P-051 es un ejemplo):
+
+```bash
+.venv/bin/python scripts/simular_en_vivo.py /tmp/vivo-P-051.json --crear-plan P-051
+.venv/bin/python scripts/simular_en_vivo.py /tmp/vivo-P-051.json --solo-validar
+```
+
+`--solo-validar` informa duración real, segundo real de cada tick, jugadores con
+tracking y puntos por tabla. Como no conecta, toma las alineaciones de los lotes
+versionados (por defecto los de demo; `--alineaciones ARCHIVO` repetible). La
+ejecución usa las alineaciones cargadas en MongoDB: se sigue a todos los titulares
+de cada selección con alineación (ambas en P-001; solo Argentina en P-002, P-051
+y P-083). Sin alineaciones no hay `tracking_jugador`.
+
+Ejecutar requiere autorizar el partido concreto: modifica eventos, reloj,
+marcador y estado hasta finalizarlo, escribe en ambas bases de Influx, guarda el
+resumen de equipos y actualiza el validador de `partidos` (incluye `inicio_tracking`).
+
+```bash
+.venv/bin/python scripts/simular_en_vivo.py /tmp/vivo-P-051.json --factor 10
+```
+
+Se rechazan partidos no próximos, con `estadisticas_control` o `inicio_tracking`,
+referencias desactualizadas y muestras de `estadisticas_partido` preexistentes
+desde el nuevo `inicio_tracking`. Las de la carga masiva (`cargar_influx.py`) están
+en el horario del calendario y no impiden simular.
+
+## Desde el front
+
+Para la demo, la API lanza el mismo script con `POST /demo/simulacion`
+(`{"factor": 10}`; `factor` opcional, de 1 a 120). Sin `partido`, elige el próximo
+simulable por fecha; también acepta `partido` para validar un código concreto. Ejecutarlo
+tiene los mismos efectos que el comando: modifica el encuentro hasta finalizarlo.
+
+- Antes de lanzar, la API aplica las condiciones del script (`motivo_no_simulable`,
+  compartida con `simular`): próximo, sin eventos ni resultado, ambas selecciones, sin
+  `estadisticas_control` ni `inicio_tracking`. Además exige las dos alineaciones cargadas:
+  sin ellas faltaría tracking para una selección.
+- Genera el plan con `--crear-plan` en un directorio temporal y ejecuta el script con
+  `--factor` como **proceso aparte**, con el mismo intérprete, entorno y directorio que la
+  API, así usa las mismas bases configuradas. No es un hilo de la API: el simulador
+  mantiene su propio pool de conexiones y no compite con la atención de pedidos.
+- Responde 202 sin esperar. Una simulación a la vez por proceso de la API.
+- `GET /demo/simulacion` informa `en_curso`, `finalizada` (código de salida 0), `error` y
+  `siguiente`, el código del próximo partido simulable o `null`.
+  (código de salida y última línea de stderr). `segundo_de_juego` se lee de las líneas
+  JSON que el script imprime en cada tick del guion, por lo que avanza por ticks. Para
+  el avance segundo a segundo, usar `/metrics` del simulador (puerto 9105).
+- Al apagar la API se envía SIGINT al simulador (como Ctrl+C): el partido queda cortado
+  y no es reanudable. El estado vive en memoria: reiniciar la API lo pierde.
+
+| Código | Cuándo |
+| --- | --- |
+| 404 `PARTIDO_NO_ENCONTRADO` | el partido no existe |
+| 409 `SIMULACION_EN_CURSO` | ya hay una simulación corriendo en este proceso |
+| 409 `SIN_PARTIDOS_SIMULABLES` | no queda un partido próximo con ambas alineaciones y sin datos previos |
+| 409 `PARTIDO_NO_SIMULABLE` | no cumple las condiciones o el script rechazó el plan |
+
+## Ritmo, orden e invalidación
+
+El bucle escribe un lote por tabla cada segundo real con todos los segundos de
+juego vencidos; si se atrasa, el siguiente lote los recupera sin huecos. Cada
+tick del guion se confirma en MongoDB cuando sus muestras ya están en Influx. Si
+Influx rechaza un lote después de los reintentos, la simulación se detiene antes
+de confirmar el tick. Al terminar informa puntos escritos y rechazados por tabla.
+
+Cada tick invalida las cachés del partido, fixture, posiciones y cuadro (lo hace
+`aplicar_tick`) y además `mapa_calor:v2:{partido}:*`. Entre ticks, el TTL de 5 s
+del mapa en vivo limita la antigüedad. Redis caído no detiene la simulación.
+
+## Al finalizar: ocupación del mapa de calor
+
+Con el partido ya finalizado, y si hubo `tracking_jugador`, el simulador materializa
+`ocupacion_jugador_minuto` con las funciones de `scripts/materializar_ocupacion.py`
+(no un subproceso): el mapa de calor pasa a la fuente `historico`. Después cierra el
+resumen de equipos del caso 8. La salida incluye `ocupacion` con `enviadas` y
+`rechazadas`.
+
+Una falla de la materialización no deshace el partido: queda finalizado, `ocupacion`
+informa el `error` (o las líneas rechazadas) y `reintentar` con el comando manual, que
+también se imprime en stderr:
+
+```bash
+.venv/bin/python scripts/materializar_ocupacion.py --partido P-051
+```
+
+Mientras tanto el mapa sigue leyendo el crudo, que vence a los 7 días.
+
+## Métricas para Prometheus
+
+Mientras corre, el simulador expone `/metrics` en `0.0.0.0:9105` (`--puerto-metricas`
+para otro puerto; si está ocupado, falla antes de modificar el partido). Publica
+ticks aplicados, puntos escritos y rechazados por tabla, segundo de juego actual y
+retraso de la escritura respecto del reloj acelerado. El job `simulador` de
+`observabilidad/prometheus/prometheus.yml` lo recolecta con `entorno: prueba` (o el
+entorno que genere `generar_config.py`); detalle en `observabilidad/README.md`. Al
+terminar la simulación el endpoint se cierra y el target queda `DOWN`.
+
+## Corte: no es reanudable
+
+Una ejecución cortada deja el partido con `inicio_tracking`, el control del caso 8,
+los ticks confirmados y muestras ya escritas. Volver a ejecutar se rechaza. Para
+otra demo, **restaurar el partido** (estado próximo, sin eventos, resultado,
+reloj, `estadisticas_control` ni `inicio_tracking`, y sin sus muestras de
+estadísticas) **o elegir otro partido próximo**. El script no restaura ni borra.
+
+## Límites
+
+- El reloj de MongoDB avanza en los nueve ticks del guion, no minuto a minuto.
+- Se siguen los once titulares durante los 90 minutos: el cambio y la expulsión
+  del guion no modifican el tracking.
+- El caso 9 valida el tracking desde `inicio_tracking` más el reloj (la misma
+  regla de anclaje que el mapa de calor y el caso 8), y los campos son compatibles:
+  odómetro creciente sin huecos a 1 Hz y velocidad en km/h. El simulador no
+  registra `tracking_control`: consolidar el caso 9 sigue requiriendo registrarlo
+  con `scripts/consolidar_jugadores.py`, con intervalos desde `inicio_tracking`.
+- El crudo vence a los 7 días; la ocupación materializada al finalizar conserva
+  el mapa de calor.
+
+Las pruebas (`tests/unit/test_simulador_en_vivo.py`) recorren el partido completo
+con reloj, MongoDB, Redis e Influx en memoria. No certifican una ejecución real.

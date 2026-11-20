@@ -134,3 +134,68 @@ def test_publicacion_individual_no_apunta_a_filas_parciales():
     filtro, actualizacion = adapter._db['partidos'].update_one.call_args.args
     assert filtro['eventos'] == ['original'] and 'tracking_control' in filtro and 'alineaciones' in filtro
     assert actualizacion == {'$set': {'jugadores_finales': {'generacion': 'g'}}}
+
+
+def _respuesta(status):
+    respuesta = requests.Response()
+    respuesta.status_code = status
+    return respuesta
+
+
+def _adapter_escritura(monkeypatch, *respuestas, token=None):
+    adapter = InfluxAdapter()
+    session = Mock()
+    session.post.side_effect = [r if isinstance(r, Exception) else _respuesta(r) for r in respuestas]
+    monkeypatch.setattr(adapter, "get_session", lambda: session)
+    monkeypatch.setattr(adapter, "_resolve_token", lambda: token)
+    return adapter, session
+
+
+def test_influx_escribe_en_lotes_atomicos_con_precision_en_segundos(monkeypatch):
+    from app.adapters.influx_adapter import LOTE_LINEAS
+    adapter, session = _adapter_escritura(monkeypatch, 204, 204, token="secreto")
+    lineas = [f"tracking_pelota,partido_id=P-001 x_m=1.00 {i}" for i in range(LOTE_LINEAS + 1)]
+    assert adapter.escribir_lineas(settings.influx_database_en_vivo, lineas) == 0
+    assert session.post.call_count == 2
+    url, = session.post.call_args.args
+    kwargs = session.post.call_args.kwargs
+    assert url.endswith("/api/v3/write_lp")
+    assert kwargs["params"] == {"db": settings.influx_database_en_vivo, "precision": "second",
+                                "accept_partial": "false", "no_sync": "false"}
+    assert kwargs["headers"]["Authorization"] == "Bearer secreto"
+    assert kwargs["data"].decode().count("\n") == 1
+
+
+def test_influx_reintenta_solo_fallas_de_disponibilidad(monkeypatch):
+    from app.adapters.influx_adapter import INTENTOS_POR_LOTE
+    adapter, session = _adapter_escritura(
+        monkeypatch, requests.ConnectionError("hidden"), 503, 204)
+    assert adapter.escribir_lineas(settings.influx_database, ["a 1", "b 1"]) == 0
+    assert session.post.call_count == 3
+    adapter, session = _adapter_escritura(monkeypatch, *[500] * INTENTOS_POR_LOTE)
+    assert adapter.escribir_lineas(settings.influx_database, ["a 1", "b 1"]) == 2
+    assert session.post.call_count == INTENTOS_POR_LOTE
+    adapter, session = _adapter_escritura(monkeypatch, 400)
+    assert adapter.escribir_lineas(settings.influx_database, ["linea invalida"]) == 1
+    assert session.post.call_count == 1
+
+
+def test_influx_escritura_mide_latencia_y_errores(monkeypatch):
+    from app.core import observability
+    errores, duraciones = [], []
+    monkeypatch.setattr(observability, "record_dependencia_error", lambda f, c: errores.append((f, c)))
+    monkeypatch.setattr(observability, "record_dependencia", lambda f, o, s: duraciones.append((f, o)))
+    adapter, _ = _adapter_escritura(monkeypatch, 204, 400)
+    adapter.escribir_lineas(settings.influx_database, ["a 1"])
+    adapter.escribir_lineas(settings.influx_database, ["b 1"])
+    assert duraciones == [("influxdb", "escribir_lote")] * 2
+    assert errores == [("influxdb", "query")]
+
+
+def test_influx_escritura_rechaza_base_no_configurada(monkeypatch):
+    adapter, session = _adapter_escritura(monkeypatch)
+    with pytest.raises(ValueError):
+        adapter.escribir_lineas("otra_base", ["a 1"])
+    with pytest.raises(ValueError):
+        adapter.escribir_lote(settings.influx_tracking_database + "_otra", ["a 1"])
+    session.post.assert_not_called()

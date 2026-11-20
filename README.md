@@ -409,6 +409,14 @@ deportivos. Ver [configuración y verificación](docs/estadisticas.md).
 
 El simulador `simular_estadisticas.py` escribe posesión, tiros acumulados y cantidades de pases por intervalo en `estadisticas_partido`; los eventos deportivos se guardan en MongoDB. No genera posiciones ni trayectorias de jugadores o pelota. Para un mapa de calor con contenido se necesita una carga de tracking independiente y, para conservarlo, materializar la ocupación antes de que venza el crudo. Sin muestras, tabla o base de tracking creada, el mapa devuelve 200 con `celdas: []`; no inventa posiciones. Los fallos de autenticación, permisos, conexión y consultas inválidas siguen devolviendo errores.
 
+Para la demo, `scripts/simular_en_vivo.py` reutiliza ese plan y avanza MongoDB e Influx al mismo ritmo
+(factor 10: 90 minutos en unos 9): escribe tracking de jugadores y pelota a 1 Hz anclado en
+`inicio_tracking`, las muestras del caso 8 y la actividad de usuarios. Solo se ejecuta explícitamente
+y no es reanudable. Ver [comandos, anclaje y límites](docs/simulador_en_vivo.md).
+Para la demo desde el front, `POST /demo/simulacion` lo lanza como proceso aparte y
+`GET /demo/simulacion` informa su estado y el próximo partido simulable.
+Ver [desde el front](docs/simulador_en_vivo.md#desde-el-front).
+
 ## Rendimiento individual (caso 9)
 
 `GET /partidos/{codigo}/jugadores/{jugador_codigo}/estadisticas` consulta goles,

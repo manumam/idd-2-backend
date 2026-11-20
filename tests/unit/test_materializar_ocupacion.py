@@ -4,7 +4,6 @@ import importlib.util
 import json
 from pathlib import Path
 import sys
-from unittest.mock import MagicMock
 
 import pytest
 from redis.exceptions import RedisError
@@ -30,9 +29,15 @@ PARTIDO_COMPLETO = [
 
 
 class InfluxFalso:
-    def __init__(self, materializado=None):
+    def __init__(self, materializado=None, rechazadas=0):
         self.consultas = []
         self.materializado = materializado
+        self.lotes = []
+        self.rechazadas = rechazadas
+
+    def escribir_lineas(self, base, lineas):
+        self.lotes.append((base, list(lineas)))
+        return self.rechazadas
 
     def query_sql(self, query, params=None, database=None):
         self.consultas.append((query, params, database))
@@ -88,14 +93,8 @@ def test_tag_invalido_no_se_escribe():
 
 
 def _materializar(influx, redis):
-    lotes = []
-
-    def escribir(base, lineas):
-        lotes.append((base, lineas))
-        return 0
-
-    resultado = ocupacion.materializar(influx, escribir, lambda: redis, EN_VIVO, RESUMEN, 'P-002')
-    return resultado, lotes
+    resultado = ocupacion.materializar(influx, lambda: redis, EN_VIVO, RESUMEN, 'P-002')
+    return resultado, influx.lotes
 
 
 def test_reprocesar_escribe_el_mismo_lote_sin_sumar():
@@ -118,7 +117,7 @@ def test_falla_de_redis_solo_advierte(capsys):
     def conectar():
         raise RedisError('caído')
 
-    resultado = ocupacion.materializar(InfluxFalso(), lambda base, lineas: 0, conectar, EN_VIVO, RESUMEN, 'P-002')
+    resultado = ocupacion.materializar(InfluxFalso(), conectar, EN_VIVO, RESUMEN, 'P-002')
     assert resultado['enviadas'] == 3
     assert 'Advertencia' in capsys.readouterr().err
 
@@ -126,12 +125,10 @@ def test_falla_de_redis_solo_advierte(capsys):
 def test_solo_validar_no_escribe_y_comprueba_la_suma_de_ventanas(monkeypatch, capsys):
     modulo_influx = sys.modules['app.adapters.influx_adapter']
     influx = InfluxFalso()
-    escribir = MagicMock()
     monkeypatch.setattr(modulo_influx, 'influx_adapter', influx)
-    monkeypatch.setattr(ocupacion.cargar_influx, 'escribir', escribir)
     monkeypatch.setattr(sys, 'argv', ['materializar_ocupacion.py', '--partido', 'P-002', '--solo-validar'])
     ocupacion.main()
-    escribir.assert_not_called()
+    assert influx.lotes == []
     assert all(q.startswith('SELECT') for q, _, _ in influx.consultas)
     assert json.loads(capsys.readouterr().out) == [{
         'partido': 'P-002', 'puntos': 3, 'series': 2, 'muestras': 120,

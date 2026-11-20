@@ -12,6 +12,14 @@ scrape_configs:
         labels:
           entorno: prueba
 
+  - job_name: simulador
+    # Solo responde mientras corre scripts/simular_en_vivo.py (--puerto-metricas, default 9105);
+    # fuera de una simulación el target figura DOWN.
+    static_configs:
+      - targets: ["host.docker.internal:9105"]
+        labels:
+          entorno: prueba
+
   - job_name: mongodb
     static_configs:
       - targets: ["mongodb-exporter:9216"]

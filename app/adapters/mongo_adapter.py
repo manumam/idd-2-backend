@@ -171,6 +171,12 @@ class MongoAdapter(BaseAdapter):
         return self._execute(lambda: self.db["partidos"].find_one({"_id": codigo}))
 
     @observe("MongoDB")
+    def list_candidatos_simulacion(self):
+        """Próximos partidos ordenados para que el servicio elija el primero simulable."""
+        return self._execute(lambda: list(self.db["partidos"].find(
+            {"estado": "proximo"}).sort([("fecha_hora", 1), ("_id", 1)])))
+
+    @observe("MongoDB")
     def list_partidos_jugador(self, codigo: str):
         # El catálogo no demuestra participación: convocatoria, eventos o tracking explícito.
         return self._execute(lambda: list(self.db['partidos'].find({'$or': [

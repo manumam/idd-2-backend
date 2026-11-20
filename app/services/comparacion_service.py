@@ -23,6 +23,16 @@ def instante(value):
     return parsed.replace(tzinfo=parsed.tzinfo or timezone.utc).astimezone(timezone.utc)
 
 
+def inicio_temporal(fecha_hora, inicio_tracking=None):
+    """Ancla de las series del partido: el inicio real de la simulación en vivo o, si no hubo, el horario.
+
+    Se redondea al minuto para coincidir con las ventanas materializadas del mapa de calor.
+    """
+    if inicio_tracking is None:
+        return instante(fecha_hora)
+    return instante(inicio_tracking).replace(second=0, microsecond=0)
+
+
 def huella(doc):
     campos = ('fecha_hora', 'estado', 'local', 'visitante', 'resultado', 'eventos', 'reloj', 'estadisticas_control')
     return hashlib.sha256(json.dumps({k: doc.get(k) for k in campos}, sort_keys=True, default=str).encode()).hexdigest()
@@ -119,8 +129,8 @@ def _combinar(doc, respuesta):
         respuesta.advertencias.append('Todavía no hay muestras temporales confirmadas.')
         return respuesta
     try:
-        if instante(control['inicio']) != instante(doc['fecha_hora']):
-            raise ValueError('El horario de ingesta no coincide con el partido')
+        if instante(control['inicio']) != inicio_temporal(doc['fecha_hora'], doc.get('inicio_tracking')):
+            raise ValueError('El inicio de la ingesta no coincide con el del partido')
         if not respuesta.reloj or (instante(control['hasta']) - instante(control['inicio'])).total_seconds() != respuesta.reloj.minuto * 60 + respuesta.reloj.adicional * 60:
             raise ValueError('El avance temporal no coincide con el reloj deportivo')
         filas = influx_adapter.find_muestras(doc['_id'], control['inicio'], control['hasta'])

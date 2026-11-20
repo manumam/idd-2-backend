@@ -130,6 +130,23 @@ su preparación no lo carga en MongoDB. Ejecutar solo tras autorizar esta carga:
 
 No modifica eventos, reloj, estado ni tracking; no reinicia el partido finalizado.
 
+## Titulares del Mundial 2026 para la fase de grupos
+
+`data/fixture/alineaciones-mundial2026.json` asigna a 68 partidos de grupos de 2030
+el once que cada selección usó en su primer partido del Mundial 2026 (fuente:
+páginas de grupos de Wikipedia, contrastadas por dorsal y apellido con
+`data/worldcup2026/source/players.tsv`). Los suplentes son el resto del plantel,
+hasta quince. Cubre 47 selecciones (Paraguay queda afuera: su once publicado está
+incompleto) y deja vacío el lado de las selecciones sin plantel. Los cruces de 2030
+son ficticios, no los de 2026. Sin formación táctica.
+
+```bash
+.venv/bin/python scripts/cargar_alineaciones.py data/fixture/alineaciones-mundial2026.json --solo-validar
+.venv/bin/python scripts/cargar_alineaciones.py data/fixture/alineaciones-mundial2026.json
+```
+
+Conserva las convocatorias ya cargadas (P-001 y los partidos de Argentina).
+
 ## Formación táctica
 
 Cada convocatoria admite `formacion`, opcional y `null` por defecto para conservar

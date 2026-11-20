@@ -274,3 +274,31 @@ def test_preparacion_influx_repetible_preserva_config_y_no_expone_token(tmp_path
     preparar.main()
     assert (tmp_path / '.env.antes-estadisticas').read_text() == original
     assert 'secreto-prueba' not in capsys.readouterr().out
+
+
+def test_vivo_lee_las_muestras_desde_inicio_tracking(escenario):
+    doc, plan, filas = escenario
+    from app.services.seguimiento_service import aplicar_tick
+    for tick in plan.deportivo.ticks[:2]:
+        aplicar_tick('P-002', tick)
+    inicio_tracking = datetime(2026, 11, 20, 18, 30, tzinfo=timezone.utc)
+    doc['inicio_tracking'] = inicio_tracking
+    # Las precargadas en el horario del partido quedan fuera de la lectura.
+    for f in plan.muestras(0, 720) + plan.muestras(0, 720, inicio_tracking):
+        filas[(f['time'], f['equipo_id'])] = f
+    influx_adapter.find_muestras.side_effect = lambda _, desde, hasta: [
+        f for f in filas.values() if desde <= f['time'].replace('+00:00', 'Z') <= hasta]
+    doc['estadisticas_control'] = plan.control(1, inicio_tracking)
+    data = obtener_comparacion('P-002')
+    assert data.consolidacion == 'provisional' and data.local.pases == 48
+    assert influx_adapter.find_muestras.call_args.args[1:] == ('2026-11-20T18:30:00Z', '2026-11-20T18:42:00Z')
+    # Un control anclado en el horario no corresponde a un partido simulado en vivo.
+    doc['estadisticas_control'] = plan.control(1)
+    assert obtener_comparacion('P-002').consolidacion == 'pendiente'
+
+
+def test_inicio_temporal_prefiere_inicio_tracking_redondeado():
+    from app.services.comparacion_service import inicio_temporal
+    assert inicio_temporal('2030-06-24T20:00:00Z') == datetime(2030, 6, 24, 20, tzinfo=timezone.utc)
+    assert inicio_temporal(datetime(2030, 6, 24, 20), datetime(2026, 11, 20, 18, 30, 42)) == \
+        datetime(2026, 11, 20, 18, 30, tzinfo=timezone.utc)

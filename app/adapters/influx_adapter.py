@@ -5,7 +5,7 @@ Encapsula la API HTTP/SQL de InfluxDB 3 Core con lectura automática de tokens y
 
 import os
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterable, Iterator, List, Optional
 import requests
 
 from app.adapters.base import BaseAdapter
@@ -34,6 +34,22 @@ SQL_OCUPACION_POR_CELDA = (
     "WHERE partido_id = $partido AND jugador_id = $jugador AND time >= $desde AND time < $hasta "
     "GROUP BY celda"
 )
+
+LOTE_LINEAS = 10000
+INTENTOS_POR_LOTE = 3
+# Un lote de 10.000 líneas tarda más que una consulta puntual.
+TIMEOUT_LOTE_SEG = 60
+
+
+def en_lotes(lineas: Iterable[str], tamano: int = LOTE_LINEAS) -> Iterator[List[str]]:
+    lote = []
+    for linea in lineas:
+        lote.append(linea)
+        if len(lote) == tamano:
+            yield lote
+            lote = []
+    if lote:
+        yield lote
 
 
 def _datos_mapa_inexistentes(error: DatabaseUnavailableError, tabla: str, database: str) -> bool:
@@ -152,21 +168,51 @@ class InfluxAdapter(BaseAdapter):
             "AND time <= $hasta ORDER BY time, equipo_id LIMIT 10001",
             {"partido": partido, "desde": desde, "hasta": hasta})
 
-    @observe("InfluxDB")
     def escribir_muestras(self, lineas: str) -> None:
         """Line protocol construido exclusivamente desde el plan validado."""
+        self.escribir_lote(settings.influx_database, lineas.splitlines())
+
+    def _validar_base_de_escritura(self, database: str) -> None:
+        if database not in (settings.influx_database, settings.influx_database_en_vivo):
+            raise ValueError("Base de InfluxDB no configurada")
+
+    @observe("InfluxDB")
+    def escribir_lote(self, database: str, lineas: List[str]) -> None:
+        """Escribe un lote completo o ninguna línea (accept_partial=false), con reintentos acotados."""
+        self._validar_base_de_escritura(database)
         headers = {"Content-Type": "text/plain; charset=utf-8"}
         token = self._resolve_token()
         if token:
             headers["Authorization"] = "Bearer " + token
-        try:
-            response = self.get_session().post(
-                f"{settings.influx_url.rstrip('/')}/api/v3/write_lp",
-                params={"db": settings.influx_database, "precision": "second", "accept_partial": "false", "no_sync": "false"},
-                headers=headers, data=lineas.encode(), timeout=settings.db_timeout_seconds)
-            response.raise_for_status()
-        except requests.RequestException as exc:
-            raise DatabaseUnavailableError("InfluxDB", exc) from exc
+        cuerpo = ("\n".join(lineas) + "\n").encode("utf-8")
+        error = None
+        for _ in range(INTENTOS_POR_LOTE):
+            try:
+                self.get_session().post(
+                    f"{settings.influx_url.rstrip('/')}/api/v3/write_lp",
+                    params={"db": database, "precision": "second", "accept_partial": "false", "no_sync": "false"},
+                    headers=headers, data=cuerpo, timeout=TIMEOUT_LOTE_SEG).raise_for_status()
+                return
+            except requests.HTTPError as exc:
+                error = exc
+                if exc.response is not None and exc.response.status_code < 500:
+                    # Líneas inválidas o credenciales rechazadas: reintentar no cambia la respuesta.
+                    break
+            except requests.RequestException as exc:
+                error = exc
+        logger.warning("InfluxDB rechazó un lote de %s líneas", len(lineas))
+        raise DatabaseUnavailableError("InfluxDB", error) from error
+
+    def escribir_lineas(self, database: str, lineas: Iterable[str]) -> int:
+        """Escribe en lotes y devuelve las líneas rechazadas después de los reintentos."""
+        self._validar_base_de_escritura(database)
+        rechazadas = 0
+        for lote in en_lotes(lineas):
+            try:
+                self.escribir_lote(database, lote)
+            except DatabaseUnavailableError:
+                rechazadas += len(lote)
+        return rechazadas
 
     @observe("InfluxDB")
     def ping(self) -> bool:

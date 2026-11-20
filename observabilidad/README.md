@@ -12,6 +12,7 @@ expone `GET /metrics`. Desde el contenedor la API se alcanza como
 | Bases (mongo, redis, influxdb) | `docker-compose.yaml` de la raíz | ver `.env` |
 | Prometheus | este compose | `127.0.0.1:9090` |
 | Exporters (mongodb, redis, node) | este compose | solo red interna |
+| Simulador en vivo (`/metrics`) | host, solo mientras corre | `--puerto-metricas` (9105) |
 
 Cada fuente es un job en `scrape_configs`; cada target lleva la etiqueta
 `entorno` (`prueba` o `demo`). Las pruebas y la demo se envían a Grafana Cloud y los
@@ -31,6 +32,27 @@ levanta con `--env-file ../.env`.
 | `redis` | `oliver006/redis_exporter` | `redis_up`, `keyspace_hits/misses` (tasa de aciertos de caché), `evicted_keys`, `memory_used_bytes`, clientes conectados | Salud de Redis / caché |
 | `node` | `prom/node-exporter` | CPU, memoria, disco y red de la máquina | Recursos del host |
 | `influxdb` | ninguno: `/metrics` propio de InfluxDB 3 (`:8181`) | `http_requests_total` y latencia HTTP (el resto, histogramas internos de almacenamiento, se descarta) | Salud de InfluxDB |
+
+## Simulador en vivo
+
+El job `simulador` hace scrape de `host.docker.internal:9105`, el `/metrics` que
+`scripts/simular_en_vivo.py` abre mientras juega un partido
+([docs/simulador_en_vivo.md](../docs/simulador_en_vivo.md)). Escucha en `0.0.0.0` para
+que el contenedor lo alcance; con otro `--puerto-metricas`, ajustar el target. Fuera de
+una simulación el target figura `DOWN`: es lo esperado.
+
+| Métrica | Tipo | Qué mide |
+| --- | --- | --- |
+| `simulador_ticks_aplicados_total` | counter | ticks del guion confirmados en MongoDB (9 por partido) |
+| `simulador_puntos_escritos_total{tabla}` | counter | puntos escritos en InfluxDB por tabla |
+| `simulador_puntos_rechazados_total{tabla}` | counter | puntos rechazados después de los reintentos |
+| `simulador_segundo_de_juego` | gauge | último segundo de juego escrito (0–5400) |
+| `simulador_retraso_segundos` | gauge | segundos reales que la escritura va detrás del reloj acelerado |
+
+La única etiqueta propia es `tabla` (cuatro valores). El partido no es etiqueta: una
+simulación por vez, identificada por el target y `entorno`. Usa un registro propio: no
+publica las métricas `api_*` de los adaptadores que usa, así los paneles de la API no
+mezclan sus escrituras.
 
 Del exporter de MongoDB solo se guardan las métricas de la tabla (`metric_relabel_configs`):
 el resto son ~2400 series y Grafana Cloud Free admite 10k activas.

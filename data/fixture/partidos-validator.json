@@ -152,6 +152,9 @@
           "actualizado_en": {
             "bsonType": "date"
           },
+          "inicio_tracking": {
+            "bsonType": "date"
+          },
           "reloj": {
             "bsonType": [
               "object",

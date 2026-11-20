@@ -122,9 +122,9 @@ def invalidar_mapas(conectar, partido):
         return False
 
 
-def materializar(influx, escribir, conectar, base_en_vivo, base_resumen, partido):
+def materializar(influx, conectar, base_en_vivo, base_resumen, partido):
     lineas = [linea_ocupacion(partido, f) for f in leer_ocupacion(influx, base_en_vivo, partido)]
-    rechazadas = escribir(base_resumen, lineas)
+    rechazadas = influx.escribir_lineas(base_resumen, lineas)
     invalidar_mapas(conectar, partido)
     return dict(partido=partido, enviadas=len(lineas), rechazadas=rechazadas)
 
@@ -138,7 +138,6 @@ def main():
                         help='Solo lee: cuenta puntos y series y verifica la suma de ventanas, sin escribir')
     args = parser.parse_args()
 
-    import requests
     from app.adapters.influx_adapter import influx_adapter
     from app.config.settings import settings
     from app.services.cache_partidos import conectar_cache
@@ -156,13 +155,8 @@ def main():
             sys.exit(1)
         return
 
-    token = influx_adapter._resolve_token()
-    with requests.Session() as session:
-        def escribir(base, lineas):
-            return cargar_influx.escribir(session, settings.influx_url, token, base, lineas)
-
-        resultado = [materializar(influx_adapter, escribir, lambda: conectar_cache(settings),
-                                  base_en_vivo, base_resumen, p) for p in partidos]
+    resultado = [materializar(influx_adapter, lambda: conectar_cache(settings), base_en_vivo, base_resumen, p)
+                 for p in partidos]
     print(json.dumps(resultado, indent=2))
     if any(r['rechazadas'] for r in resultado):
         sys.exit(1)
